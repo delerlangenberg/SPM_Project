@@ -13,8 +13,13 @@ class ProfilingMode(BaseScanMode):
     """
 
     def __init__(self, config=None, hardware_mode=False):
+      
+
         super().__init__(config)
         self.hardware_mode = hardware_mode
+        cfg = config or {}
+
+        self.profile_length = cfg.get("profile_length", 100)
         self.z_driver = get_z_driver(hardware_mode)
         self.axis = config.get("axis", "x")
         self.range = config.get("range", 10)
