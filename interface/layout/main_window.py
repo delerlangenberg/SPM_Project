@@ -2,8 +2,10 @@ import os
 
 from PyQt5.QtWidgets import (
     QMainWindow, QMenuBar, QMenu, QAction, QDockWidget, QWidget,
-    QVBoxLayout, QPushButton, QLabel, QMessageBox, QFileDialog
+    QVBoxLayout, QPushButton, QLabel, QMessageBox, QFileDialog,
+    QComboBox
 )
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette, QColor
 import pyqtgraph as pg
@@ -50,7 +52,11 @@ class MainWindow(QMainWindow):
             return
 
         # CONNECT
-        port = os.environ.get("SPM_MOTION_PORT", "").strip() or "COM5"
+        port = self.port_selector.currentText()
+        if not port:
+            QMessageBox.warning(self, "No port selected", "No serial port selected.")
+            return
+
         try:
             self.motion_backend = PrusaGcodeBackend(port=port)
             self.motion_backend.connect()
@@ -114,44 +120,34 @@ class MainWindow(QMainWindow):
 
     def _init_dock_widgets(self):
         # System Control
+        # System Control Dock (connection button + port selector)
         self.sys_control_dock = QDockWidget("System Control", self)
         sys_widget = QWidget()
-        layout = QVBoxLayout()
+        sys_layout = QVBoxLayout()
 
+        # Port selector
+        self.port_label = QLabel("Serial Port:")
+        self.port_selector = QComboBox()
+        self.refresh_ports_button = QPushButton("Refresh Ports")
+
+        sys_layout.addWidget(self.port_label)
+        sys_layout.addWidget(self.port_selector)
+        sys_layout.addWidget(self.refresh_ports_button)
+
+        # Connect button
         self.connect_button = QPushButton("Connect to System")
         self.connect_button.setStyleSheet("background-color: red; color: white;")
         self.connect_button.clicked.connect(self.toggle_system_connection)
 
-        layout.addWidget(self.connect_button)
-        sys_widget.setLayout(layout)
+        sys_layout.addWidget(self.connect_button)
+
+        sys_widget.setLayout(sys_layout)
         self.sys_control_dock.setWidget(sys_widget)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.sys_control_dock)
 
-        # Live plot
-        self.plot_dock = QDockWidget("Live Scan Plot", self)
-        plot = pg.PlotWidget()
-        plot.setLabel("left", "Z Signal")
-        plot.setLabel("bottom", "Time")
-        plot.showGrid(x=True, y=True)
-        self.plot_dock.setWidget(plot)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.plot_dock)
+        self.refresh_ports_button.clicked.connect(self.refresh_serial_ports)
+        self.refresh_serial_ports()
 
-        # Other docks
-        self.zreg_dock = QDockWidget("Z Regulation", self)
-        self.zreg_dock.setWidget(ZRegulationPanel())
-        self.addDockWidget(Qt.RightDockWidgetArea, self.zreg_dock)
-
-        self.ai_dock = QDockWidget("AI Control", self)
-        self.ai_dock.setWidget(AIControlPanel())
-        self.addDockWidget(Qt.RightDockWidgetArea, self.ai_dock)
-
-        self.sim_dock = QDockWidget("Simulation", self)
-        self.sim_dock.setWidget(SimulationPanel())
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.sim_dock)
-
-        self.measurement_dock = QDockWidget("Measurement", self)
-        self.measurement_dock.setWidget(MeasurementPanel())
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.measurement_dock)
 
     def _toggle_dock_visibility(self):
         action = self.sender()
@@ -191,7 +187,7 @@ class MainWindow(QMainWindow):
                 self,
             "Connection failed",
             f"Could not connect to the system on port: {port}\n\nError:\n{e}\n\n"
-            "Hint: Click 'List Ports' to find the correct COM port."
+            "Hint: Click 'Refresh Ports' to find the correct COM port."
             )
             self.motion_backend = None
             self.statusBar().showMessage("System disconnected")
@@ -234,3 +230,12 @@ class MainWindow(QMainWindow):
 
         lines = [f"{p.device} — {p.description}" for p in ports]
         QMessageBox.information(self, "Ports", "Available serial ports:\n\n" + "\n".join(lines))
+
+    def refresh_serial_ports(self):
+        self.port_selector.clear()
+        if list_ports is None:
+            return
+        ports = list_ports.comports()
+        for p in ports:
+            self.port_selector.addItem(p.device)
+
