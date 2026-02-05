@@ -18,7 +18,14 @@ class PrusaGcodeBackend(MotionBackend):
         self._connected = False
 
     def connect(self) -> None:
-        raise NotImplementedError("PrusaGcodeBackend.connect not implemented yet")
+    """
+    Soft-connect placeholder.
+
+    This does NOT talk to hardware yet.
+    It only marks the backend as logically connected.
+    """
+    self._connected = True
+
 
     def disconnect(self) -> None:
         raise NotImplementedError("PrusaGcodeBackend.disconnect not implemented yet")
