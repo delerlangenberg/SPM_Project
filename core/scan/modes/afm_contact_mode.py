@@ -8,7 +8,7 @@ from core.z_control.z_interface import get_z_driver
 
 
 
-class AFMContactMode(BaseScanMode):
+class AfmContactMode(BaseScanMode):
     """
     Implements AFM Contact Mode scan behavior.
     """

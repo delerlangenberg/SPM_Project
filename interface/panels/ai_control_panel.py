@@ -1,7 +1,11 @@
 # File: interface/panels/ai_control_panel.py
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog, QMessageBox
-import torch
+try:
+    import torch  # optional dependency
+except ModuleNotFoundError:
+    torch = None
+
 
 class AIControlPanel(QWidget):
     def __init__(self):

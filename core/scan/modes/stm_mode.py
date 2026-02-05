@@ -6,12 +6,7 @@ from core.scan.base_scan_mode import BaseScanMode
 from core.z_control.z_interface import get_z_driver
 from core.scan.modes import stm_mode
 
-
-
-
-
-
-class STMMode(BaseScanMode):
+class StmMode(BaseScanMode):
     """
     Implements STM scanning behavior (simulated or hardware mode).
     """
@@ -20,13 +15,34 @@ class STMMode(BaseScanMode):
         super().__init__(config)
         self.hardware_mode = hardware_mode
         self.z_driver = get_z_driver(hardware_mode)
-        self.x_range = config.get("x_range", 10)  # μm
-        self.y_range = config.get("y_range", 10)  # μm
-        self.resolution = config.get("resolution", 100)
-        self.tunnel_current = config.get("setpoint", 1.0)  # nA
+
+        cfg = config or {}
+
+        # Accept legacy/test config key
+        self.scan_area = cfg.get("scan_area", None)
+
+        # If scan_area is provided, use it for both axes (square scan)
+        if self.scan_area is not None:
+            self.x_range = self.scan_area
+            self.y_range = self.scan_area
+        else:
+            self.x_range = cfg.get("x_range", 10)  # μm
+            self.y_range = cfg.get("y_range", 10)  # μm
+
+        self.resolution = cfg.get("resolution", 100)
+        self.tunnel_current = cfg.get("setpoint", 1.0)  # nA
         self.x_step = self.x_range / self.resolution
         self.y_step = self.y_range / self.resolution
         self.simulated_surface = None
+
+
+
+
+
+
+
+
+
 
     def initialize(self):
         print("[STMMode] Initialization...")
