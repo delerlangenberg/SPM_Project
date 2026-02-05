@@ -14,22 +14,63 @@ from interface.panels.simulation_panel import SimulationPanel
 from interface.panels.measurement_panel import MeasurementPanel
 
 from core.motion.prusa_gcode_backend import PrusaGcodeBackend
-
-
+try:
+    from serial.tools import list_ports
+except Exception:  # pyserial not installed or unavailable
+    list_ports = None
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
-        # Connection state
-        self.is_connected = False
         self.motion_backend = None
-
-        self.setWindowTitle("SPM Control Interface")
-        self.setGeometry(100, 100, 1400, 900)
-        self._setup_dark_theme()
-        self.setMenuBar(self._create_menu_bar())
-        self._init_status_bar()
+        self.is_connected = False
+        ...
         self._init_dock_widgets()
+
+    def _init_dock_widgets(self):
+        ...
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.measurement_dock)
+
+    def toggle_system_connection(self):
+        # DISCONNECT
+        if self.is_connected:
+            try:
+                if self.motion_backend is not None:
+                    self.motion_backend.disconnect()
+            except Exception as e:
+                print(f"Disconnect warning: {e}")
+            finally:
+                self.motion_backend = None
+                self.is_connected = False
+
+            self.connect_button.setText("Connect to System")
+            self.connect_button.setStyleSheet("")
+            self.connection_label.setText("Disconnected")
+            self.statusBar().showMessage("System disconnected")
+            print("System disconnected (Prusa backend).")
+            return
+
+        # CONNECT
+        port = os.environ.get("SPM_MOTION_PORT", "").strip() or "COM5"
+        try:
+            self.motion_backend = PrusaGcodeBackend(port=port)
+            self.motion_backend.connect()
+        except Exception as e:
+            self.motion_backend = None
+            self.is_connected = False
+            self.statusBar().showMessage("System disconnected")
+            print(f"System connect failed: {e}")
+            return
+
+        self.is_connected = True
+        self.connect_button.setText("Connected")
+        self.connect_button.setStyleSheet("background-color: green; color: white;")
+        self.connection_label.setText("Connected")
+        self.statusBar().showMessage("System connected")
+        print(f"System connected (Prusa backend). port={self.motion_backend.port}")
+
+
+
+
 
     # ---------- UI setup ----------
 
@@ -146,10 +187,18 @@ class MainWindow(QMainWindow):
             self.motion_backend = PrusaGcodeBackend(port=port)
             self.motion_backend.connect()
         except Exception as e:
+            QMessageBox.warning(
+                self,
+            "Connection failed",
+            f"Could not connect to the system on port: {port}\n\nError:\n{e}\n\n"
+            "Hint: Click 'List Ports' to find the correct COM port."
+            )
             self.motion_backend = None
             self.statusBar().showMessage("System disconnected")
             print(f"System connect failed: {e}")
             return
+
+
 
         self.is_connected = True
         self.connect_button.setText("Connected")
@@ -172,3 +221,16 @@ class MainWindow(QMainWindow):
         fname, _ = QFileDialog.getSaveFileName(self, "Save Project", "", "Project Files (*.spm)")
         if fname:
             QMessageBox.information(self, "Save Project", fname)
+
+    def show_available_ports(self):
+        if list_ports is None:
+            QMessageBox.warning(self, "Ports", "pyserial not available. Install: python -m pip install pyserial")
+            return
+
+        ports = list(list_ports.comports())
+        if not ports:
+            QMessageBox.information(self, "Ports", "No serial ports found.\n\nPlug in the printer via USB and try again.")
+            return
+
+        lines = [f"{p.device} — {p.description}" for p in ports]
+        QMessageBox.information(self, "Ports", "Available serial ports:\n\n" + "\n".join(lines))
