@@ -13,28 +13,18 @@ class BaseScanMode(ABC):
         self.current_position = (0, 0)
         self.data_buffer = []
 
-    @abstractmethod
     def initialize(self):
-        """
-        Prepare scan environment, motors, and Z-feedback if needed.
-        Called before scan loop starts.
-        """
-        pass
+        """Default no-op initialize (override in subclasses)."""
+        return None
 
-    @abstractmethod
     def perform_step(self):
-        """
-        Perform one scan step (X/Y movement, Z-feedback if needed, data acquisition).
-        Return "done" to indicate completion.
-        """
-        pass
+        """Default step returns 'done' (override in subclasses)."""
+        return "done"
 
-    @abstractmethod
     def finalize(self):
-        """
-        Safely stop all activities. Called after scan is complete or aborted.
-        """
-        pass
+        """Default no-op finalize (override in subclasses)."""
+        return None
+
 
     def get_data(self):
         """
