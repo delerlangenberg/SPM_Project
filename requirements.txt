@@ -1,5 +1,14 @@
-﻿pytest
-PyQt5
-pyqtgraph
-matplotlib
-pyserial
+﻿# Testing framework
+pytest>=7.0.0
+pytest-qt>=4.2.0
+
+# GUI and visualization
+PyQt5>=5.15.0
+pyqtgraph>=0.13.0
+matplotlib>=3.7.0
+
+# Scientific computing
+numpy>=1.24.0
+
+# Hardware communication
+pyserial>=3.5

@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spm-project"
+version = "0.1.0"
+description = "Modular control and scanning system for Scanning Probe Microscopy"
+authors = [
+    {name = "Dr. Deler Langenberg"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["SPM", "microscopy", "AFM", "STM", "scientific", "instrumentation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-qt>=4.2.0",
+    "PyQt5>=5.15.0",
+    "pyqtgraph>=0.13.0",
+    "matplotlib>=3.7.0",
+    "numpy>=1.24.0",
+    "pyserial>=3.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/SPM_Project"
+Documentation = "https://github.com/yourusername/SPM_Project/docs"
+Repository = "https://github.com/yourusername/SPM_Project"
+"Bug Tracker" = "https://github.com/yourusername/SPM_Project/issues"
+
+[project.scripts]
+spm = "SPM_Project.main:main"
+
+[tool.setuptools]
+packages = ["SPM_Project"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+include = '\.pyi?$'
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
