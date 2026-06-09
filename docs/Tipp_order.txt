@@ -1,0 +1,187 @@
+# CR‑Touch → Macro‑SPM Z‑Probe Conversion Guide
+Author: <your name>  
+Project: Prusa MK4 → Macro‑SPM Conversion  
+Version: 1.0
+
+---
+
+## 1. Overview
+
+This document describes how to convert a **Creality CR‑Touch** auto‑leveling sensor into a **compact Z‑probe** suitable for macro‑scale SPM (Scanning Probe Microscopy) experiments.
+
+The CR‑Touch is ideal because it already contains:
+
+- A **spring‑loaded probe pin**
+- A **tiny internal magnet**
+- A **Hall‑effect position sensor**
+- A **microcontroller** that outputs a clean digital trigger
+- A **compact housing** (< 30 mm total length)
+
+By replacing the stock probe pin with a **sharp pogo‑pin**, the CR‑Touch becomes a precise contact‑probe with sub‑0.1 mm Z‑resolution.
+
+---
+
+## 2. Internal Working Principle
+
+The CR‑Touch is **not** inductive or optical.  
+It is a **Hall‑effect displacement sensor**:
+
+- The probe pin contains a small magnet.
+- As the pin moves, the magnet shifts relative to a Hall‑sensor.
+- The microcontroller detects the exact moment the pin reaches a calibrated position.
+- A digital signal is output (HIGH/LOW).
+
+This is functionally similar to a miniature Z‑force probe.
+
+---
+
+## 3. Required Parts (Orderable from Amazon / Conrad / Digi‑Key)
+
+### 3.1 Main Sensor
+**Creality CR‑Touch (Original)**  
+Use your existing unit.
+
+### 3.2 Replacement Probe Pin (Sharp)
+Choose one:
+
+- **Pogo Pin P100‑B1** (standard, 1.3–1.5 mm diameter)
+- **Pogo Pin P75‑B1** (thin, ~1.0 mm diameter)
+
+Both are spring‑loaded test probes used in PCB testing.
+
+### 3.3 Optional: Sharper Tip
+For very fine contact:
+
+- **Thorlabs PTG10 Tungsten Probe Tip**
+
+### 3.4 Optional: Magnet (if pogo pin has no magnet)
+- **Neodymium Magnet 2×2 mm**
+
+### 3.5 Tools
+- Small screwdriver
+- Tweezers
+- Superglue (only if adding a magnet)
+- Small washer/shim (optional)
+
+---
+
+## 4. Mechanical Modification Procedure
+
+### Step 1 — Remove the original probe pin
+1. Unscrew the bottom cap of the CR‑Touch.
+2. Pull out the stock 2.5 mm probe pin.
+3. Keep the original spring.
+
+### Step 2 — Insert the pogo pin
+1. Insert **P100‑B1** or **P75‑B1** into the same channel.
+2. Ensure the pin slides smoothly.
+3. Reuse the original spring.
+
+### Step 3 — Add magnet (only if needed)
+If the pogo pin does not contain a magnet:
+
+1. Glue a **2×2 mm neodymium magnet** to the top of the pogo pin.
+2. Ensure the magnet is centered.
+3. Verify free movement.
+
+### Step 4 — Reassemble the housing
+1. Reinstall the bottom cap.
+2. Verify the pin moves 3–4 mm freely.
+
+### Step 5 — Optional: Disable solenoid
+The solenoid is not required for SPM use.
+
+You may:
+- Leave it connected (harmless), or
+- Disconnect the solenoid wires (Hall sensor still works)
+
+---
+
+## 5. Electrical Interface
+
+The CR‑Touch outputs a **digital trigger signal**:
+
+- **LOW** → probe up  
+- **HIGH** → probe triggered (contact detected)
+
+This can be connected to:
+
+- A microcontroller (Arduino, ESP32, STM32)
+- The Prusa MK4 Z‑probe input
+- A custom SPM controller
+
+Power requirements:
+- 5 V supply
+- GND
+- Signal output
+
+---
+
+## 6. Using the CR‑Touch as an SPM Z‑Probe
+
+### Basic scanning loop:
+
+1. Move to XY coordinate.
+2. Slowly lower Z.
+3. When the probe tip touches the surface → CR‑Touch triggers.
+4. Record Z height.
+5. Retract Z slightly.
+6. Move to next XY point.
+7. Repeat.
+
+This produces a **contact‑mode height map** (macro‑SPM).
+
+---
+
+## 7. Performance Notes
+
+- **Resolution:** ~0.01–0.05 mm (depends on mechanics)
+- **Repeatability:** excellent for macro‑SPM
+- **Total size:** < 30 mm
+- **Tip diameter:** 1.0–1.5 mm (P75/P100)
+- **Tip sharpness:** can be upgraded with tungsten tip
+
+This is not AFM or STM, but ideal for:
+- Macro‑surface mapping
+- Force‑triggered scanning
+- Roughness measurement
+- Contact‑profiling
+
+---
+
+## 8. Bill of Materials (BOM)
+
+| Item | Product Name | Qty | Notes |
+|------|--------------|-----|-------|
+| 1 | Creality CR‑Touch | 1 | Main sensor |
+| 2 | Pogo Pin P100‑B1 | 5 | Replacement probe pin |
+| 3 | Pogo Pin P75‑B1 | 5 | Optional thinner pin |
+| 4 | Neodymium Magnet 2×2 mm | 10 | Only if pogo pin lacks magnet |
+| 5 | Thorlabs PTG10 Tungsten Tip | 1 | Optional ultra‑sharp tip |
+| 6 | Small washer/shim | 2 | Adjust spring preload |
+| 7 | M3 screws | 2 | Mounting to MK4 bracket |
+
+---
+
+## 9. Mounting on Prusa MK4
+
+- Attach the CR‑Touch to a custom bracket or existing probe mount.
+- Ensure the sharp probe tip is the lowest point.
+- Calibrate Z‑offset manually.
+- Use slow Z‑approach speeds for scanning.
+
+---
+
+## 10. Safety Notes
+
+- Do not crash the probe into the surface at high speed.
+- Keep the tungsten tip away from fingers — extremely sharp.
+- Avoid magnetic interference near the Hall sensor.
+
+---
+
+## 11. Summary
+
+This modification transforms the CR‑Touch into a **compact, precise, low‑cost Z‑probe** suitable for macro‑SPM experiments.  
+It uses only easily available parts from Amazon, Conrad, or Digi‑Key and requires minimal mechanical changes.
+

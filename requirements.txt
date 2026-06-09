@@ -1,0 +1,5 @@
+﻿pytest
+PyQt5
+pyqtgraph
+matplotlib
+pyserial

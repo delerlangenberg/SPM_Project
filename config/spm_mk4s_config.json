@@ -1,0 +1,28 @@
+{
+  "printer": {
+    "port": "COM5",
+    "baudrate": 115200
+  },
+  "motion_limits": {
+    "x": [20, 80],
+    "y": [20, 80],
+    "z": [5, 50]
+  },
+  "safe_feedrates": {
+    "xy": 1200,
+    "z": 300
+  },
+  "scan_area": {
+    "x_min": 46,
+    "x_max": 54,
+    "y_min": 46,
+    "y_max": 54,
+    "z": 20,
+    "x_resolution": 5,
+    "y_resolution": 5
+  },
+  "safe_raster": {
+    "simulated_z_signal": 0.0,
+    "output_file": "data/safe_raster_5x5_output.csv"
+  }
+}
