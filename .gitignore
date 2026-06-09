@@ -19,3 +19,6 @@ Thumbs.db
 
 # Log files
 *.log
+
+# Local old GitHub review copy
+docs/old_github_review/

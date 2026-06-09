@@ -1,0 +1,583 @@
+=== LOCAL STATUS ===
+?? GITHUB_COMPARISON_REPORT.txt
+?? core/z_control/z_driver_arduino_safe.py
+
+=== LOCAL COMMIT ===
+f881bfb Phase 4.5 complete: GUI full execution with Browse button, color map, automatic plot generation, backup verified
+
+=== GITHUB COMMIT ===
+d7d8627 Update SPM Project configuration and documentation
+
+=== COMMIT RELATION: main...origin/main ===
+< f881bfb Phase 4.5 complete: GUI full execution with Browse button, color map, automatic plot generation, backup verified
+> d7d8627 Update SPM Project configuration and documentation
+> 1fe12b3 ux: add serial port dropdown with refresh and safe connect handling
+> 5025110 ux: show connect failure popup and add port listing helper
+> ca161c0 feat: wire Connect toggle to Prusa backend and add hardware/dry-run flags
+> 817e66a test: add Prusa connect failure test for missing port
+> 45323dc feat: add Prusa G-code serial backend and safe ping tool
+> f913db9 chore: add requirements.txt for dev setup
+> 03849dc docs: document python -m spm entry point
+> 5e43d44 fix: add profile_length config to ProfilingMode
+> 287e333 test: add motion backend tests
+> 6f8d346 chore: add .gitignore for Python caches and tooling
+> 8002c50 chore: move tools, notes, and assets out of repo root
+> 479b678 fix: make BaseScanMode instantiable with default no-op methods
+> c4259ba fix: align scan mode class names and make AI panel optional
+> 2d0bf7e core: add soft connect flag for PrusaGcodeBackend
+> f9197db core: add PrusaGcodeBackend stub
+> cb3ad58 core: add MotionBackend interface
+> 45f8dac docs: add project overview and Prusa MK4S decision
+> df26c28 chore: add docs scaffolding and issue templates
+> ba5c469 Resolved merge conflicts
+> cf8e1bf Initial commit: Adding project files
+> 9244bd1 Initial commit
+
+=== DIFF STAT: local main -> GitHub origin/main ===
+ .editorconfig                                      |  24 ++
+ .../__init__.py => .github/ISSUE_TEMPLATE/bug.md   |   0
+ .../ISSUE_TEMPLATE/feature.md                      |   0
+ .github/copilot-instructions.md                    | 232 ++++++++++++
+ .gitignore                                         |  18 +-
+ CONTRIBUTING.md                                    | 285 ++++++++++++++
+ LICENSE                                            |  21 +
+ README.md                                          | 324 ++++++++++++++--
+ README_old.md                                      |   6 +
+ SPM                                                |   1 +
+ SPM_Project                                        |   1 +
+ tests_legacy/test_gui.py => __init__.py            |   0
+ __pycache__/__init__.cpython-312.pyc               | Bin 0 -> 133 bytes
+ tests_legacy/test_scan.py => ai/__init__.py        |   0
+ ai/__pycache__/__init__.cpython-312.pyc            | Bin 0 -> 136 bytes
+ ai/__pycache__/ml_model.cpython-312.pyc            | Bin 0 -> 302 bytes
+ ai/__pycache__/pattern_matcher.cpython-312.pyc     | Bin 0 -> 319 bytes
+ .../test_z_control.py => ai/models/__init__.py     |   0
+ ai/models/__pycache__/__init__.cpython-312.pyc     | Bin 0 -> 143 bytes
+ ai/models/__pycache__/ml_model.cpython-312.pyc     | Bin 0 -> 900 bytes
+ ai/models/ml_model.py                              |  22 ++
+ ai/pattern_matcher.py                              |   3 +
+ ai/utils/__init__.py                               |   0
+ ai/utils/__pycache__/__init__.cpython-312.pyc      | Bin 0 -> 142 bytes
+ ai/utils/__pycache__/ai_utils.cpython-312.pyc      | Bin 0 -> 142 bytes
+ ai/utils/ai_utils.py                               |   0
+ app.py                                             |  12 +
+ assets/chatgpt_image_2025-05-15.png                |   3 +
+ config/spm_mk4s_config.json                        |  28 --
+ core/__pycache__/__init__.cpython-312.pyc          | Bin 0 -> 170 bytes
+ core/application/cli_scan_launcher.py              | 161 --------
+ core/application/gui_scan_launcher.py              | 421 ---------------------
+ core/education/config_loader.py                    |  36 --
+ core/education/safe_raster.py                      |  63 ---
+ core/education/scan_profile.py                     |  71 ----
+ core/education/synthetic_signal.py                 |  21 -
+ core/motion/__pycache__/__init__.cpython-312.pyc   | Bin 0 -> 145 bytes
+ .../__pycache__/stepper_control.cpython-312.pyc    | Bin 0 -> 752 bytes
+ core/motion/prusa_gcode_backend.py                 | 137 +------
+ core/scan/__pycache__/__init__.cpython-312.pyc     | Bin 0 -> 298 bytes
+ .../__pycache__/afm_contact_mode.cpython-312.pyc   | Bin 0 -> 4752 bytes
+ .../afm_noncontact_mode.cpython-312.pyc            | Bin 0 -> 5132 bytes
+ .../__pycache__/base_scan_mode.cpython-312.pyc     | Bin 0 -> 1996 bytes
+ .../__pycache__/profiling_mode.cpython-312.pyc     | Bin 0 -> 4589 bytes
+ .../__pycache__/scan_controller.cpython-312.pyc    | Bin 0 -> 150 bytes
+ .../__pycache__/scan_simulator.cpython-312.pyc     | Bin 0 -> 2021 bytes
+ core/scan/__pycache__/stm_mode.cpython-312.pyc     | Bin 0 -> 4989 bytes
+ .../modes/__pycache__/__init__.cpython-312.pyc     | Bin 0 -> 149 bytes
+ .../__pycache__/afm_contact_mode.cpython-312.pyc   | Bin 0 -> 4581 bytes
+ .../afm_noncontact_mode.cpython-312.pyc            | Bin 0 -> 4961 bytes
+ .../__pycache__/base_scan_mode.cpython-312.pyc     | Bin 0 -> 356 bytes
+ .../__pycache__/profiling_mode.cpython-312.pyc     | Bin 0 -> 4595 bytes
+ .../modes/__pycache__/stm_mode.cpython-312.pyc     | Bin 0 -> 5044 bytes
+ core/system/__pycache__/__init__.cpython-312.pyc   | Bin 0 -> 145 bytes
+ .../__pycache__/system_diagnostics.cpython-312.pyc | Bin 0 -> 155 bytes
+ .../z_control/__pycache__/__init__.cpython-312.pyc | Bin 0 -> 289 bytes
+ .../__pycache__/z_driver_arduino.cpython-312.pyc   | Bin 0 -> 1929 bytes
+ .../__pycache__/z_driver_simulated.cpython-312.pyc | Bin 0 -> 1039 bytes
+ .../__pycache__/z_feedback.cpython-312.pyc         | Bin 0 -> 1389 bytes
+ .../__pycache__/z_interface.cpython-312.pyc        | Bin 0 -> 1070 bytes
+ .../__pycache__/z_plotter.cpython-312.pyc          | Bin 0 -> 1872 bytes
+ .../__pycache__/z_simulator.cpython-312.pyc        | Bin 0 -> 585 bytes
+ data/interface_test_output.csv                     |  26 --
+ data/interface_test_output.png                     | Bin 37972 -> 0 bytes
+ data/safe_raster_3x3_output.csv                    |  10 -
+ data/safe_raster_3x3_plot.png                      | Bin 43319 -> 0 bytes
+ data/safe_raster_5x5_output.csv                    |  26 --
+ data/safe_raster_5x5_output.png                    | Bin 41005 -> 0 bytes
+ data/test_color_map.png                            | Bin 37972 -> 0 bytes
+ docs/MK4S_BRINGUP_CHECKLIST.md                     |  53 ---
+ docs/MK4S_BRINGUP_LOG_2026-06-09.md                | 174 ---------
+ docs/PROJECT_OVERVIEW.md                           |  13 +-
+ docs/ROADMAP.md                                    | 313 ++++++++++++---
+ docs/SPM_PC_HANDOFF.md                             | 384 -------------------
+ docs/SPM_ROADMAP.md                                |  28 --
+ docs/Tipp_order.txt                                | 187 ---------
+ ...-prusa-mk4s-kit-assembly_2167_en_2025-09-26.pdf | Bin 33614421 -> 0 bytes
+ docs/prusa3d_manual_mk4s_mk39s_101_en.pdf          | Bin 44157299 -> 0 bytes
+ git                                                |   0
+ hardware/__init__.py                               |   0
+ hardware/__pycache__/__init__.cpython-312.pyc      | Bin 0 -> 142 bytes
+ hardware/__pycache__/adc_interface.cpython-312.pyc | Bin 0 -> 2869 bytes
+ hardware/__pycache__/arduino_link.cpython-312.pyc  | Bin 0 -> 320 bytes
+ .../__pycache__/z_scanner_driver.cpython-312.pyc   | Bin 0 -> 318 bytes
+ hardware/adc_interface.py                          |  47 +++
+ hardware/arduino_link.py                           |   3 +
+ hardware/motor/__init__.py                         |   0
+ .../motor/__pycache__/__init__.cpython-312.pyc     | Bin 0 -> 148 bytes
+ .../__pycache__/motor_controller.cpython-312.pyc   | Bin 0 -> 831 bytes
+ hardware/motor/motor_controller.py                 |  18 +
+ hardware/z_control/__init__.py                     |   0
+ .../z_control/__pycache__/__init__.cpython-312.pyc | Bin 0 -> 152 bytes
+ .../__pycache__/z_driver_arduino.cpython-312.pyc   | Bin 0 -> 160 bytes
+ hardware/z_control/z_driver_arduino.py             |   0
+ hardware/z_scanner_driver.py                       |   3 +
+ interface/__init__.py                              |   0
+ interface/__pycache__/__init__.cpython-312.pyc     | Bin 0 -> 143 bytes
+ interface/helpers/__init__.py                      |   0
+ interface/helpers/module_tracker.py                |  17 +
+ interface/helpers/system_recovery.py               |  46 +++
+ interface/layout/__init__.py                       |   0
+ .../layout/__pycache__/__init__.cpython-312.pyc    | Bin 0 -> 150 bytes
+ .../__pycache__/hardware_controls.cpython-312.pyc  | Bin 0 -> 3056 bytes
+ .../__pycache__/live_plot_area.cpython-312.pyc     | Bin 0 -> 8164 bytes
+ .../layout/__pycache__/main_gui.cpython-312.pyc    | Bin 0 -> 3622 bytes
+ .../layout/__pycache__/main_window.cpython-312.pyc | Bin 0 -> 15158 bytes
+ .../layout/__pycache__/menu_bar.cpython-312.pyc    | Bin 0 -> 3998 bytes
+ .../__pycache__/scan_control_panel.cpython-312.pyc | Bin 0 -> 5557 bytes
+ .../__pycache__/scanning_panel.cpython-312.pyc     | Bin 0 -> 7379 bytes
+ .../layout/__pycache__/status_bar.cpython-312.pyc  | Bin 0 -> 448 bytes
+ .../__pycache__/system_diagnostics.cpython-312.pyc | Bin 0 -> 6331 bytes
+ .../__pycache__/z_regulation_gui.cpython-312.pyc   | Bin 0 -> 13066 bytes
+ interface/layout/hardware_controls.py              |  59 +++
+ interface/layout/live_plot_area.py                 | 129 +++++++
+ interface/layout/main_window.py                    | 241 ++++++++++++
+ interface/layout/menu_bar.py                       | 199 ++++++++++
+ interface/layout/scan_control_panel.py             |  90 +++++
+ interface/layout/scanning_panel.py                 | 112 ++++++
+ interface/layout/status_bar.py                     |   6 +
+ interface/layout/system_diagnostics.py             |  98 +++++
+ interface/panels/__init__.py                       |   0
+ .../panels/__pycache__/__init__.cpython-312.pyc    | Bin 0 -> 150 bytes
+ .../__pycache__/ai_control_panel.cpython-312.pyc   | Bin 0 -> 4037 bytes
+ .../__pycache__/measurement_panel.cpython-312.pyc  | Bin 0 -> 2054 bytes
+ .../__pycache__/scan_control_panel.cpython-312.pyc | Bin 0 -> 160 bytes
+ .../__pycache__/scanning_panel.cpython-312.pyc     | Bin 0 -> 156 bytes
+ .../__pycache__/simulation_panel.cpython-312.pyc   | Bin 0 -> 2040 bytes
+ .../__pycache__/z_regulation_gui.cpython-312.pyc   | Bin 0 -> 22246 bytes
+ interface/panels/ai_control_panel.py               |  65 ++++
+ interface/panels/measurement_panel.py              |  27 ++
+ interface/panels/scan_control_panel.py             |   0
+ interface/panels/scanning_panel.py                 |   0
+ interface/panels/simulation_panel.py               |  27 ++
+ interface/panels/z_regulation_gui.py               | 348 +++++++++++++++++
+ main.py                                            |  28 ++
+ notes/approach_tomorrow_copilot.txt                |  92 +++++
+ notes/migration_log.txt                            |   0
+ processing/__init__.py                             |   0
+ processing/__pycache__/__init__.cpython-312.pyc    | Bin 0 -> 144 bytes
+ processing/__pycache__/image_tools.cpython-312.pyc | Bin 0 -> 319 bytes
+ .../__pycache__/process_pipeline.cpython-312.pyc   | Bin 0 -> 324 bytes
+ processing/image_tools.py                          |   3 +
+ processing/pattern_matching/__init__.py            |   0
+ .../__pycache__/__init__.cpython-312.pyc           | Bin 0 -> 161 bytes
+ .../__pycache__/pattern_matcher.cpython-312.pyc    | Bin 0 -> 168 bytes
+ processing/pattern_matching/pattern_matcher.py     |   0
+ processing/preprocess.py                           |   0
+ processing/process_pipeline.py                     |   3 +
+ pyproject.toml                                     |  73 ++++
+ pytest.ini                                         |   3 +-
+ requirements.txt                                   |  19 +-
+ simulation/__init__.py                             |   0
+ simulation/__pycache__/__init__.cpython-312.pyc    | Bin 0 -> 144 bytes
+ .../__pycache__/scan_simulation.cpython-312.pyc    | Bin 0 -> 2023 bytes
+ simulation/__pycache__/z_simulator.cpython-312.pyc | Bin 0 -> 1647 bytes
+ simulation/mock_motor_driver.py                    |  40 ++
+ simulation/scan_pattern_simulator.py               |  70 ++++
+ simulation/scan_profiles.py                        |  76 ++++
+ simulation/scan_simulation.py                      |  29 ++
+ simulation/scan_simulator.py                       |  71 ++++
+ simulation/simulator_engine.py                     |   0
+ simulation/surface_model_simulator.py              |  54 +++
+ simulation/tip_interaction_simulator.py            |  51 +++
+ simulation/virtual_tip.py                          |  50 +++
+ simulation/z_feedback_simulator.py                 |  61 +++
+ simulation/z_signal_simulator.py                   |  37 ++
+ simulation/z_simulator.py                          |  26 ++
+ tests/__pycache__/__init__.cpython-312.pyc         | Bin 0 -> 139 bytes
+ ...t_afm_contact_mode.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 4319 bytes
+ ...fm_noncontact_mode.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 2104 bytes
+ .../test_ai_utils.cpython-312-pytest-8.3.5.pyc     | Bin 0 -> 656 bytes
+ .../test_gui.cpython-312-pytest-8.3.5.pyc          | Bin 0 -> 139 bytes
+ ..._hardware_controls.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 703 bytes
+ ...est_live_plot_area.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 673 bytes
+ .../test_main_window.cpython-312-pytest-8.3.5.pyc  | Bin 0 -> 680 bytes
+ .../test_menu_bar.cpython-312-pytest-8.3.5.pyc     | Bin 0 -> 665 bytes
+ .../test_ml_model.cpython-312-pytest-8.3.5.pyc     | Bin 0 -> 658 bytes
+ ...st_pattern_matcher.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 721 bytes
+ ...est_profiling_mode.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 705 bytes
+ .../test_scan.cpython-312-pytest-8.3.5.pyc         | Bin 0 -> 140 bytes
+ ...scan_control_panel.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 713 bytes
+ ...est_scanning_panel.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 695 bytes
+ .../test_status_bar.cpython-312-pytest-8.3.5.pyc   | Bin 0 -> 675 bytes
+ .../test_stm_mode.cpython-312-pytest-8.3.5.pyc     | Bin 0 -> 675 bytes
+ ...system_diagnostics.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 710 bytes
+ .../test_z_control.cpython-312-pytest-8.3.5.pyc    | Bin 0 -> 145 bytes
+ ...t_z_driver_arduino.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 708 bytes
+ ...z_driver_simulated.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 664 bytes
+ .../test_z_feedback.cpython-312-pytest-8.3.5.pyc   | Bin 0 -> 676 bytes
+ .../test_z_interface.cpython-312-pytest-8.3.5.pyc  | Bin 0 -> 681 bytes
+ .../test_z_plotter.cpython-312-pytest-8.3.5.pyc    | Bin 0 -> 671 bytes
+ ...t_z_regulation_gui.cpython-312-pytest-8.3.5.pyc | Bin 0 -> 703 bytes
+ tests/motion/test_prusa_backend.py                 |  40 --
+ {tests_legacy => tests}/test_afm_contact_mode.py   |   0
+ .../test_afm_noncontact_mode.py                    |   0
+ {tests_legacy => tests}/test_ai_utils.py           |   0
+ {tests_legacy => tests}/test_base_scan_mode.py     |   0
+ tests/test_cli_scan_launcher.py                    | 179 ---------
+ tests/test_config_loader.py                        |  67 ----
+ tests/test_gui.py                                  |   0
+ {tests_legacy => tests}/test_hardware_controls.py  |   0
+ {tests_legacy => tests}/test_live_plot_area.py     |   0
+ {tests_legacy => tests}/test_main_window.py        |   0
+ {tests_legacy => tests}/test_menu_bar.py           |   0
+ {tests_legacy => tests}/test_ml_model.py           |   0
+ {tests_legacy => tests}/test_pattern_matcher.py    |   0
+ {tests_legacy => tests}/test_profiling_mode.py     |   0
+ tests/test_safe_raster_module.py                   |  31 --
+ tests/test_safe_raster_output.py                   |  44 ---
+ tests/test_scan.py                                 |   0
+ {tests_legacy => tests}/test_scan_control_panel.py |   0
+ tests/test_scan_profile.py                         |  80 ----
+ {tests_legacy => tests}/test_scanning_panel.py     |   0
+ tests/test_simulated_z_driver.py                   |  12 -
+ {tests_legacy => tests}/test_status_bar.py         |   0
+ {tests_legacy => tests}/test_stm_mode.py           |   0
+ tests/test_synthetic_signal.py                     |  18 -
+ {tests_legacy => tests}/test_system_diagnostics.py |   0
+ tests/test_z_control.py                            |   0
+ {tests_legacy => tests}/test_z_driver_arduino.py   |   0
+ {tests_legacy => tests}/test_z_driver_simulated.py |   0
+ {tests_legacy => tests}/test_z_feedback.py         |   0
+ {tests_legacy => tests}/test_z_interface.py        |   0
+ {tests_legacy => tests}/test_z_plotter.py          |   0
+ {tests_legacy => tests}/test_z_regulation_gui.py   |   0
+ tools/plot_safe_raster.py                          | 121 ------
+ tools/prusa_ping.py                                |  79 ++--
+ tools/run_cli_dry_run.ps1                          |   7 -
+ tools/run_configured_raster_scan.py                | 156 --------
+ tools/run_interface_3x3_test.ps1                   |  29 --
+ tools/run_safe_hardware_demo.ps1                   |  21 -
+ tools/run_safe_software_check.ps1                  |  18 -
+ tools/safe_center_test.py                          |  26 --
+ tools/safe_square_test.py                          |  37 --
+ utils/__init__.py                                  |   2 +
+ utils/ai_utils.py                                  |  10 +
+ utils/config.py                                    |   0
+ utils/logger.py                                    |   0
+ utils/utils.py                                     |   0
+ utils/validation/fix_missing_launch_functions.py   |  28 ++
+ .../validate_and_fix_launch_functions.py           | 104 +++++
+ utils/validation/validate_launch_functions.py      |  24 ++
+ visualization/__init__.py                          |   0
+ visualization/__pycache__/__init__.cpython-312.pyc | Bin 0 -> 147 bytes
+ .../__pycache__/live_plot_area.cpython-312.pyc     | Bin 0 -> 153 bytes
+ visualization/__pycache__/plot.cpython-312.pyc     | Bin 0 -> 313 bytes
+ .../__pycache__/topograph.cpython-312.pyc          | Bin 0 -> 328 bytes
+ visualization/__pycache__/viewer.cpython-312.pyc   | Bin 0 -> 319 bytes
+ visualization/heatmap_renderer.py                  |   0
+ visualization/live_plot_area.py                    |   0
+ visualization/plot.py                              |   3 +
+ visualization/topograph.py                         |   3 +
+ visualization/viewer.py                            |   3 +
+ 253 files changed, 3733 insertions(+), 2834 deletions(-)
+
+=== FILES DIFFERENT: local main -> GitHub origin/main ===
+A	.editorconfig
+R100	core/application/__init__.py	.github/ISSUE_TEMPLATE/bug.md
+R100	core/education/__init__.py	.github/ISSUE_TEMPLATE/feature.md
+A	.github/copilot-instructions.md
+M	.gitignore
+A	CONTRIBUTING.md
+A	LICENSE
+M	README.md
+A	README_old.md
+A	SPM
+A	SPM_Project
+R100	tests_legacy/test_gui.py	__init__.py
+A	__pycache__/__init__.cpython-312.pyc
+R100	tests_legacy/test_scan.py	ai/__init__.py
+A	ai/__pycache__/__init__.cpython-312.pyc
+A	ai/__pycache__/ml_model.cpython-312.pyc
+A	ai/__pycache__/pattern_matcher.cpython-312.pyc
+R100	tests_legacy/test_z_control.py	ai/models/__init__.py
+A	ai/models/__pycache__/__init__.cpython-312.pyc
+A	ai/models/__pycache__/ml_model.cpython-312.pyc
+A	ai/models/ml_model.py
+A	ai/pattern_matcher.py
+A	ai/utils/__init__.py
+A	ai/utils/__pycache__/__init__.cpython-312.pyc
+A	ai/utils/__pycache__/ai_utils.cpython-312.pyc
+A	ai/utils/ai_utils.py
+A	app.py
+A	assets/chatgpt_image_2025-05-15.png
+D	config/spm_mk4s_config.json
+A	core/__pycache__/__init__.cpython-312.pyc
+D	core/application/cli_scan_launcher.py
+D	core/application/gui_scan_launcher.py
+D	core/education/config_loader.py
+D	core/education/safe_raster.py
+D	core/education/scan_profile.py
+D	core/education/synthetic_signal.py
+A	core/motion/__pycache__/__init__.cpython-312.pyc
+A	core/motion/__pycache__/stepper_control.cpython-312.pyc
+M	core/motion/prusa_gcode_backend.py
+A	core/scan/__pycache__/__init__.cpython-312.pyc
+A	core/scan/__pycache__/afm_contact_mode.cpython-312.pyc
+A	core/scan/__pycache__/afm_noncontact_mode.cpython-312.pyc
+A	core/scan/__pycache__/base_scan_mode.cpython-312.pyc
+A	core/scan/__pycache__/profiling_mode.cpython-312.pyc
+A	core/scan/__pycache__/scan_controller.cpython-312.pyc
+A	core/scan/__pycache__/scan_simulator.cpython-312.pyc
+A	core/scan/__pycache__/stm_mode.cpython-312.pyc
+A	core/scan/modes/__pycache__/__init__.cpython-312.pyc
+A	core/scan/modes/__pycache__/afm_contact_mode.cpython-312.pyc
+A	core/scan/modes/__pycache__/afm_noncontact_mode.cpython-312.pyc
+A	core/scan/modes/__pycache__/base_scan_mode.cpython-312.pyc
+A	core/scan/modes/__pycache__/profiling_mode.cpython-312.pyc
+A	core/scan/modes/__pycache__/stm_mode.cpython-312.pyc
+A	core/system/__pycache__/__init__.cpython-312.pyc
+A	core/system/__pycache__/system_diagnostics.cpython-312.pyc
+A	core/z_control/__pycache__/__init__.cpython-312.pyc
+A	core/z_control/__pycache__/z_driver_arduino.cpython-312.pyc
+A	core/z_control/__pycache__/z_driver_simulated.cpython-312.pyc
+A	core/z_control/__pycache__/z_feedback.cpython-312.pyc
+A	core/z_control/__pycache__/z_interface.cpython-312.pyc
+A	core/z_control/__pycache__/z_plotter.cpython-312.pyc
+A	core/z_control/__pycache__/z_simulator.cpython-312.pyc
+D	data/interface_test_output.csv
+D	data/interface_test_output.png
+D	data/safe_raster_3x3_output.csv
+D	data/safe_raster_3x3_plot.png
+D	data/safe_raster_5x5_output.csv
+D	data/safe_raster_5x5_output.png
+D	data/test_color_map.png
+D	docs/MK4S_BRINGUP_CHECKLIST.md
+D	docs/MK4S_BRINGUP_LOG_2026-06-09.md
+M	docs/PROJECT_OVERVIEW.md
+M	docs/ROADMAP.md
+D	docs/SPM_PC_HANDOFF.md
+D	docs/SPM_ROADMAP.md
+D	docs/Tipp_order.txt
+D	docs/original-prusa-mk4s-kit-assembly_2167_en_2025-09-26.pdf
+D	docs/prusa3d_manual_mk4s_mk39s_101_en.pdf
+A	git
+A	hardware/__init__.py
+A	hardware/__pycache__/__init__.cpython-312.pyc
+A	hardware/__pycache__/adc_interface.cpython-312.pyc
+A	hardware/__pycache__/arduino_link.cpython-312.pyc
+A	hardware/__pycache__/z_scanner_driver.cpython-312.pyc
+A	hardware/adc_interface.py
+A	hardware/arduino_link.py
+A	hardware/motor/__init__.py
+A	hardware/motor/__pycache__/__init__.cpython-312.pyc
+A	hardware/motor/__pycache__/motor_controller.cpython-312.pyc
+A	hardware/motor/motor_controller.py
+A	hardware/z_control/__init__.py
+A	hardware/z_control/__pycache__/__init__.cpython-312.pyc
+A	hardware/z_control/__pycache__/z_driver_arduino.cpython-312.pyc
+A	hardware/z_control/z_driver_arduino.py
+A	hardware/z_scanner_driver.py
+A	interface/__init__.py
+A	interface/__pycache__/__init__.cpython-312.pyc
+A	interface/helpers/__init__.py
+A	interface/helpers/module_tracker.py
+A	interface/helpers/system_recovery.py
+A	interface/layout/__init__.py
+A	interface/layout/__pycache__/__init__.cpython-312.pyc
+A	interface/layout/__pycache__/hardware_controls.cpython-312.pyc
+A	interface/layout/__pycache__/live_plot_area.cpython-312.pyc
+A	interface/layout/__pycache__/main_gui.cpython-312.pyc
+A	interface/layout/__pycache__/main_window.cpython-312.pyc
+A	interface/layout/__pycache__/menu_bar.cpython-312.pyc
+A	interface/layout/__pycache__/scan_control_panel.cpython-312.pyc
+A	interface/layout/__pycache__/scanning_panel.cpython-312.pyc
+A	interface/layout/__pycache__/status_bar.cpython-312.pyc
+A	interface/layout/__pycache__/system_diagnostics.cpython-312.pyc
+A	interface/layout/__pycache__/z_regulation_gui.cpython-312.pyc
+A	interface/layout/hardware_controls.py
+A	interface/layout/live_plot_area.py
+A	interface/layout/main_window.py
+A	interface/layout/menu_bar.py
+A	interface/layout/scan_control_panel.py
+A	interface/layout/scanning_panel.py
+A	interface/layout/status_bar.py
+A	interface/layout/system_diagnostics.py
+A	interface/panels/__init__.py
+A	interface/panels/__pycache__/__init__.cpython-312.pyc
+A	interface/panels/__pycache__/ai_control_panel.cpython-312.pyc
+A	interface/panels/__pycache__/measurement_panel.cpython-312.pyc
+A	interface/panels/__pycache__/scan_control_panel.cpython-312.pyc
+A	interface/panels/__pycache__/scanning_panel.cpython-312.pyc
+A	interface/panels/__pycache__/simulation_panel.cpython-312.pyc
+A	interface/panels/__pycache__/z_regulation_gui.cpython-312.pyc
+A	interface/panels/ai_control_panel.py
+A	interface/panels/measurement_panel.py
+A	interface/panels/scan_control_panel.py
+A	interface/panels/scanning_panel.py
+A	interface/panels/simulation_panel.py
+A	interface/panels/z_regulation_gui.py
+A	main.py
+A	notes/approach_tomorrow_copilot.txt
+A	notes/migration_log.txt
+A	processing/__init__.py
+A	processing/__pycache__/__init__.cpython-312.pyc
+A	processing/__pycache__/image_tools.cpython-312.pyc
+A	processing/__pycache__/process_pipeline.cpython-312.pyc
+A	processing/image_tools.py
+A	processing/pattern_matching/__init__.py
+A	processing/pattern_matching/__pycache__/__init__.cpython-312.pyc
+A	processing/pattern_matching/__pycache__/pattern_matcher.cpython-312.pyc
+A	processing/pattern_matching/pattern_matcher.py
+A	processing/preprocess.py
+A	processing/process_pipeline.py
+A	pyproject.toml
+M	pytest.ini
+M	requirements.txt
+A	simulation/__init__.py
+A	simulation/__pycache__/__init__.cpython-312.pyc
+A	simulation/__pycache__/scan_simulation.cpython-312.pyc
+A	simulation/__pycache__/z_simulator.cpython-312.pyc
+A	simulation/mock_motor_driver.py
+A	simulation/scan_pattern_simulator.py
+A	simulation/scan_profiles.py
+A	simulation/scan_simulation.py
+A	simulation/scan_simulator.py
+A	simulation/simulator_engine.py
+A	simulation/surface_model_simulator.py
+A	simulation/tip_interaction_simulator.py
+A	simulation/virtual_tip.py
+A	simulation/z_feedback_simulator.py
+A	simulation/z_signal_simulator.py
+A	simulation/z_simulator.py
+A	tests/__pycache__/__init__.cpython-312.pyc
+A	tests/__pycache__/test_afm_contact_mode.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_afm_noncontact_mode.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_ai_utils.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_gui.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_hardware_controls.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_live_plot_area.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_main_window.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_menu_bar.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_ml_model.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_pattern_matcher.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_profiling_mode.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_scan.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_scan_control_panel.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_scanning_panel.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_status_bar.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_stm_mode.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_system_diagnostics.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_z_control.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_z_driver_arduino.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_z_driver_simulated.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_z_feedback.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_z_interface.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_z_plotter.cpython-312-pytest-8.3.5.pyc
+A	tests/__pycache__/test_z_regulation_gui.cpython-312-pytest-8.3.5.pyc
+M	tests/motion/test_prusa_backend.py
+R100	tests_legacy/test_afm_contact_mode.py	tests/test_afm_contact_mode.py
+R100	tests_legacy/test_afm_noncontact_mode.py	tests/test_afm_noncontact_mode.py
+R100	tests_legacy/test_ai_utils.py	tests/test_ai_utils.py
+R100	tests_legacy/test_base_scan_mode.py	tests/test_base_scan_mode.py
+D	tests/test_cli_scan_launcher.py
+D	tests/test_config_loader.py
+A	tests/test_gui.py
+R100	tests_legacy/test_hardware_controls.py	tests/test_hardware_controls.py
+R100	tests_legacy/test_live_plot_area.py	tests/test_live_plot_area.py
+R100	tests_legacy/test_main_window.py	tests/test_main_window.py
+R100	tests_legacy/test_menu_bar.py	tests/test_menu_bar.py
+R100	tests_legacy/test_ml_model.py	tests/test_ml_model.py
+R100	tests_legacy/test_pattern_matcher.py	tests/test_pattern_matcher.py
+R100	tests_legacy/test_profiling_mode.py	tests/test_profiling_mode.py
+D	tests/test_safe_raster_module.py
+D	tests/test_safe_raster_output.py
+A	tests/test_scan.py
+R100	tests_legacy/test_scan_control_panel.py	tests/test_scan_control_panel.py
+D	tests/test_scan_profile.py
+R100	tests_legacy/test_scanning_panel.py	tests/test_scanning_panel.py
+D	tests/test_simulated_z_driver.py
+R100	tests_legacy/test_status_bar.py	tests/test_status_bar.py
+R100	tests_legacy/test_stm_mode.py	tests/test_stm_mode.py
+D	tests/test_synthetic_signal.py
+R100	tests_legacy/test_system_diagnostics.py	tests/test_system_diagnostics.py
+A	tests/test_z_control.py
+R100	tests_legacy/test_z_driver_arduino.py	tests/test_z_driver_arduino.py
+R100	tests_legacy/test_z_driver_simulated.py	tests/test_z_driver_simulated.py
+R100	tests_legacy/test_z_feedback.py	tests/test_z_feedback.py
+R100	tests_legacy/test_z_interface.py	tests/test_z_interface.py
+R100	tests_legacy/test_z_plotter.py	tests/test_z_plotter.py
+R100	tests_legacy/test_z_regulation_gui.py	tests/test_z_regulation_gui.py
+D	tools/plot_safe_raster.py
+M	tools/prusa_ping.py
+D	tools/run_cli_dry_run.ps1
+D	tools/run_configured_raster_scan.py
+D	tools/run_interface_3x3_test.ps1
+D	tools/run_safe_hardware_demo.ps1
+D	tools/run_safe_software_check.ps1
+D	tools/safe_center_test.py
+D	tools/safe_square_test.py
+A	utils/__init__.py
+A	utils/ai_utils.py
+A	utils/config.py
+A	utils/logger.py
+A	utils/utils.py
+A	utils/validation/fix_missing_launch_functions.py
+A	utils/validation/validate_and_fix_launch_functions.py
+A	utils/validation/validate_launch_functions.py
+A	visualization/__init__.py
+A	visualization/__pycache__/__init__.cpython-312.pyc
+A	visualization/__pycache__/live_plot_area.cpython-312.pyc
+A	visualization/__pycache__/plot.cpython-312.pyc
+A	visualization/__pycache__/topograph.cpython-312.pyc
+A	visualization/__pycache__/viewer.cpython-312.pyc
+A	visualization/heatmap_renderer.py
+A	visualization/live_plot_area.py
+A	visualization/plot.py
+A	visualization/topograph.py
+A	visualization/viewer.py
+
+=== OLD GITHUB GUI/VISUAL FILES ===
+C:\SPM_Project_GitHub_Version\core\z_control\z_interface.py
+C:\SPM_Project_GitHub_Version\core\z_control\z_plotter.py
+C:\SPM_Project_GitHub_Version\hardware\adc_interface.py
+C:\SPM_Project_GitHub_Version\interface\helpers\module_tracker.py
+C:\SPM_Project_GitHub_Version\interface\helpers\system_recovery.py
+C:\SPM_Project_GitHub_Version\interface\helpers\__init__.py
+C:\SPM_Project_GitHub_Version\interface\layout\hardware_controls.py
+C:\SPM_Project_GitHub_Version\interface\layout\live_plot_area.py
+C:\SPM_Project_GitHub_Version\interface\layout\main_window.py
+C:\SPM_Project_GitHub_Version\interface\layout\menu_bar.py
+C:\SPM_Project_GitHub_Version\interface\layout\scanning_panel.py
+C:\SPM_Project_GitHub_Version\interface\layout\scan_control_panel.py
+C:\SPM_Project_GitHub_Version\interface\layout\status_bar.py
+C:\SPM_Project_GitHub_Version\interface\layout\system_diagnostics.py
+C:\SPM_Project_GitHub_Version\interface\layout\__init__.py
+C:\SPM_Project_GitHub_Version\interface\panels\ai_control_panel.py
+C:\SPM_Project_GitHub_Version\interface\panels\measurement_panel.py
+C:\SPM_Project_GitHub_Version\interface\panels\scanning_panel.py
+C:\SPM_Project_GitHub_Version\interface\panels\scan_control_panel.py
+C:\SPM_Project_GitHub_Version\interface\panels\simulation_panel.py
+C:\SPM_Project_GitHub_Version\interface\panels\z_regulation_gui.py
+C:\SPM_Project_GitHub_Version\interface\panels\__init__.py
+C:\SPM_Project_GitHub_Version\interface\__init__.py
+C:\SPM_Project_GitHub_Version\tests\test_gui.py
+C:\SPM_Project_GitHub_Version\tests\test_live_plot_area.py
+C:\SPM_Project_GitHub_Version\tests\test_main_window.py
+C:\SPM_Project_GitHub_Version\tests\test_z_interface.py
+C:\SPM_Project_GitHub_Version\tests\test_z_plotter.py
+C:\SPM_Project_GitHub_Version\tests\test_z_regulation_gui.py
+C:\SPM_Project_GitHub_Version\visualization\heatmap_renderer.py
+C:\SPM_Project_GitHub_Version\visualization\live_plot_area.py
+C:\SPM_Project_GitHub_Version\visualization\plot.py
+C:\SPM_Project_GitHub_Version\visualization\topograph.py
+C:\SPM_Project_GitHub_Version\visualization\viewer.py
+C:\SPM_Project_GitHub_Version\visualization\__init__.py
+C:\SPM_Project_GitHub_Version\main.py
