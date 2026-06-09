@@ -25,6 +25,8 @@ from core.education.scan_profile import (
     validate_scan_profile,
 )
 
+from core.z_control.z_driver_arduino_safe import ZDriverArduino
+
 
 # ============================================================
 # SPM Educational GUI
@@ -119,6 +121,22 @@ class ScanGUI(QWidget):
         self.execute_btn.clicked.connect(self.run_hardware_scan)
 
         # ------------------------------------------------------------
+        # Safe Z-control dry-run driver
+        # These controls do not move real hardware.
+        # They only test the Phase 5.1 Arduino/Z-control software path.
+        # ------------------------------------------------------------
+        self.z_driver = ZDriverArduino(dry_run=True)
+
+        self.z_connect_btn = QPushButton("Z Dry Run: Connect")
+        self.z_connect_btn.clicked.connect(self.run_z_dry_connect)
+
+        self.z_move_test_btn = QPushButton("Z Dry Run: Move Z Test")
+        self.z_move_test_btn.clicked.connect(self.run_z_dry_move_test)
+
+        self.z_disconnect_btn = QPushButton("Z Dry Run: Disconnect")
+        self.z_disconnect_btn.clicked.connect(self.run_z_dry_disconnect)
+
+        # ------------------------------------------------------------
         # Status log
         # ------------------------------------------------------------
         self.log = QTextEdit()
@@ -128,6 +146,10 @@ class ScanGUI(QWidget):
         main_layout.addWidget(self.validate_btn)
         main_layout.addWidget(self.dry_run_btn)
         main_layout.addWidget(self.execute_btn)
+        main_layout.addWidget(QLabel("Z-control dry-run tools:"))
+        main_layout.addWidget(self.z_connect_btn)
+        main_layout.addWidget(self.z_move_test_btn)
+        main_layout.addWidget(self.z_disconnect_btn)
         main_layout.addWidget(QLabel("Status log:"))
         main_layout.addWidget(self.log)
 
@@ -155,6 +177,33 @@ class ScanGUI(QWidget):
     def update_color_map(self, color_map: str) -> None:
         self.color_map = color_map
         self.append_log(f"Plot color map selected: {self.color_map}")
+
+    # ------------------------------------------------------------
+    # Z-control dry-run: connect
+    # No real hardware movement
+    # ------------------------------------------------------------
+    def run_z_dry_connect(self) -> None:
+        ok = self.z_driver.connect()
+        if ok:
+            self.append_log("[Z DRY RUN] Connect: PASS")
+        else:
+            self.append_log("[Z DRY RUN] Connect: FAIL")
+
+    # ------------------------------------------------------------
+    # Z-control dry-run: move test
+    # No real hardware movement
+    # ------------------------------------------------------------
+    def run_z_dry_move_test(self) -> None:
+        self.z_driver.move_to(20)
+        self.append_log("[Z DRY RUN] Move Z test to 20: PASS")
+
+    # ------------------------------------------------------------
+    # Z-control dry-run: disconnect
+    # No real hardware movement
+    # ------------------------------------------------------------
+    def run_z_dry_disconnect(self) -> None:
+        self.z_driver.disconnect()
+        self.append_log("[Z DRY RUN] Disconnect: PASS")
 
     # ------------------------------------------------------------
     # Append message to log
