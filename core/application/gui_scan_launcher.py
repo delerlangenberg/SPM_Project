@@ -118,7 +118,8 @@ class ScanGUI(QWidget):
         self.dry_run_btn.clicked.connect(self.run_dry_scan)
 
         self.execute_btn = QPushButton("REAL HARDWARE SCAN")
-        self.execute_btn.setStyleSheet("font-weight: bold; background-color: #b71c1c; color: white; padding: 6px;")
+        self.execute_btn.setStyleSheet("font-weight: bold; background-color: #9e9e9e; color: white; padding: 6px;")
+        self.execute_btn.setEnabled(False)
         self.execute_btn.clicked.connect(self.run_hardware_scan)
 
         # ------------------------------------------------------------
@@ -177,21 +178,45 @@ class ScanGUI(QWidget):
         self.system_status_label = QLabel("SYSTEM STATUS: SAFE MODE / DRY-RUN DEFAULT")
         self.system_status_label.setStyleSheet("font-weight: bold; background-color: #263238; color: white; padding: 6px;")
 
-        self.hardware_status_label = QLabel("Hardware / System Connection: placeholder - disconnected / safe")
+        self.hardware_status_label = QLabel("Hardware / System Connection: REAL MOTION DISABLED - run system check first")
+        self.hardware_armed = False
+        self.system_check_passed = False
+        self.initiate_system_check_btn = QPushButton("INITIATE SYSTEM CHECK")
+        self.initiate_system_check_btn.setStyleSheet("font-weight: bold; background-color: #1565c0; color: white; padding: 6px;")
+        self.initiate_system_check_btn.clicked.connect(self.initiate_system_check)
+        self.hardware_arm_btn = QPushButton("ENABLE REAL MOTION")
+        self.hardware_arm_btn.setStyleSheet("font-weight: bold; background-color: #2e7d32; color: white; padding: 6px;")
+        self.hardware_arm_btn.clicked.connect(self.arm_hardware)
+        self.hardware_disarm_btn = QPushButton("DISABLE REAL MOTION")
+        self.hardware_disarm_btn.setStyleSheet("font-weight: bold; background-color: #9e9e9e; color: white; padding: 6px;")
+        self.hardware_disarm_btn.setEnabled(False)
+        self.hardware_disarm_btn.clicked.connect(self.disarm_hardware)
         self.safety_status_label = QLabel("Safety State: global motion limits active; critical confirmations enabled")
         self.plot_placeholder = QLabel("Live Data / Raster Plot Preview\n\nPlaceholder for last generated PNG, future live raster image, and signal monitor.")
         self.plot_placeholder.setStyleSheet("border: 1px solid #9e9e9e; padding: 12px; background-color: #fafafa;")
         self.plot_placeholder.setMinimumHeight(260)
 
+        self.line_scan_placeholder = QLabel("1D Line Scan\n\nForward: waiting for scan data\nBackward: waiting for scan data\nUpward: waiting for scan data\nDownward: waiting for scan data")
+        self.line_scan_placeholder.setStyleSheet("border: 1px solid #90a4ae; padding: 10px; background-color: #ffffff;")
+        self.line_scan_placeholder.setMinimumHeight(120)
+
+        self.topography_placeholder = QLabel("2D Topography Scan\n\nWaiting for raster/topography data.\nFuture view: height map / surface image.")
+        self.topography_placeholder.setStyleSheet("border: 1px solid #90a4ae; padding: 10px; background-color: #ffffff;")
+        self.topography_placeholder.setMinimumHeight(180)
+
+        self.z_condition_placeholder = QLabel("Z Condition / Feedback\n\nZ position: waiting\nApproach state: waiting\nSignal / height feedback: waiting")
+        self.z_condition_placeholder.setStyleSheet("border: 1px solid #90a4ae; padding: 10px; background-color: #fffde7;")
+        self.z_condition_placeholder.setMinimumHeight(120)
+
         # ------------------------------------------------------------
         # XY Scan Setup panel
         # ------------------------------------------------------------
-        xy_scan_group = QGroupBox("XY Scan Setup")
+        xy_scan_group = QGroupBox("1 Scan Parameters: XYZ + Output")
         xy_scan_layout = QVBoxLayout()
         xy_scan_layout.addLayout(form_layout)
         xy_scan_group.setLayout(xy_scan_layout)
 
-        scan_execution_group = QGroupBox("Scan Execution")
+        scan_execution_group = QGroupBox("2 Scan Execution: Validate + Dry Run")
         scan_execution_layout = QVBoxLayout()
         scan_execution_layout.addWidget(self.validate_btn)
         scan_execution_layout.addWidget(self.dry_run_btn)
@@ -207,7 +232,7 @@ class ScanGUI(QWidget):
         # ------------------------------------------------------------
         # Legacy Phase 5.2 grouped-layout label retained for regression tests:
         # Z-control dry-run tools
-        z_group = QGroupBox("Z Scanner / Height Control")
+        z_group = QGroupBox("3 Z Scanner / Approach Control")
         z_layout = QVBoxLayout()
 
         z_height_group = QGroupBox("Z Height / Safe Position")
@@ -258,31 +283,36 @@ class ScanGUI(QWidget):
         # ------------------------------------------------------------
         # Hardware and Safety placeholder panels
         # ------------------------------------------------------------
-        hardware_group = QGroupBox("Hardware / System Connection")
+        hardware_group = QGroupBox("1 Hardware / Power / Connection")
         hardware_layout = QVBoxLayout()
         hardware_layout.addWidget(self.hardware_status_label)
+        hardware_layout.addWidget(self.initiate_system_check_btn)
         hardware_layout.addWidget(QLabel("Placeholder: COM port, baudrate, machine connection, hardware readiness, last known state."))
+        hardware_layout.addWidget(self.hardware_arm_btn)
+        hardware_layout.addWidget(self.hardware_disarm_btn)
         hardware_layout.addWidget(self.execute_btn)
         hardware_group.setLayout(hardware_layout)
 
-        safety_group = QGroupBox("Global Safety / Status")
+        safety_group = QGroupBox("2 Safety / Hardware Arm State")
         safety_layout = QVBoxLayout()
         safety_layout.addWidget(self.safety_status_label)
         safety_layout.addWidget(QLabel("Placeholder: safe scan limits, safe Z range, critical-action confirmations, warning state."))
         safety_group.setLayout(safety_layout)
 
         right_panel = QVBoxLayout()
-        right_panel.addWidget(z_group)
         right_panel.addWidget(hardware_group)
         right_panel.addWidget(safety_group)
+        right_panel.addWidget(z_group)
         right_panel.addStretch()
 
         # ------------------------------------------------------------
         # Center data/plot panel
         # ------------------------------------------------------------
-        data_group = QGroupBox("Live Data / Raster Plot Preview")
+        data_group = QGroupBox("Live Scan Feedback")
         data_layout = QVBoxLayout()
-        data_layout.addWidget(self.plot_placeholder)
+        data_layout.addWidget(self.line_scan_placeholder)
+        data_layout.addWidget(self.topography_placeholder)
+        data_layout.addWidget(self.z_condition_placeholder)
         data_group.setLayout(data_layout)
 
         # ------------------------------------------------------------
@@ -811,11 +841,76 @@ class ScanGUI(QWidget):
                 "Dry Run",
                 f"Dry run failed with exit code {exit_code}",
             )
+    # ------------------------------------------------------------
+    # System readiness check
+    # ------------------------------------------------------------
+    def initiate_system_check(self) -> None:
+        self.append_log("[SYSTEM CHECK] Initiating SPM workstation readiness check")
+
+        profile = self.validate_profile()
+        if profile is None:
+            self.system_check_passed = False
+            self.hardware_status_label.setText("Hardware / System Connection: SYSTEM CHECK FAILED - fix scan parameters")
+            self.hardware_status_label.setStyleSheet("font-weight: bold; color: #c62828;")
+            self.append_log("[SYSTEM CHECK] Failed: scan profile is invalid")
+            return
+
+        self.system_check_passed = True
+        self.hardware_status_label.setText("Hardware / System Connection: SYSTEM CHECK PASSED - ready to enable real motion")
+        self.hardware_status_label.setStyleSheet("font-weight: bold; color: #2e7d32;")
+        self.append_log("[SYSTEM CHECK] Scan profile valid")
+        self.append_log("[SYSTEM CHECK] Real motion remains disabled until operator enables it")
+        self.append_log("[SYSTEM CHECK] Check physical power, USB/controller connection, sample clearance, and Z approach readiness before real motion")
+
+    # ------------------------------------------------------------
+    # Hardware armed/disarmed safety state
+    # ------------------------------------------------------------
+    def arm_hardware(self) -> None:
+        if not self.system_check_passed:
+            self.append_log("[SAFETY] Real motion enable blocked: run INITIATE SYSTEM CHECK first")
+            self.hardware_status_label.setText("Hardware / System Connection: RUN SYSTEM CHECK BEFORE REAL MOTION")
+            self.hardware_status_label.setStyleSheet("font-weight: bold; color: #ef6c00;")
+            return
+
+        self.hardware_armed = True
+
+        self.hardware_arm_btn.setEnabled(False)
+        self.hardware_arm_btn.setStyleSheet("font-weight: bold; background-color: #9e9e9e; color: white; padding: 6px;")
+
+        self.hardware_disarm_btn.setEnabled(True)
+        self.hardware_disarm_btn.setStyleSheet("font-weight: bold; background-color: #b71c1c; color: white; padding: 6px;")
+
+        self.execute_btn.setEnabled(True)
+        self.execute_btn.setStyleSheet("font-weight: bold; background-color: #ef6c00; color: white; padding: 6px;")
+
+        self.hardware_status_label.setText("Hardware / System Connection: REAL MOTION ENABLED - hardware commands allowed")
+        self.hardware_status_label.setStyleSheet("font-weight: bold; color: #b71c1c;")
+        self.append_log("[SAFETY] Real motion enabled by operator")
+
+    def disarm_hardware(self) -> None:
+        self.hardware_armed = False
+
+        self.hardware_arm_btn.setEnabled(True)
+        self.hardware_arm_btn.setStyleSheet("font-weight: bold; background-color: #2e7d32; color: white; padding: 6px;")
+
+        self.hardware_disarm_btn.setEnabled(False)
+        self.hardware_disarm_btn.setStyleSheet("font-weight: bold; background-color: #9e9e9e; color: white; padding: 6px;")
+
+        self.execute_btn.setEnabled(False)
+        self.execute_btn.setStyleSheet("font-weight: bold; background-color: #9e9e9e; color: white; padding: 6px;")
+
+        self.hardware_status_label.setText("Hardware / System Connection: REAL MOTION DISABLED - hardware commands blocked")
+        self.hardware_status_label.setStyleSheet("font-weight: bold; color: #2e7d32;")
+        self.append_log("[SAFETY] Real motion disabled by operator")
 
     # ------------------------------------------------------------
     # Hardware scan
     # ------------------------------------------------------------
     def run_hardware_scan(self) -> None:
+        if not self.hardware_armed:
+            self.append_log("[SAFETY] Hardware scan blocked because hardware is DISARMED")
+            return
+
         profile = self.validate_profile()
 
         if profile is None:
@@ -900,6 +995,8 @@ if __name__ == "__main__":
     gui = ScanGUI()
     gui.show()
     sys.exit(app.exec_())
+
+
 
 
 

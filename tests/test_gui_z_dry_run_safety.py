@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 
 def test_gui_contains_z_dry_run_limit_validation():
@@ -168,10 +168,10 @@ def test_gui_has_workstation_layout_panels():
     source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
 
     assert "XY Scan Setup" in source
-    assert "Scan Execution" in source
+    assert "2 Scan Execution: Validate + Dry Run" in source
     assert "Z Scanner / Height Control" in source
-    assert "Hardware / System Connection" in source
-    assert "Global Safety / Status" in source
+    assert "1 Hardware / Power / Connection" in source
+    assert "2 Safety / Hardware Arm State" in source
     assert "Live Data / Raster Plot Preview" in source
     assert "Operator Log" in source
 
@@ -196,8 +196,8 @@ def test_gui_has_phase_6_1_placeholders():
 def test_hardware_scan_button_is_in_hardware_panel_not_scan_execution():
     source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
 
-    scan_execution_start = source.index('scan_execution_group = QGroupBox("Scan Execution")')
-    hardware_group_start = source.index('hardware_group = QGroupBox("Hardware / System Connection")')
+    scan_execution_start = source.index('scan_execution_group = QGroupBox("2 Scan Execution: Validate + Dry Run")')
+    hardware_group_start = source.index('hardware_group = QGroupBox("1 Hardware / Power / Connection")')
 
     scan_execution_block = source[scan_execution_start:hardware_group_start]
     hardware_block = source[hardware_group_start:]
@@ -210,5 +210,40 @@ def test_hardware_scan_button_is_visually_dangerous():
     source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
 
     assert 'QPushButton("REAL HARDWARE SCAN")' in source
-    assert "background-color: #b71c1c" in source
+    assert "background-color: #ef6c00" in source
     assert "color: white" in source
+
+
+def test_hardware_arm_disarm_visual_state_logic_exists():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert 'self.hardware_armed = False' in source
+    assert 'QPushButton("ENABLE REAL MOTION")' in source
+    assert 'QPushButton("DISABLE REAL MOTION")' in source
+
+    assert 'self.hardware_arm_btn.setEnabled(False)' in source
+    assert 'self.hardware_arm_btn.setEnabled(True)' in source
+    assert 'self.hardware_disarm_btn.setEnabled(True)' in source
+    assert 'self.hardware_disarm_btn.setEnabled(False)' in source
+
+    assert 'self.execute_btn.setEnabled(True)' in source
+    assert 'self.execute_btn.setEnabled(False)' in source
+
+    assert 'background-color: #2e7d32' in source
+    assert 'background-color: #b71c1c' in source
+    assert 'background-color: #ef6c00' in source
+    assert 'background-color: #9e9e9e' in source
+
+
+def test_hardware_scan_is_blocked_when_disarmed():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    hardware_scan_start = source.index("def run_hardware_scan")
+    hardware_scan_block = source[hardware_scan_start:]
+
+    assert "if not self.hardware_armed:" in hardware_scan_block
+    assert "[SAFETY] Hardware scan blocked because hardware is DISARMED" in hardware_scan_block
+    assert "return" in hardware_scan_block
+
+
+
