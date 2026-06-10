@@ -127,14 +127,35 @@ class ScanGUI(QWidget):
         # ------------------------------------------------------------
         self.z_driver = ZDriverArduino(dry_run=True)
 
+        self.z_status_label = QLabel("Z dry-run status: Disconnected")
+        self.z_test_position = QLineEdit("20")
+
+        self.z_approach_start = QLineEdit("20")
+        self.z_approach_target = QLineEdit("17")
+        self.z_retract_start = QLineEdit("17")
+        self.z_retract_target = QLineEdit("20")
+        self.z_step_size = QLineEdit("1")
+
         self.z_connect_btn = QPushButton("Z Dry Run: Connect")
         self.z_connect_btn.clicked.connect(self.run_z_dry_connect)
 
         self.z_move_test_btn = QPushButton("Z Dry Run: Move Z Test")
         self.z_move_test_btn.clicked.connect(self.run_z_dry_move_test)
 
+        self.z_approach_btn = QPushButton("Z Dry Run: Approach")
+        self.z_approach_btn.clicked.connect(self.run_z_dry_approach)
+
+        self.z_retract_btn = QPushButton("Z Dry Run: Retract")
+        self.z_retract_btn.clicked.connect(self.run_z_dry_retract)
+
         self.z_disconnect_btn = QPushButton("Z Dry Run: Disconnect")
         self.z_disconnect_btn.clicked.connect(self.run_z_dry_disconnect)
+
+        # Initial safe Z-control button state
+        self.z_move_test_btn.setEnabled(False)
+        self.z_approach_btn.setEnabled(False)
+        self.z_retract_btn.setEnabled(False)
+        self.z_disconnect_btn.setEnabled(False)
 
         # ------------------------------------------------------------
         # Status log
@@ -147,8 +168,27 @@ class ScanGUI(QWidget):
         main_layout.addWidget(self.dry_run_btn)
         main_layout.addWidget(self.execute_btn)
         main_layout.addWidget(QLabel("Z-control dry-run tools:"))
+        main_layout.addWidget(self.z_status_label)
+        main_layout.addWidget(QLabel("Z dry-run test position:"))
+        main_layout.addWidget(self.z_test_position)
+
+        main_layout.addWidget(QLabel("Approach start Z:"))
+        main_layout.addWidget(self.z_approach_start)
+        main_layout.addWidget(QLabel("Approach target Z:"))
+        main_layout.addWidget(self.z_approach_target)
+
+        main_layout.addWidget(QLabel("Retract start Z:"))
+        main_layout.addWidget(self.z_retract_start)
+        main_layout.addWidget(QLabel("Retract target Z:"))
+        main_layout.addWidget(self.z_retract_target)
+
+        main_layout.addWidget(QLabel("Z dry-run step size:"))
+        main_layout.addWidget(self.z_step_size)
+
         main_layout.addWidget(self.z_connect_btn)
         main_layout.addWidget(self.z_move_test_btn)
+        main_layout.addWidget(self.z_approach_btn)
+        main_layout.addWidget(self.z_retract_btn)
         main_layout.addWidget(self.z_disconnect_btn)
         main_layout.addWidget(QLabel("Status log:"))
         main_layout.addWidget(self.log)
@@ -185,6 +225,12 @@ class ScanGUI(QWidget):
     def run_z_dry_connect(self) -> None:
         ok = self.z_driver.connect()
         if ok:
+            self.z_connect_btn.setEnabled(False)
+            self.z_move_test_btn.setEnabled(True)
+            self.z_approach_btn.setEnabled(True)
+            self.z_retract_btn.setEnabled(True)
+            self.z_disconnect_btn.setEnabled(True)
+            self.z_status_label.setText("Z dry-run status: Connected")
             self.append_log("[Z DRY RUN] Connect: PASS")
         else:
             self.append_log("[Z DRY RUN] Connect: FAIL")
@@ -194,8 +240,132 @@ class ScanGUI(QWidget):
     # No real hardware movement
     # ------------------------------------------------------------
     def run_z_dry_move_test(self) -> None:
-        self.z_driver.move_to(20)
-        self.append_log("[Z DRY RUN] Move Z test to 20: PASS")
+        try:
+            z_position = float(self.z_test_position.text())
+        except ValueError:
+            self.z_status_label.setText("Z dry-run status: Invalid Z test value")
+            self.append_log("[Z DRY RUN] Move Z test: FAIL - invalid Z value")
+            return
+
+        if not (self.limits.z_min <= z_position <= self.limits.z_max):
+            self.z_status_label.setText("Z dry-run status: Z value outside safe limits")
+            self.append_log(
+                f"[Z DRY RUN] Move Z test: FAIL - Z={z_position} outside safe limits "
+                f"({self.limits.z_min} to {self.limits.z_max})"
+            )
+            return
+
+        self.z_driver.move_to(z_position)
+        self.z_status_label.setText("Z dry-run status: Last move OK")
+        self.append_log(f"[Z DRY RUN] Move Z test to {z_position}: PASS")
+
+    # ------------------------------------------------------------
+    # Z-control dry-run: approach
+    # No real hardware movement
+    # ------------------------------------------------------------
+    def run_z_dry_approach(self) -> None:
+        try:
+            start_z = float(self.z_approach_start.text())
+            target_z = float(self.z_approach_target.text())
+            step_size = float(self.z_step_size.text())
+        except ValueError:
+            self.z_status_label.setText("Z dry-run status: Invalid approach value")
+            self.append_log("[Z DRY RUN] Approach: FAIL - invalid numeric value")
+            return
+
+        if step_size <= 0:
+            self.z_status_label.setText("Z dry-run status: Invalid step size")
+            self.append_log("[Z DRY RUN] Approach: FAIL - step size must be positive")
+            return
+
+        if not (self.limits.z_min <= start_z <= self.limits.z_max):
+            self.z_status_label.setText("Z dry-run status: Approach start outside safe limits")
+            self.append_log(
+                f"[Z DRY RUN] Approach: FAIL - start Z={start_z} outside safe limits "
+                f"({self.limits.z_min} to {self.limits.z_max})"
+            )
+            return
+
+        if not (self.limits.z_min <= target_z <= self.limits.z_max):
+            self.z_status_label.setText("Z dry-run status: Approach target outside safe limits")
+            self.append_log(
+                f"[Z DRY RUN] Approach: FAIL - target Z={target_z} outside safe limits "
+                f"({self.limits.z_min} to {self.limits.z_max})"
+            )
+            return
+
+        if start_z <= target_z:
+            self.z_status_label.setText("Z dry-run status: Invalid approach direction")
+            self.append_log(
+                f"[Z DRY RUN] Approach: FAIL - start Z={start_z} must be greater than target Z={target_z}"
+            )
+            return
+
+        try:
+            self.z_driver.approach(start_z=start_z, target_z=target_z, step=step_size)
+        except RuntimeError as exc:
+            self.z_status_label.setText("Z dry-run status: Approach failed")
+            self.append_log(f"[Z DRY RUN] Approach: FAIL - {exc}")
+            return
+
+        self.z_status_label.setText("Z dry-run status: Approach OK")
+        self.append_log(
+            f"[Z DRY RUN] Approach from {start_z} to {target_z} with step {step_size}: PASS"
+        )
+
+    # ------------------------------------------------------------
+    # Z-control dry-run: retract
+    # No real hardware movement
+    # ------------------------------------------------------------
+    def run_z_dry_retract(self) -> None:
+        try:
+            start_z = float(self.z_retract_start.text())
+            target_z = float(self.z_retract_target.text())
+            step_size = float(self.z_step_size.text())
+        except ValueError:
+            self.z_status_label.setText("Z dry-run status: Invalid retract value")
+            self.append_log("[Z DRY RUN] Retract: FAIL - invalid numeric value")
+            return
+
+        if step_size <= 0:
+            self.z_status_label.setText("Z dry-run status: Invalid step size")
+            self.append_log("[Z DRY RUN] Retract: FAIL - step size must be positive")
+            return
+
+        if not (self.limits.z_min <= start_z <= self.limits.z_max):
+            self.z_status_label.setText("Z dry-run status: Retract start outside safe limits")
+            self.append_log(
+                f"[Z DRY RUN] Retract: FAIL - start Z={start_z} outside safe limits "
+                f"({self.limits.z_min} to {self.limits.z_max})"
+            )
+            return
+
+        if not (self.limits.z_min <= target_z <= self.limits.z_max):
+            self.z_status_label.setText("Z dry-run status: Retract target outside safe limits")
+            self.append_log(
+                f"[Z DRY RUN] Retract: FAIL - target Z={target_z} outside safe limits "
+                f"({self.limits.z_min} to {self.limits.z_max})"
+            )
+            return
+
+        if start_z >= target_z:
+            self.z_status_label.setText("Z dry-run status: Invalid retract direction")
+            self.append_log(
+                f"[Z DRY RUN] Retract: FAIL - start Z={start_z} must be less than target Z={target_z}"
+            )
+            return
+
+        try:
+            self.z_driver.retract(start_z=start_z, target_z=target_z, step=step_size)
+        except RuntimeError as exc:
+            self.z_status_label.setText("Z dry-run status: Retract failed")
+            self.append_log(f"[Z DRY RUN] Retract: FAIL - {exc}")
+            return
+
+        self.z_status_label.setText("Z dry-run status: Retract OK")
+        self.append_log(
+            f"[Z DRY RUN] Retract from {start_z} to {target_z} with step {step_size}: PASS"
+        )
 
     # ------------------------------------------------------------
     # Z-control dry-run: disconnect
@@ -203,6 +373,12 @@ class ScanGUI(QWidget):
     # ------------------------------------------------------------
     def run_z_dry_disconnect(self) -> None:
         self.z_driver.disconnect()
+        self.z_connect_btn.setEnabled(True)
+        self.z_move_test_btn.setEnabled(False)
+        self.z_approach_btn.setEnabled(False)
+        self.z_retract_btn.setEnabled(False)
+        self.z_disconnect_btn.setEnabled(False)
+        self.z_status_label.setText("Z dry-run status: Disconnected")
         self.append_log("[Z DRY RUN] Disconnect: PASS")
 
     # ------------------------------------------------------------
