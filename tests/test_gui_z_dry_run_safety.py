@@ -56,3 +56,47 @@ def test_gui_contains_z_driver_status_refresh_helper():
     assert "last_command={status['last_command']}" in text
     assert "[Z STATUS]" in text
 
+def test_gui_contains_consistent_z_failure_helper():
+    text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "def report_z_failure" in text
+    assert "Z dry-run status: {status_text}" in text
+    assert "[Z FAILURE]" in text
+    assert "self.report_z_failure" in text
+    assert "Invalid Z test value" in text
+    assert "Invalid approach value" in text
+    assert "Invalid retract value" in text
+    assert "Invalid approach direction" in text
+    assert "Invalid retract direction" in text
+
+def test_gui_contains_workstation_style_z_connection_header():
+    text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "QHBoxLayout" in text
+    assert "self.z_connection_state_label" in text
+    assert "def set_z_connection_indicator" in text
+    assert "CONNECTED" in text
+    assert "DRY RUN" in text
+    assert "READY TO CONNECT" in text
+    assert "CONNECT Z DRY RUN" in text
+    assert "DISCONNECT Z" in text
+    assert "background-color: #2e7d32" in text
+    assert "background-color: #c62828" in text
+    assert "z_connection_bar = QHBoxLayout()" in text
+
+def test_gui_contains_professional_z_connection_button_states_and_confirmations():
+    text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "QMessageBox" in text
+    assert "def confirm_z_action" in text
+    assert "Confirm Z disconnect" in text
+    assert "Confirm Z approach" in text
+    assert "Confirm Z retract" in text
+    assert "READY TO CONNECT" in text
+    assert "CONNECTED ? DRY RUN" in text
+    assert "DISCONNECTED" in text
+    assert "background-color: #757575" in text
+    assert "Disconnect cancelled by operator" in text
+    assert "Approach cancelled by operator" in text
+    assert "Retract cancelled by operator" in text
+

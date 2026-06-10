@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QMessageBox,
     QTextEdit,
-    QVBoxLayout,
+    QVBoxLayout, QHBoxLayout,
     QGroupBox,
     QLabel,
     QFileDialog,
@@ -129,6 +129,8 @@ class ScanGUI(QWidget):
         self.z_driver = ZDriverArduino(dry_run=True)
 
         self.z_status_label = QLabel("Z dry-run status: Disconnected")
+        self.z_connection_state_label = QLabel("? READY TO CONNECT")
+        self.z_connection_state_label.setStyleSheet("font-weight: bold; color: #c62828;")
         self.z_test_position = QLineEdit("20")
 
         self.z_approach_start = QLineEdit("20")
@@ -152,6 +154,11 @@ class ScanGUI(QWidget):
         self.z_disconnect_btn = QPushButton("Z Dry Run: Disconnect")
         self.z_disconnect_btn.clicked.connect(self.run_z_dry_disconnect)
 
+        self.z_connect_btn.setText("CONNECT Z DRY RUN")
+        self.z_connect_btn.setStyleSheet("font-weight: bold; background-color: #2e7d32; color: white;")
+        self.z_disconnect_btn.setText("DISCONNECTED")
+        self.z_disconnect_btn.setStyleSheet("font-weight: bold; background-color: #757575; color: white;")
+
         # Initial safe Z-control button state
         self.z_move_test_btn.setEnabled(False)
         self.z_approach_btn.setEnabled(False)
@@ -173,9 +180,14 @@ class ScanGUI(QWidget):
 
         z_connection_group = QGroupBox("Z Connection")
         z_connection_layout = QVBoxLayout()
+
+        z_connection_bar = QHBoxLayout()
+        z_connection_bar.addWidget(self.z_connection_state_label)
+        z_connection_bar.addWidget(self.z_connect_btn)
+        z_connection_bar.addWidget(self.z_disconnect_btn)
+
+        z_connection_layout.addLayout(z_connection_bar)
         z_connection_layout.addWidget(self.z_status_label)
-        z_connection_layout.addWidget(self.z_connect_btn)
-        z_connection_layout.addWidget(self.z_disconnect_btn)
         z_connection_group.setLayout(z_connection_layout)
 
         z_move_group = QGroupBox("Z Move Test")
@@ -244,6 +256,36 @@ class ScanGUI(QWidget):
     # Z-control dry-run: status refresh
     # No real hardware movement
     # ------------------------------------------------------------
+    def set_z_connection_indicator(self, connected: bool) -> None:
+        if connected:
+            self.z_connection_state_label.setText("? CONNECTED ? DRY RUN")
+            self.z_connection_state_label.setStyleSheet("font-weight: bold; color: #c62828;")
+            self.z_connect_btn.setText("CONNECTED ? DRY RUN")
+            self.z_connect_btn.setEnabled(False)
+            self.z_connect_btn.setStyleSheet("font-weight: bold; background-color: #9e9e9e; color: white;")
+            self.z_disconnect_btn.setText("DISCONNECT Z")
+            self.z_disconnect_btn.setEnabled(True)
+            self.z_disconnect_btn.setStyleSheet("font-weight: bold; background-color: #c62828; color: white;")
+        else:
+            self.z_connection_state_label.setText("? READY TO CONNECT")
+            self.z_connection_state_label.setStyleSheet("font-weight: bold; color: #2e7d32;")
+            self.z_connect_btn.setText("CONNECT Z DRY RUN")
+            self.z_connect_btn.setEnabled(True)
+            self.z_connect_btn.setStyleSheet("font-weight: bold; background-color: #2e7d32; color: white;")
+            self.z_disconnect_btn.setText("DISCONNECTED")
+            self.z_disconnect_btn.setEnabled(False)
+            self.z_disconnect_btn.setStyleSheet("font-weight: bold; background-color: #757575; color: white;")
+
+    def confirm_z_action(self, title: str, message: str) -> bool:
+        reply = QMessageBox.warning(
+            self,
+            title,
+            message,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        return reply == QMessageBox.StandardButton.Yes
+
     def refresh_z_driver_status(self, prefix: str = "Z dry-run status") -> None:
         status = self.z_driver.get_status()
         label_text = (
@@ -252,8 +294,14 @@ class ScanGUI(QWidget):
             f"connected={status['connected']}, "
             f"last_command={status['last_command']}"
         )
+        self.set_z_connection_indicator(bool(status["connected"]))
         self.z_status_label.setText(label_text)
         self.append_log(f"[Z STATUS] {label_text}")
+
+    def report_z_failure(self, status_text: str, log_text: str) -> None:
+        label_text = f"Z dry-run status: {status_text}"
+        self.z_status_label.setText(label_text)
+        self.append_log(f"[Z FAILURE] {log_text}")
 
     # ------------------------------------------------------------
     # Z-control dry-run: connect
@@ -262,11 +310,9 @@ class ScanGUI(QWidget):
     def run_z_dry_connect(self) -> None:
         ok = self.z_driver.connect()
         if ok:
-            self.z_connect_btn.setEnabled(False)
             self.z_move_test_btn.setEnabled(True)
             self.z_approach_btn.setEnabled(True)
             self.z_retract_btn.setEnabled(True)
-            self.z_disconnect_btn.setEnabled(True)
             self.refresh_z_driver_status("Z dry-run status")
             self.append_log("[Z DRY RUN] Connect: PASS")
         else:
@@ -280,15 +326,19 @@ class ScanGUI(QWidget):
         try:
             z_position = float(self.z_test_position.text())
         except ValueError:
-            self.z_status_label.setText("Z dry-run status: Invalid Z test value")
-            self.append_log("[Z DRY RUN] Move Z test: FAIL - invalid Z value")
+            self.report_z_failure(
+                "Invalid Z test value",
+                "[Z DRY RUN] Move Z test: FAIL - invalid Z value",
+            )
             return
 
         if not (self.limits.z_min <= z_position <= self.limits.z_max):
-            self.z_status_label.setText("Z dry-run status: Z value outside safe limits")
-            self.append_log(
-                f"[Z DRY RUN] Move Z test: FAIL - Z={z_position} outside safe limits "
-                f"({self.limits.z_min} to {self.limits.z_max})"
+            self.report_z_failure(
+                "Z value outside safe limits",
+                (
+                    f"[Z DRY RUN] Move Z test: FAIL - Z={z_position} outside safe limits "
+                    f"({self.limits.z_min} to {self.limits.z_max})"
+                ),
             )
             return
 
@@ -306,43 +356,60 @@ class ScanGUI(QWidget):
             target_z = float(self.z_approach_target.text())
             step_size = float(self.z_step_size.text())
         except ValueError:
-            self.z_status_label.setText("Z dry-run status: Invalid approach value")
-            self.append_log("[Z DRY RUN] Approach: FAIL - invalid numeric value")
+            self.report_z_failure(
+                "Invalid approach value",
+                "[Z DRY RUN] Approach: FAIL - invalid numeric value",
+            )
             return
 
         if step_size <= 0:
-            self.z_status_label.setText("Z dry-run status: Invalid step size")
-            self.append_log("[Z DRY RUN] Approach: FAIL - step size must be positive")
+            self.report_z_failure(
+                "Invalid step size",
+                "[Z DRY RUN] Approach: FAIL - step size must be positive",
+            )
             return
 
         if not (self.limits.z_min <= start_z <= self.limits.z_max):
-            self.z_status_label.setText("Z dry-run status: Approach start outside safe limits")
-            self.append_log(
-                f"[Z DRY RUN] Approach: FAIL - start Z={start_z} outside safe limits "
-                f"({self.limits.z_min} to {self.limits.z_max})"
+            self.report_z_failure(
+                "Approach start outside safe limits",
+                (
+                    f"[Z DRY RUN] Approach: FAIL - start Z={start_z} outside safe limits "
+                    f"({self.limits.z_min} to {self.limits.z_max})"
+                ),
             )
             return
 
         if not (self.limits.z_min <= target_z <= self.limits.z_max):
-            self.z_status_label.setText("Z dry-run status: Approach target outside safe limits")
-            self.append_log(
-                f"[Z DRY RUN] Approach: FAIL - target Z={target_z} outside safe limits "
-                f"({self.limits.z_min} to {self.limits.z_max})"
+            self.report_z_failure(
+                "Approach target outside safe limits",
+                (
+                    f"[Z DRY RUN] Approach: FAIL - target Z={target_z} outside safe limits "
+                    f"({self.limits.z_min} to {self.limits.z_max})"
+                ),
             )
             return
 
         if start_z <= target_z:
-            self.z_status_label.setText("Z dry-run status: Invalid approach direction")
-            self.append_log(
-                f"[Z DRY RUN] Approach: FAIL - start Z={start_z} must be greater than target Z={target_z}"
+            self.report_z_failure(
+                "Invalid approach direction",
+                f"[Z DRY RUN] Approach: FAIL - start Z={start_z} must be greater than target Z={target_z}",
             )
+            return
+
+        if not self.confirm_z_action(
+            "Confirm Z approach",
+            f"Start Z approach from {start_z} to {target_z} with step {step_size}?\n\nDry-run mode is active. No real hardware movement will be sent.",
+        ):
+            self.append_log("[Z DRY RUN] Approach cancelled by operator")
             return
 
         try:
             self.z_driver.approach(start_z=start_z, target_z=target_z, step=step_size)
         except RuntimeError as exc:
-            self.z_status_label.setText("Z dry-run status: Approach failed")
-            self.append_log(f"[Z DRY RUN] Approach: FAIL - {exc}")
+            self.report_z_failure(
+                "Approach failed",
+                f"[Z DRY RUN] Approach: FAIL - {exc}",
+            )
             return
 
         self.refresh_z_driver_status("Z dry-run status")
@@ -360,43 +427,60 @@ class ScanGUI(QWidget):
             target_z = float(self.z_retract_target.text())
             step_size = float(self.z_step_size.text())
         except ValueError:
-            self.z_status_label.setText("Z dry-run status: Invalid retract value")
-            self.append_log("[Z DRY RUN] Retract: FAIL - invalid numeric value")
+            self.report_z_failure(
+                "Invalid retract value",
+                "[Z DRY RUN] Retract: FAIL - invalid numeric value",
+            )
             return
 
         if step_size <= 0:
-            self.z_status_label.setText("Z dry-run status: Invalid step size")
-            self.append_log("[Z DRY RUN] Retract: FAIL - step size must be positive")
+            self.report_z_failure(
+                "Invalid step size",
+                "[Z DRY RUN] Retract: FAIL - step size must be positive",
+            )
             return
 
         if not (self.limits.z_min <= start_z <= self.limits.z_max):
-            self.z_status_label.setText("Z dry-run status: Retract start outside safe limits")
-            self.append_log(
-                f"[Z DRY RUN] Retract: FAIL - start Z={start_z} outside safe limits "
-                f"({self.limits.z_min} to {self.limits.z_max})"
+            self.report_z_failure(
+                "Retract start outside safe limits",
+                (
+                    f"[Z DRY RUN] Retract: FAIL - start Z={start_z} outside safe limits "
+                    f"({self.limits.z_min} to {self.limits.z_max})"
+                ),
             )
             return
 
         if not (self.limits.z_min <= target_z <= self.limits.z_max):
-            self.z_status_label.setText("Z dry-run status: Retract target outside safe limits")
-            self.append_log(
-                f"[Z DRY RUN] Retract: FAIL - target Z={target_z} outside safe limits "
-                f"({self.limits.z_min} to {self.limits.z_max})"
+            self.report_z_failure(
+                "Retract target outside safe limits",
+                (
+                    f"[Z DRY RUN] Retract: FAIL - target Z={target_z} outside safe limits "
+                    f"({self.limits.z_min} to {self.limits.z_max})"
+                ),
             )
             return
 
         if start_z >= target_z:
-            self.z_status_label.setText("Z dry-run status: Invalid retract direction")
-            self.append_log(
-                f"[Z DRY RUN] Retract: FAIL - start Z={start_z} must be less than target Z={target_z}"
+            self.report_z_failure(
+                "Invalid retract direction",
+                f"[Z DRY RUN] Retract: FAIL - start Z={start_z} must be less than target Z={target_z}",
             )
+            return
+
+        if not self.confirm_z_action(
+            "Confirm Z retract",
+            f"Start Z retract from {start_z} to {target_z} with step {step_size}?\n\nDry-run mode is active. No real hardware movement will be sent.",
+        ):
+            self.append_log("[Z DRY RUN] Retract cancelled by operator")
             return
 
         try:
             self.z_driver.retract(start_z=start_z, target_z=target_z, step=step_size)
         except RuntimeError as exc:
-            self.z_status_label.setText("Z dry-run status: Retract failed")
-            self.append_log(f"[Z DRY RUN] Retract: FAIL - {exc}")
+            self.report_z_failure(
+                "Retract failed",
+                f"[Z DRY RUN] Retract: FAIL - {exc}",
+            )
             return
 
         self.refresh_z_driver_status("Z dry-run status")
@@ -409,12 +493,17 @@ class ScanGUI(QWidget):
     # No real hardware movement
     # ------------------------------------------------------------
     def run_z_dry_disconnect(self) -> None:
+        if not self.confirm_z_action(
+            "Confirm Z disconnect",
+            "Disconnect the Z dry-run controller?\n\nThis will disable Z move, approach, and retract controls.",
+        ):
+            self.append_log("[Z DRY RUN] Disconnect cancelled by operator")
+            return
+
         self.z_driver.disconnect()
-        self.z_connect_btn.setEnabled(True)
         self.z_move_test_btn.setEnabled(False)
         self.z_approach_btn.setEnabled(False)
         self.z_retract_btn.setEnabled(False)
-        self.z_disconnect_btn.setEnabled(False)
         self.refresh_z_driver_status("Z dry-run status")
         self.append_log("[Z DRY RUN] Disconnect: PASS")
 
