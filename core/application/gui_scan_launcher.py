@@ -297,7 +297,9 @@ class ScanGUI(QWidget):
     ) -> str:
         scan_mode = "HARDWARE EXECUTION" if execute_hardware else "DRY RUN"
         safety_state = (
-            "WARNING: hardware execution requested."
+            "REAL HARDWARE EXECUTION REQUESTED.\n"
+            "XY hardware motion may occur.\n"
+            "Confirm the scanner, sample area, toolhead, bed, and operator area are clear."
             if execute_hardware
             else "Dry-run safety active: no hardware movement will be executed."
         )
@@ -742,23 +744,16 @@ class ScanGUI(QWidget):
             self.append_log("Hardware scan cancelled because validation failed.")
             return
 
-        reply = QMessageBox.question(
-            self,
-            "Confirm Hardware Movement",
-            (
-                "This will move the Prusa MK4S hardware.\n\n"
-                "Confirm that the bed, nozzle, and probe area are clear.\n\n"
-                f"Scan profile:\n{profile}\n\n"
-                f"Output file:\n{self.output_file.text()}\n\n"
-                f"Selected color map:\n{self.color_map}\n\n"
-                "Continue?"
-            ),
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
+        confirmation_message = self.build_scan_confirmation_message(
+            profile,
+            execute_hardware=True,
         )
 
-        if reply != QMessageBox.Yes:
-            self.append_log("Hardware scan cancelled by user.")
+        if not self.confirm_critical_action(
+            "Confirm hardware scan",
+            confirmation_message,
+        ):
+            self.append_log("[HARDWARE] Hardware scan cancelled by operator")
             return
 
         self.append_log(f"Hardware scan using color map: {self.color_map}")
@@ -827,6 +822,9 @@ if __name__ == "__main__":
     gui = ScanGUI()
     gui.show()
     sys.exit(app.exec_())
+
+
+
 
 
 

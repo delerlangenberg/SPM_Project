@@ -142,3 +142,24 @@ def test_scan_confirmation_uses_existing_output_file_widget():
 
     assert "self.output_file.text().strip()" in source
     assert "self.output_path" not in source
+
+def test_hardware_scan_uses_global_critical_confirmation():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    hardware_method_index = source.index("def run_hardware_scan")
+    hardware_method = source[hardware_method_index:]
+
+    assert "QMessageBox.question(" not in hardware_method
+    assert 'self.confirm_critical_action(' in hardware_method
+    assert '"Confirm hardware scan"' in hardware_method
+    assert "execute_hardware=True" in hardware_method
+    assert "[HARDWARE] Hardware scan cancelled by operator" in hardware_method
+
+
+def test_hardware_confirmation_has_real_motion_warning():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "REAL HARDWARE EXECUTION REQUESTED" in source
+    assert "XY hardware motion may occur" in source
+    assert "scanner, sample area, toolhead, bed, and operator area are clear" in source
+    assert "Dry-run safety active: no hardware movement will be executed." in source
