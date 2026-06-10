@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import subprocess
 import sys
@@ -289,6 +289,30 @@ class ScanGUI(QWidget):
     def confirm_z_action(self, title: str, message: str) -> bool:
         return self.confirm_critical_action(title, message)
 
+
+    def build_scan_confirmation_message(
+        self,
+        profile: ScanProfile,
+        execute_hardware: bool = False,
+    ) -> str:
+        scan_mode = "HARDWARE EXECUTION" if execute_hardware else "DRY RUN"
+        safety_state = (
+            "WARNING: hardware execution requested."
+            if execute_hardware
+            else "Dry-run safety active: no hardware movement will be executed."
+        )
+
+        return (
+            "Confirm scan execution?\n\n"
+            f"Scan mode: {scan_mode}\n"
+            f"Scan area: X {profile.x_min} to {profile.x_max}, "
+            f"Y {profile.y_min} to {profile.y_max}\n"
+            f"Z value: {profile.z}\n"
+            f"Resolution: {profile.x_resolution} x {profile.y_resolution}\n"
+            f"Output file: {self.output_file.text().strip()}\n"
+            f"Color map: {self.color_map}\n\n"
+            f"{safety_state}"
+        )
     def refresh_z_driver_status(self, prefix: str = "Z dry-run status") -> None:
         status = self.z_driver.get_status()
         label_text = (
@@ -662,6 +686,15 @@ class ScanGUI(QWidget):
             self.append_log("Dry run cancelled because validation failed.")
             return
 
+        confirmation_message = self.build_scan_confirmation_message(
+            profile,
+            execute_hardware=False,
+        )
+
+        if not self.confirm_critical_action("Confirm dry-run scan", confirmation_message):
+            self.append_log("[SCAN] Dry-run scan cancelled by operator")
+            return
+
         self.append_log(f"Dry run using color map: {self.color_map}")
 
         command = self.build_cli_command(profile, execute_hardware=False)
@@ -794,3 +827,8 @@ if __name__ == "__main__":
     gui = ScanGUI()
     gui.show()
     sys.exit(app.exec_())
+
+
+
+
+

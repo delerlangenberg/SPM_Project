@@ -114,3 +114,31 @@ def test_gui_contains_global_critical_action_confirmation_and_close_warning():
     assert "Close cancelled by operator" in text
     assert "return self.confirm_critical_action(title, message)" in text
 
+
+def test_gui_has_scan_confirmation_message_builder():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "def build_scan_confirmation_message(" in source
+    assert "Scan mode:" in source
+    assert "Scan area:" in source
+    assert "Z value:" in source
+    assert "Resolution:" in source
+    assert "Output file:" in source
+    assert "Color map:" in source
+    assert "Dry-run safety active" in source
+
+
+def test_gui_confirms_before_dry_run_scan_command():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    confirmation_index = source.index('self.confirm_critical_action("Confirm dry-run scan"')
+    command_index = source.index("command = self.build_cli_command(profile, execute_hardware=False)")
+
+    assert confirmation_index < command_index
+    assert "[SCAN] Dry-run scan cancelled by operator" in source
+
+def test_scan_confirmation_uses_existing_output_file_widget():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "self.output_file.text().strip()" in source
+    assert "self.output_path" not in source
