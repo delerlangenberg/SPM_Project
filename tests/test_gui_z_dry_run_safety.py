@@ -100,3 +100,17 @@ def test_gui_contains_professional_z_connection_button_states_and_confirmations(
     assert "Approach cancelled by operator" in text
     assert "Retract cancelled by operator" in text
 
+def test_gui_contains_global_critical_action_confirmation_and_close_warning():
+    text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "def confirm_critical_action" in text
+    assert "def closeEvent" in text
+    assert "Confirm GUI close" in text
+    assert "Close the SPM workstation GUI" in text
+    assert "The Z dry-run controller is still connected" in text
+    assert "Recommended action: disconnect Z before closing" in text
+    assert "event.accept()" in text
+    assert "event.ignore()" in text
+    assert "Close cancelled by operator" in text
+    assert "return self.confirm_critical_action(title, message)" in text
+

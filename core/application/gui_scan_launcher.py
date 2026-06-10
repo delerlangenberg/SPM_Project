@@ -276,7 +276,7 @@ class ScanGUI(QWidget):
             self.z_disconnect_btn.setEnabled(False)
             self.z_disconnect_btn.setStyleSheet("font-weight: bold; background-color: #757575; color: white;")
 
-    def confirm_z_action(self, title: str, message: str) -> bool:
+    def confirm_critical_action(self, title: str, message: str) -> bool:
         reply = QMessageBox.warning(
             self,
             title,
@@ -285,6 +285,9 @@ class ScanGUI(QWidget):
             QMessageBox.StandardButton.No,
         )
         return reply == QMessageBox.StandardButton.Yes
+
+    def confirm_z_action(self, title: str, message: str) -> bool:
+        return self.confirm_critical_action(title, message)
 
     def refresh_z_driver_status(self, prefix: str = "Z dry-run status") -> None:
         status = self.z_driver.get_status()
@@ -765,6 +768,27 @@ class ScanGUI(QWidget):
 # ------------------------------------------------------------
 # Program entry point
 # ------------------------------------------------------------
+    def closeEvent(self, event) -> None:
+        if self.z_driver.connected:
+            message = (
+                "The Z dry-run controller is still connected.\n\n"
+                "Close the SPM workstation GUI anyway?\n\n"
+                "Recommended action: disconnect Z before closing."
+            )
+        else:
+            message = (
+                "Close the SPM workstation GUI?\n\n"
+                "Any unsaved scan settings or log information may be lost."
+            )
+
+        if self.confirm_critical_action("Confirm GUI close", message):
+            self.append_log("[GUI] Close confirmed by operator")
+            event.accept()
+        else:
+            self.append_log("[GUI] Close cancelled by operator")
+            event.ignore()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     gui = ScanGUI()
