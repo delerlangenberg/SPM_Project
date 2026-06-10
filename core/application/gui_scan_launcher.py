@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QTextEdit,
     QVBoxLayout,
+    QGroupBox,
     QLabel,
     QFileDialog,
     QComboBox,
@@ -167,29 +168,50 @@ class ScanGUI(QWidget):
         main_layout.addWidget(self.validate_btn)
         main_layout.addWidget(self.dry_run_btn)
         main_layout.addWidget(self.execute_btn)
-        main_layout.addWidget(QLabel("Z-control dry-run tools:"))
-        main_layout.addWidget(self.z_status_label)
-        main_layout.addWidget(QLabel("Z dry-run test position:"))
-        main_layout.addWidget(self.z_test_position)
+        z_group = QGroupBox("Z-control dry-run tools")
+        z_layout = QVBoxLayout()
 
-        main_layout.addWidget(QLabel("Approach start Z:"))
-        main_layout.addWidget(self.z_approach_start)
-        main_layout.addWidget(QLabel("Approach target Z:"))
-        main_layout.addWidget(self.z_approach_target)
+        z_connection_group = QGroupBox("Z Connection")
+        z_connection_layout = QVBoxLayout()
+        z_connection_layout.addWidget(self.z_status_label)
+        z_connection_layout.addWidget(self.z_connect_btn)
+        z_connection_layout.addWidget(self.z_disconnect_btn)
+        z_connection_group.setLayout(z_connection_layout)
 
-        main_layout.addWidget(QLabel("Retract start Z:"))
-        main_layout.addWidget(self.z_retract_start)
-        main_layout.addWidget(QLabel("Retract target Z:"))
-        main_layout.addWidget(self.z_retract_target)
+        z_move_group = QGroupBox("Z Move Test")
+        z_move_layout = QVBoxLayout()
+        z_move_layout.addWidget(QLabel("Z dry-run test position:"))
+        z_move_layout.addWidget(self.z_test_position)
+        z_move_layout.addWidget(self.z_move_test_btn)
+        z_move_group.setLayout(z_move_layout)
 
-        main_layout.addWidget(QLabel("Z dry-run step size:"))
-        main_layout.addWidget(self.z_step_size)
+        z_approach_group = QGroupBox("Z Approach")
+        z_approach_layout = QVBoxLayout()
+        z_approach_layout.addWidget(QLabel("Approach start Z:"))
+        z_approach_layout.addWidget(self.z_approach_start)
+        z_approach_layout.addWidget(QLabel("Approach target Z:"))
+        z_approach_layout.addWidget(self.z_approach_target)
+        z_approach_layout.addWidget(QLabel("Z dry-run step size:"))
+        z_approach_layout.addWidget(self.z_step_size)
+        z_approach_layout.addWidget(self.z_approach_btn)
+        z_approach_group.setLayout(z_approach_layout)
 
-        main_layout.addWidget(self.z_connect_btn)
-        main_layout.addWidget(self.z_move_test_btn)
-        main_layout.addWidget(self.z_approach_btn)
-        main_layout.addWidget(self.z_retract_btn)
-        main_layout.addWidget(self.z_disconnect_btn)
+        z_retract_group = QGroupBox("Z Retract")
+        z_retract_layout = QVBoxLayout()
+        z_retract_layout.addWidget(QLabel("Retract start Z:"))
+        z_retract_layout.addWidget(self.z_retract_start)
+        z_retract_layout.addWidget(QLabel("Retract target Z:"))
+        z_retract_layout.addWidget(self.z_retract_target)
+        z_retract_layout.addWidget(self.z_retract_btn)
+        z_retract_group.setLayout(z_retract_layout)
+
+        z_layout.addWidget(z_connection_group)
+        z_layout.addWidget(z_move_group)
+        z_layout.addWidget(z_approach_group)
+        z_layout.addWidget(z_retract_group)
+        z_group.setLayout(z_layout)
+
+        main_layout.addWidget(z_group)
         main_layout.addWidget(QLabel("Status log:"))
         main_layout.addWidget(self.log)
 

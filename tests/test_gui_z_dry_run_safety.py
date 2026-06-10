@@ -36,3 +36,14 @@ def test_gui_contains_z_dry_run_approach_retract_safety_validation():
     assert "self.z_driver.retract" in text
     assert "Z dry-run status: Approach OK" in text
     assert "Z dry-run status: Retract OK" in text
+
+def test_gui_contains_grouped_z_control_layout():
+    text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "QGroupBox" in text
+    assert "Z-control dry-run tools" in text
+    assert "Z Connection" in text
+    assert "Z Move Test" in text
+    assert "Z Approach" in text
+    assert "Z Retract" in text
+
