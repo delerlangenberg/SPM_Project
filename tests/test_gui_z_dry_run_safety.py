@@ -7,7 +7,7 @@ def test_gui_contains_z_dry_run_limit_validation():
     assert "self.limits.z_min <= z_position <= self.limits.z_max" in text
     assert "outside safe limits" in text
     assert "Invalid Z test value" in text
-    assert "Z dry-run status: Last move OK" in text
+    assert "self.refresh_z_driver_status" in text
 
 
 def test_gui_contains_z_dry_run_approach_retract_controls():
@@ -34,8 +34,7 @@ def test_gui_contains_z_dry_run_approach_retract_safety_validation():
     assert "Invalid retract direction" in text
     assert "self.z_driver.approach" in text
     assert "self.z_driver.retract" in text
-    assert "Z dry-run status: Approach OK" in text
-    assert "Z dry-run status: Retract OK" in text
+    assert "self.refresh_z_driver_status" in text
 
 def test_gui_contains_grouped_z_control_layout():
     text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
@@ -46,4 +45,14 @@ def test_gui_contains_grouped_z_control_layout():
     assert "Z Move Test" in text
     assert "Z Approach" in text
     assert "Z Retract" in text
+
+def test_gui_contains_z_driver_status_refresh_helper():
+    text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "def refresh_z_driver_status" in text
+    assert "self.z_driver.get_status()" in text
+    assert "mode={status['mode']}" in text
+    assert "connected={status['connected']}" in text
+    assert "last_command={status['last_command']}" in text
+    assert "[Z STATUS]" in text
 

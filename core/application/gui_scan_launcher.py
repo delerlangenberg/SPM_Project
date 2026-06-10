@@ -241,6 +241,21 @@ class ScanGUI(QWidget):
         self.append_log(f"Plot color map selected: {self.color_map}")
 
     # ------------------------------------------------------------
+    # Z-control dry-run: status refresh
+    # No real hardware movement
+    # ------------------------------------------------------------
+    def refresh_z_driver_status(self, prefix: str = "Z dry-run status") -> None:
+        status = self.z_driver.get_status()
+        label_text = (
+            f"{prefix}: "
+            f"mode={status['mode']}, "
+            f"connected={status['connected']}, "
+            f"last_command={status['last_command']}"
+        )
+        self.z_status_label.setText(label_text)
+        self.append_log(f"[Z STATUS] {label_text}")
+
+    # ------------------------------------------------------------
     # Z-control dry-run: connect
     # No real hardware movement
     # ------------------------------------------------------------
@@ -252,7 +267,7 @@ class ScanGUI(QWidget):
             self.z_approach_btn.setEnabled(True)
             self.z_retract_btn.setEnabled(True)
             self.z_disconnect_btn.setEnabled(True)
-            self.z_status_label.setText("Z dry-run status: Connected")
+            self.refresh_z_driver_status("Z dry-run status")
             self.append_log("[Z DRY RUN] Connect: PASS")
         else:
             self.append_log("[Z DRY RUN] Connect: FAIL")
@@ -278,7 +293,7 @@ class ScanGUI(QWidget):
             return
 
         self.z_driver.move_to(z_position)
-        self.z_status_label.setText("Z dry-run status: Last move OK")
+        self.refresh_z_driver_status("Z dry-run status")
         self.append_log(f"[Z DRY RUN] Move Z test to {z_position}: PASS")
 
     # ------------------------------------------------------------
@@ -330,7 +345,7 @@ class ScanGUI(QWidget):
             self.append_log(f"[Z DRY RUN] Approach: FAIL - {exc}")
             return
 
-        self.z_status_label.setText("Z dry-run status: Approach OK")
+        self.refresh_z_driver_status("Z dry-run status")
         self.append_log(
             f"[Z DRY RUN] Approach from {start_z} to {target_z} with step {step_size}: PASS"
         )
@@ -384,7 +399,7 @@ class ScanGUI(QWidget):
             self.append_log(f"[Z DRY RUN] Retract: FAIL - {exc}")
             return
 
-        self.z_status_label.setText("Z dry-run status: Retract OK")
+        self.refresh_z_driver_status("Z dry-run status")
         self.append_log(
             f"[Z DRY RUN] Retract from {start_z} to {target_z} with step {step_size}: PASS"
         )
@@ -400,7 +415,7 @@ class ScanGUI(QWidget):
         self.z_approach_btn.setEnabled(False)
         self.z_retract_btn.setEnabled(False)
         self.z_disconnect_btn.setEnabled(False)
-        self.z_status_label.setText("Z dry-run status: Disconnected")
+        self.refresh_z_driver_status("Z dry-run status")
         self.append_log("[Z DRY RUN] Disconnect: PASS")
 
     # ------------------------------------------------------------
