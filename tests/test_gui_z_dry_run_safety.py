@@ -163,3 +163,32 @@ def test_hardware_confirmation_has_real_motion_warning():
     assert "XY hardware motion may occur" in source
     assert "scanner, sample area, toolhead, bed, and operator area are clear" in source
     assert "Dry-run safety active: no hardware movement will be executed." in source
+
+def test_gui_has_workstation_layout_panels():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "XY Scan Setup" in source
+    assert "Scan Execution" in source
+    assert "Z Scanner / Height Control" in source
+    assert "Hardware / System Connection" in source
+    assert "Global Safety / Status" in source
+    assert "Live Data / Raster Plot Preview" in source
+    assert "Operator Log" in source
+
+
+def test_gui_separates_xy_scan_from_z_height_control():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert 'form_layout.addRow("Z:", self.z)' not in source
+    assert 'z_height_layout.addRow("Scan Z height:", self.z)' in source
+    assert "XY Scan Setup" in source
+    assert "Z Height / Safe Position" in source
+
+
+def test_gui_has_phase_6_1_placeholders():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert "SYSTEM STATUS: SAFE MODE / DRY-RUN DEFAULT" in source
+    assert "Placeholder: COM port, baudrate, machine connection, hardware readiness, last known state." in source
+    assert "Placeholder: safe scan limits, safe Z range, critical-action confirmations, warning state." in source
+    assert "Placeholder for last generated PNG, future live raster image, and signal monitor." in source

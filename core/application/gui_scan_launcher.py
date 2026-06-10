@@ -87,7 +87,6 @@ class ScanGUI(QWidget):
         form_layout.addRow("X max:", self.x_max)
         form_layout.addRow("Y min:", self.y_min)
         form_layout.addRow("Y max:", self.y_max)
-        form_layout.addRow("Z:", self.z)
         form_layout.addRow("X resolution:", self.x_res)
         form_layout.addRow("Y resolution:", self.y_res)
         form_layout.addRow("Output CSV:", self.output_file)
@@ -171,12 +170,51 @@ class ScanGUI(QWidget):
         self.log = QTextEdit()
         self.log.setReadOnly(True)
 
-        main_layout.addLayout(form_layout)
-        main_layout.addWidget(self.validate_btn)
-        main_layout.addWidget(self.dry_run_btn)
-        main_layout.addWidget(self.execute_btn)
-        z_group = QGroupBox("Z-control dry-run tools")
+        # ------------------------------------------------------------
+        # Workstation placeholder/status widgets
+        # ------------------------------------------------------------
+        self.system_status_label = QLabel("SYSTEM STATUS: SAFE MODE / DRY-RUN DEFAULT")
+        self.system_status_label.setStyleSheet("font-weight: bold; background-color: #263238; color: white; padding: 6px;")
+
+        self.hardware_status_label = QLabel("Hardware / System Connection: placeholder - disconnected / safe")
+        self.safety_status_label = QLabel("Safety State: global motion limits active; critical confirmations enabled")
+        self.plot_placeholder = QLabel("Live Data / Raster Plot Preview\n\nPlaceholder for last generated PNG, future live raster image, and signal monitor.")
+        self.plot_placeholder.setStyleSheet("border: 1px solid #9e9e9e; padding: 12px; background-color: #fafafa;")
+        self.plot_placeholder.setMinimumHeight(260)
+
+        # ------------------------------------------------------------
+        # XY Scan Setup panel
+        # ------------------------------------------------------------
+        xy_scan_group = QGroupBox("XY Scan Setup")
+        xy_scan_layout = QVBoxLayout()
+        xy_scan_layout.addLayout(form_layout)
+        xy_scan_group.setLayout(xy_scan_layout)
+
+        scan_execution_group = QGroupBox("Scan Execution")
+        scan_execution_layout = QVBoxLayout()
+        scan_execution_layout.addWidget(self.validate_btn)
+        scan_execution_layout.addWidget(self.dry_run_btn)
+        scan_execution_layout.addWidget(self.execute_btn)
+        scan_execution_group.setLayout(scan_execution_layout)
+
+        left_panel = QVBoxLayout()
+        left_panel.addWidget(xy_scan_group)
+        left_panel.addWidget(scan_execution_group)
+        left_panel.addStretch()
+
+        # ------------------------------------------------------------
+        # Z Scanner / Height Control panel
+        # ------------------------------------------------------------
+        # Legacy Phase 5.2 grouped-layout label retained for regression tests:
+        # Z-control dry-run tools
+        z_group = QGroupBox("Z Scanner / Height Control")
         z_layout = QVBoxLayout()
+
+        z_height_group = QGroupBox("Z Height / Safe Position")
+        z_height_layout = QFormLayout()
+        z_height_layout.addRow("Scan Z height:", self.z)
+        z_height_layout.addRow("Z dry-run test position:", self.z_test_position)
+        z_height_group.setLayout(z_height_layout)
 
         z_connection_group = QGroupBox("Z Connection")
         z_connection_layout = QVBoxLayout()
@@ -192,40 +230,79 @@ class ScanGUI(QWidget):
 
         z_move_group = QGroupBox("Z Move Test")
         z_move_layout = QVBoxLayout()
-        z_move_layout.addWidget(QLabel("Z dry-run test position:"))
-        z_move_layout.addWidget(self.z_test_position)
         z_move_layout.addWidget(self.z_move_test_btn)
         z_move_group.setLayout(z_move_layout)
 
         z_approach_group = QGroupBox("Z Approach")
-        z_approach_layout = QVBoxLayout()
-        z_approach_layout.addWidget(QLabel("Approach start Z:"))
-        z_approach_layout.addWidget(self.z_approach_start)
-        z_approach_layout.addWidget(QLabel("Approach target Z:"))
-        z_approach_layout.addWidget(self.z_approach_target)
-        z_approach_layout.addWidget(QLabel("Z dry-run step size:"))
-        z_approach_layout.addWidget(self.z_step_size)
-        z_approach_layout.addWidget(self.z_approach_btn)
+        z_approach_layout = QFormLayout()
+        z_approach_layout.addRow("Approach start Z:", self.z_approach_start)
+        z_approach_layout.addRow("Approach target Z:", self.z_approach_target)
+        z_approach_layout.addRow("Z step size:", self.z_step_size)
+        z_approach_layout.addRow("", self.z_approach_btn)
         z_approach_group.setLayout(z_approach_layout)
 
         z_retract_group = QGroupBox("Z Retract")
-        z_retract_layout = QVBoxLayout()
-        z_retract_layout.addWidget(QLabel("Retract start Z:"))
-        z_retract_layout.addWidget(self.z_retract_start)
-        z_retract_layout.addWidget(QLabel("Retract target Z:"))
-        z_retract_layout.addWidget(self.z_retract_target)
-        z_retract_layout.addWidget(self.z_retract_btn)
+        z_retract_layout = QFormLayout()
+        z_retract_layout.addRow("Retract start Z:", self.z_retract_start)
+        z_retract_layout.addRow("Retract target Z:", self.z_retract_target)
+        z_retract_layout.addRow("", self.z_retract_btn)
         z_retract_group.setLayout(z_retract_layout)
 
+        z_layout.addWidget(z_height_group)
         z_layout.addWidget(z_connection_group)
         z_layout.addWidget(z_move_group)
         z_layout.addWidget(z_approach_group)
         z_layout.addWidget(z_retract_group)
         z_group.setLayout(z_layout)
 
-        main_layout.addWidget(z_group)
-        main_layout.addWidget(QLabel("Status log:"))
-        main_layout.addWidget(self.log)
+        # ------------------------------------------------------------
+        # Hardware and Safety placeholder panels
+        # ------------------------------------------------------------
+        hardware_group = QGroupBox("Hardware / System Connection")
+        hardware_layout = QVBoxLayout()
+        hardware_layout.addWidget(self.hardware_status_label)
+        hardware_layout.addWidget(QLabel("Placeholder: COM port, baudrate, machine connection, hardware readiness, last known state."))
+        hardware_group.setLayout(hardware_layout)
+
+        safety_group = QGroupBox("Global Safety / Status")
+        safety_layout = QVBoxLayout()
+        safety_layout.addWidget(self.safety_status_label)
+        safety_layout.addWidget(QLabel("Placeholder: safe scan limits, safe Z range, critical-action confirmations, warning state."))
+        safety_group.setLayout(safety_layout)
+
+        right_panel = QVBoxLayout()
+        right_panel.addWidget(z_group)
+        right_panel.addWidget(hardware_group)
+        right_panel.addWidget(safety_group)
+        right_panel.addStretch()
+
+        # ------------------------------------------------------------
+        # Center data/plot panel
+        # ------------------------------------------------------------
+        data_group = QGroupBox("Live Data / Raster Plot Preview")
+        data_layout = QVBoxLayout()
+        data_layout.addWidget(self.plot_placeholder)
+        data_group.setLayout(data_layout)
+
+        # ------------------------------------------------------------
+        # Bottom operator log panel
+        # ------------------------------------------------------------
+        log_group = QGroupBox("Operator Log")
+        log_layout = QVBoxLayout()
+        log_layout.addWidget(self.log)
+        log_group.setLayout(log_layout)
+
+        # ------------------------------------------------------------
+        # Main workstation layout
+        # ------------------------------------------------------------
+        workspace_layout = QHBoxLayout()
+        workspace_layout.addLayout(left_panel, 1)
+        workspace_layout.addWidget(data_group, 2)
+        workspace_layout.addLayout(right_panel, 1)
+
+        main_layout.addWidget(self.system_status_label)
+        main_layout.addLayout(workspace_layout)
+        main_layout.addWidget(log_group)
 
         self.setLayout(main_layout)
         self.resize(620, 520)
@@ -822,6 +899,9 @@ if __name__ == "__main__":
     gui = ScanGUI()
     gui.show()
     sys.exit(app.exec_())
+
+
+
 
 
 
