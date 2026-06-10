@@ -117,7 +117,8 @@ class ScanGUI(QWidget):
         self.dry_run_btn = QPushButton("Dry Run Scan - No Hardware Movement")
         self.dry_run_btn.clicked.connect(self.run_dry_scan)
 
-        self.execute_btn = QPushButton("Execute Hardware Scan")
+        self.execute_btn = QPushButton("REAL HARDWARE SCAN")
+        self.execute_btn.setStyleSheet("font-weight: bold; background-color: #b71c1c; color: white; padding: 6px;")
         self.execute_btn.clicked.connect(self.run_hardware_scan)
 
         # ------------------------------------------------------------
@@ -194,7 +195,6 @@ class ScanGUI(QWidget):
         scan_execution_layout = QVBoxLayout()
         scan_execution_layout.addWidget(self.validate_btn)
         scan_execution_layout.addWidget(self.dry_run_btn)
-        scan_execution_layout.addWidget(self.execute_btn)
         scan_execution_group.setLayout(scan_execution_layout)
 
         left_panel = QVBoxLayout()
@@ -262,6 +262,7 @@ class ScanGUI(QWidget):
         hardware_layout = QVBoxLayout()
         hardware_layout.addWidget(self.hardware_status_label)
         hardware_layout.addWidget(QLabel("Placeholder: COM port, baudrate, machine connection, hardware readiness, last known state."))
+        hardware_layout.addWidget(self.execute_btn)
         hardware_group.setLayout(hardware_layout)
 
         safety_group = QGroupBox("Global Safety / Status")
@@ -899,6 +900,8 @@ if __name__ == "__main__":
     gui = ScanGUI()
     gui.show()
     sys.exit(app.exec_())
+
+
 
 
 

@@ -192,3 +192,23 @@ def test_gui_has_phase_6_1_placeholders():
     assert "Placeholder: COM port, baudrate, machine connection, hardware readiness, last known state." in source
     assert "Placeholder: safe scan limits, safe Z range, critical-action confirmations, warning state." in source
     assert "Placeholder for last generated PNG, future live raster image, and signal monitor." in source
+
+def test_hardware_scan_button_is_in_hardware_panel_not_scan_execution():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    scan_execution_start = source.index('scan_execution_group = QGroupBox("Scan Execution")')
+    hardware_group_start = source.index('hardware_group = QGroupBox("Hardware / System Connection")')
+
+    scan_execution_block = source[scan_execution_start:hardware_group_start]
+    hardware_block = source[hardware_group_start:]
+
+    assert "scan_execution_layout.addWidget(self.execute_btn)" not in scan_execution_block
+    assert "hardware_layout.addWidget(self.execute_btn)" in hardware_block
+
+
+def test_hardware_scan_button_is_visually_dangerous():
+    source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+    assert 'QPushButton("REAL HARDWARE SCAN")' in source
+    assert "background-color: #b71c1c" in source
+    assert "color: white" in source
