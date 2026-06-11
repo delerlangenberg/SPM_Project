@@ -1,0 +1,35 @@
+﻿{
+  "hardware_initialized_profile": {
+    "confirmed": true,
+    "confirmed_date": "2026-06-11",
+    "motion_controller": {
+      "name": "Prusa MK4 controller",
+      "port": "COM5",
+      "baudrate": 115200,
+      "usb_name": "Serielles USB-Gerät (COM5)",
+      "usb_vid": "2C99",
+      "usb_pid": "000D",
+      "firmware_name": "Prusa-Firmware-Buddy 6.2.4+8909",
+      "machine_type": "Prusa-MK4",
+      "protocol_version": "1.0",
+      "uuid": "cede2a2f-41a2-4748-9b12-c55c62f367ff"
+    },
+    "startup_readonly_checks": [
+      "M115",
+      "M105",
+      "M119"
+    ],
+    "last_verified_readonly_result": {
+      "M115": "ok; firmware and machine identity confirmed",
+      "M105": "ok; temperature/status readable",
+      "M119": "ok; endstop status readable"
+    },
+    "safety_rules": {
+      "startup_allowed": true,
+      "movement_allowed_during_initialization": false,
+      "homing_allowed_during_initialization": false,
+      "scan_allowed_during_initialization": false,
+      "z_approach_allowed_during_initialization": false
+    }
+  }
+}
