@@ -55,3 +55,18 @@ def test_json_response_serializes_api_payload():
     body = json_response(payload)
     assert b'"status": "ok"' in body
     assert b'"phase": "2.0"' in body
+
+def test_web_operator_console_launcher_help_runs():
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "tools/run_web_operator_console.py", "--help"],
+        cwd=PROJECT_ROOT,
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+
+    assert result.returncode == 0
+    assert "Run the local SPM Prusa web operator console" in result.stdout
