@@ -218,3 +218,37 @@ def test_web_operator_console_launcher_help_runs():
 
     assert result.returncode == 0
     assert "Run the local SPM Prusa web operator console" in result.stdout
+
+def test_web_operator_console_supports_new_tab_views():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    window_js = (WEB_ROOT / "window_manager.js").read_text(encoding="utf-8")
+    css = (WEB_ROOT / "style.css").read_text(encoding="utf-8")
+
+    assert 'data-open-tab="line-window"' in html
+    assert 'data-open-tab="topography-window"' in html
+    assert 'data-open-tab="live-window"' in html
+    assert "openTab" in window_js
+    assert "standalone-window-mode" in window_js
+    assert "standalone-window-mode" in css
+
+
+def test_web_operator_console_dropdowns_are_click_stable():
+    css = (WEB_ROOT / "style.css").read_text(encoding="utf-8")
+    window_js = (WEB_ROOT / "window_manager.js").read_text(encoding="utf-8")
+
+    assert ".menu-group.open .dropdown" in css
+    assert "menuButton" in window_js
+    assert "closeMenus" in window_js
+
+
+def test_web_operator_console_measurement_workflow_requires_center_and_approach():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    raster_js = (WEB_ROOT / "scan_raster.js").read_text(encoding="utf-8")
+
+    assert 'id="center-status"' in html
+    assert "centerReady" in raster_js
+    assert "approachReady" in raster_js
+    assert "blocked: center first" in raster_js
+    assert "blocked: approach first" in raster_js
+    assert "runToken" in raster_js
+    assert "Raster loop interrupted" in raster_js

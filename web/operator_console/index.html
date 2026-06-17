@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -21,10 +21,14 @@
         <button class="menu-button">View</button>
         <div class="dropdown">
           <button data-open-window="line-window">Line Mode</button>
-          <button data-open-window="topography-window">Topography</button>
-          <button data-open-window="live-window">Live View</button>
-          <button data-open-window="status-window">System Status</button>
-        </div>
+                    <button data-open-tab="line-window">Line Mode - New Tab</button>
+<button data-open-window="topography-window">Topography</button>
+                    <button data-open-tab="topography-window">Topography - New Tab</button>
+<button data-open-window="live-window">Live View</button>
+                    <button data-open-tab="live-window">Live View - New Tab</button>
+<button data-open-window="status-window">System Status</button>
+                  <button data-open-tab="status-window">System Status - New Tab</button>
+</div>
       </div>
 
       <div class="menu-group">
@@ -40,7 +44,8 @@
         <button class="menu-button">Open</button>
         <div class="dropdown">
           <button data-open-window="scan-window">Scan Setup</button>
-          <button data-open-window="line-window">Line Mode</button>
+                    <button data-open-tab="scan-window">Scan Setup - New Tab</button>
+<button data-open-window="line-window">Line Mode</button>
           <button data-open-window="topography-window">Topography</button>
         </div>
       </div>
@@ -161,6 +166,10 @@
       </div>
 
       <div class="mini-status-grid two-col">
+        <div class="mini-status">
+          <span>XY Center</span>
+          <strong id="center-status">not centered</strong>
+        </div>
         <div class="mini-status">
           <span>Z Approach</span>
           <strong id="approach-status">not ready</strong>

@@ -5,7 +5,9 @@
     rasterLines: [],
     currentLineIndex: 0,
     runningRaster: false,
-    approachReady: false
+    centerReady: false,
+    approachReady: false,
+    runToken: 0
   };
 
   function byId(id) {
@@ -14,6 +16,11 @@
 
   function log(message) {
     if (window.SPMConsoleLog) window.SPMConsoleLog(message);
+  }
+
+  function setText(id, value) {
+    const el = byId(id);
+    if (el) el.textContent = value;
   }
 
   function getScanParams() {
@@ -44,37 +51,51 @@
   }
 
   function defaultCenter() {
-    byId("measurement-status").textContent = "centered";
-    log("Default Center requested: future hardware phase will move XY to the configured center.");
+    state.centerReady = true;
+    setText("center-status", "centered");
+    setText("measurement-status", "centered");
+    setText("xy-status", "centered_stub");
+    log("Default Center complete in simulation: XY is now at configured center.");
   }
 
   function markApproachReady() {
     state.approachReady = true;
-    byId("approach-status").textContent = "ready";
-    log("Z approach marked ready in simulation. Real Z approach will be connected in a later module.");
+    setText("approach-status", "ready");
+    log("Z approach complete in simulation: fixed-distance setpoint is ready.");
   }
 
   function pauseRaster() {
+    if (!state.runningRaster) {
+      setText("measurement-status", "paused");
+      log("Pause requested: measurement is not currently running.");
+      return;
+    }
+
     state.runningRaster = false;
-    byId("measurement-status").textContent = "paused";
-    log("Measurement paused.");
+    state.runToken += 1;
+    setText("measurement-status", "paused");
+    log("Measurement paused. Raster loop interrupted.");
   }
 
   function stopRaster() {
     state.runningRaster = false;
-    byId("measurement-status").textContent = "stopped";
-    log("Measurement stopped.");
+    state.runToken += 1;
+    setText("measurement-status", "stopped");
+    log("Measurement stopped. Raster loop interrupted.");
   }
 
   function resetRaster() {
     state.rasterLines = [];
     state.currentLineIndex = 0;
     state.runningRaster = false;
+    state.runToken += 1;
 
-    byId("line-status").textContent = "0 / 0";
-    byId("topography-status").textContent = "empty";
-    byId("line-json").textContent = "No line scan yet.";
-    byId("measurement-status").textContent = "idle";
+    setText("line-status", "0 / 0");
+    setText("topography-status", "empty");
+    setText("measurement-status", "idle");
+
+    const lineJson = byId("line-json");
+    if (lineJson) lineJson.textContent = "No line scan yet.";
 
     redrawAll();
     log("Raster reset.");
@@ -91,34 +112,49 @@
     return payload;
   }
 
-  async function stepOneLine() {
+  async function stepOneLine(options = {}) {
+    const manual = options.manual === true;
+    const token = options.token ?? state.runToken;
     const yPoints = Number(byId("scan-y-points").value);
 
     if (state.currentLineIndex >= yPoints) {
       log("Raster complete; no more Y lines.");
-      byId("measurement-status").textContent = "complete";
+      setText("measurement-status", "complete");
       return;
     }
 
     const line = await fetchScanLine(state.currentLineIndex);
+
+    if (!manual && token !== state.runToken) {
+      log("Line result discarded because measurement was paused/stopped.");
+      return;
+    }
+
     state.rasterLines.push(line);
     state.currentLineIndex += 1;
 
     const latestPoint = line.points[Math.floor(line.points.length / 2)];
-    byId("z-readout").textContent = `${latestPoint.z_feedback.toFixed(3)} mm`;
+    setText("z-readout", `${latestPoint.z_feedback.toFixed(3)} mm`);
+    setText("line-status", `${state.currentLineIndex} / ${line.line_count}`);
+    setText("topography-status", `${state.rasterLines.length} lines`);
 
-    byId("line-status").textContent = `${state.currentLineIndex} / ${line.line_count}`;
-    byId("topography-status").textContent = `${state.rasterLines.length} lines`;
-    byId("line-json").textContent = JSON.stringify(line, null, 2);
+    const lineJson = byId("line-json");
+    if (lineJson) lineJson.textContent = JSON.stringify(line, null, 2);
 
     redrawAll();
     log(`Line ${line.line_index + 1}/${line.line_count} scanned at Y=${line.y}; direction=${line.direction}.`);
   }
 
   async function runRasterSimulation() {
+    if (!state.centerReady) {
+      setText("measurement-status", "blocked: center first");
+      log("Measurement blocked: press Default Center before scanning.");
+      return;
+    }
+
     if (!state.approachReady) {
-      log("Measurement blocked: perform Z Approach first.");
-      byId("measurement-status").textContent = "blocked: approach first";
+      setText("measurement-status", "blocked: approach first");
+      log("Measurement blocked: perform Z Approach before scanning.");
       return;
     }
 
@@ -128,26 +164,37 @@
     }
 
     state.runningRaster = true;
-    byId("measurement-status").textContent = "running";
+    state.runToken += 1;
+    const token = state.runToken;
+
+    setText("measurement-status", "running");
     log("Measurement started: fixed-distance line scan → Y step → topography accumulation.");
 
     try {
       const yPoints = Number(byId("scan-y-points").value);
 
-      while (state.runningRaster && state.currentLineIndex < yPoints) {
-        await stepOneLine();
+      while (state.runningRaster && token === state.runToken && state.currentLineIndex < yPoints) {
+        await stepOneLine({ token });
         await new Promise((resolve) => setTimeout(resolve, 80));
       }
 
+      if (token !== state.runToken) {
+        return;
+      }
+
       if (state.currentLineIndex >= yPoints) {
-        byId("measurement-status").textContent = "complete";
+        setText("measurement-status", "complete");
         log("Measurement complete.");
       }
     } catch (error) {
-      byId("measurement-status").textContent = "error";
-      log(`Measurement failed: ${error.message}`);
+      if (token === state.runToken) {
+        setText("measurement-status", "error");
+        log(`Measurement failed: ${error.message}`);
+      }
     } finally {
-      state.runningRaster = false;
+      if (token === state.runToken) {
+        state.runningRaster = false;
+      }
     }
   }
 
@@ -279,7 +326,7 @@
     defaultCenter,
     markApproachReady,
     resetRaster,
-    stepOneLine,
+    stepOneLine: () => stepOneLine({ manual: true }),
     runRasterSimulation,
     pauseRaster,
     stopRaster,

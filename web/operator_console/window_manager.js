@@ -3,6 +3,16 @@
 
   let zIndex = 400;
 
+  function log(message) {
+    if (window.SPMConsoleLog) window.SPMConsoleLog(message);
+  }
+
+  function closeMenus() {
+    for (const group of document.querySelectorAll(".menu-group.open")) {
+      group.classList.remove("open");
+    }
+  }
+
   function makeDraggable(win) {
     const header = win.querySelector(".window-header");
     if (!header || win.dataset.draggableReady === "true") return;
@@ -14,6 +24,7 @@
     let startTop = 0;
 
     header.addEventListener("mousedown", (event) => {
+      if (document.body.classList.contains("standalone-window-mode")) return;
       if (event.target.closest("button")) return;
 
       dragging = true;
@@ -44,7 +55,7 @@
   function open(id) {
     const win = document.getElementById(id);
     if (!win) {
-      if (window.SPMConsoleLog) window.SPMConsoleLog(`Window not found: ${id}`);
+      log(`Window not found: ${id}`);
       return;
     }
 
@@ -54,19 +65,27 @@
 
     makeDraggable(win);
 
-    if (!win.style.left) {
+    if (!win.style.left && !document.body.classList.contains("standalone-window-mode")) {
       win.style.left = `${80 + (zIndex % 6) * 24}px`;
       win.style.top = `${120 + (zIndex % 6) * 18}px`;
     }
 
     if (window.SPMRaster) window.SPMRaster.redrawAll();
-    if (window.SPMConsoleLog) window.SPMConsoleLog(`Opened ${id}.`);
+    log(`Opened ${id}.`);
+  }
+
+  function openTab(id) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("window", id);
+    url.searchParams.set("standalone", "1");
+    window.open(url.toString(), "_blank", "noopener,noreferrer");
+    log(`Opened ${id} in a new browser tab.`);
   }
 
   function close(win) {
     win.hidden = true;
     win.setAttribute("aria-hidden", "true");
-    if (window.SPMConsoleLog) window.SPMConsoleLog(`Closed ${win.id}.`);
+    log(`Closed ${win.id}.`);
   }
 
   function closeAll() {
@@ -75,10 +94,42 @@
     }
   }
 
+  function initializeFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedWindow = params.get("window");
+    const standalone = params.get("standalone") === "1";
+
+    if (standalone) {
+      document.body.classList.add("standalone-window-mode");
+    }
+
+    if (requestedWindow) {
+      setTimeout(() => open(requestedWindow), 100);
+    }
+  }
+
   document.addEventListener("click", (event) => {
+    const menuButton = event.target.closest(".menu-button");
+    if (menuButton) {
+      const group = menuButton.closest(".menu-group");
+      const wasOpen = group.classList.contains("open");
+      closeMenus();
+      if (!wasOpen) group.classList.add("open");
+      event.stopPropagation();
+      return;
+    }
+
+    const openTabButton = event.target.closest("[data-open-tab]");
+    if (openTabButton) {
+      openTab(openTabButton.dataset.openTab);
+      closeMenus();
+      return;
+    }
+
     const openButton = event.target.closest("[data-open-window]");
     if (openButton) {
       open(openButton.dataset.openWindow);
+      closeMenus();
       return;
     }
 
@@ -86,15 +137,28 @@
     if (closeButton) {
       const win = closeButton.closest(".floating-window");
       if (win) close(win);
+      return;
+    }
+
+    if (!event.target.closest(".dropdown")) {
+      closeMenus();
     }
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeAll();
+    if (event.key === "Escape") {
+      closeMenus();
+      if (!document.body.classList.contains("standalone-window-mode")) {
+        closeAll();
+      }
+    }
   });
 
   window.SPMWindows = {
     open,
+    openTab,
     closeAll
   };
+
+  initializeFromUrl();
 })();

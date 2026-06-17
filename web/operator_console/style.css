@@ -89,8 +89,7 @@ body {
   z-index: 200;
 }
 
-.menu-group:hover .dropdown,
-.menu-group:focus-within .dropdown {
+.menu-group.open .dropdown {
   display: grid;
   gap: 6px;
 }
@@ -406,4 +405,33 @@ pre {
   .mini-status-grid {
     grid-template-columns: 1fr;
   }
+}
+
+
+/* Phase 2.3C: standalone browser-tab window mode for two-monitor work */
+body.standalone-window-mode {
+  background: #0b1020;
+}
+
+body.standalone-window-mode .workspace {
+  display: none;
+}
+
+body.standalone-window-mode .menu-bar {
+  display: none;
+}
+
+body.standalone-window-mode .topbar {
+  position: static;
+}
+
+body.standalone-window-mode .floating-window {
+  position: static;
+  width: calc(100vw - 40px);
+  max-height: none;
+  margin: 20px auto;
+}
+
+body.standalone-window-mode .window-header {
+  cursor: default;
 }
