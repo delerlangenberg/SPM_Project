@@ -1,0 +1,179 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Educational SPM - Prusa MK4S Web Operator Console</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">SPM</div>
+      <div>
+        <h1>Educational SPM - Prusa MK4S</h1>
+        <p>Web Operator Console · Phase 2.0</p>
+      </div>
+    </div>
+
+    <nav class="menu" aria-label="Main menu">
+      <button data-menu="view">View</button>
+      <button data-menu="tools">Tools</button>
+      <button data-menu="open">Open</button>
+      <button data-menu="about">About</button>
+    </nav>
+  </header>
+
+  <main class="workspace">
+    <section class="panel main-panel" data-phase="2.1">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.1</span>
+        <h2>Main System</h2>
+      </div>
+
+      <div class="status-card">
+        <span class="status-dot" id="status-dot"></span>
+        <div>
+          <strong id="system-state">Simulation Stub</strong>
+          <p id="system-detail">Hardware is not connected from the web console yet.</p>
+        </div>
+      </div>
+
+      <div class="control-grid main-controls">
+        <button class="primary" data-action="system-on">ON</button>
+        <button class="danger" data-action="system-off">OFF</button>
+        <button data-action="system-status">STATUS</button>
+        <button data-action="system-close">CLOSE</button>
+      </div>
+
+      <div class="field-stack">
+        <label>Connection Port
+          <input value="COM5" />
+        </label>
+        <label>Mode
+          <select>
+            <option>Simulation / Dry Run</option>
+            <option disabled>Real MK4S Motion - locked until Phase 2.1</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel z-panel" data-phase="2.2">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.2</span>
+        <h2>Z Scanner</h2>
+      </div>
+
+      <div class="readout">
+        <span>Z position</span>
+        <strong id="z-readout">--.-- mm</strong>
+      </div>
+
+      <div class="control-grid">
+        <button data-action="z-approach">Approach</button>
+        <button data-action="z-retract">Retract</button>
+        <button data-action="z-read">Read Z</button>
+        <button data-action="z-park">Park Z</button>
+      </div>
+
+      <div class="field-stack">
+        <label>Z step size mm
+          <input type="number" value="0.10" step="0.01" />
+        </label>
+        <label>Safe Z min/max mm
+          <input value="5 / 50" />
+        </label>
+        <label>Approach strategy
+          <select>
+            <option>Manual step approach</option>
+            <option>Auto approach from old project - Phase 2.2</option>
+            <option>CR-Touch assisted approach - future</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel xy-panel" data-phase="2.3">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>XY Scanner</h2>
+      </div>
+
+      <div class="xy-pad" aria-label="XY motion pad">
+        <div></div>
+        <button data-action="y-plus">Y+</button>
+        <div></div>
+        <button data-action="x-minus">X-</button>
+        <button class="center" data-action="xy-center">CENTER</button>
+        <button data-action="x-plus">X+</button>
+        <div></div>
+        <button data-action="y-minus">Y-</button>
+        <div></div>
+      </div>
+
+      <div class="field-grid">
+        <label>X min
+          <input type="number" value="20" />
+        </label>
+        <label>X max
+          <input type="number" value="80" />
+        </label>
+        <label>Y min
+          <input type="number" value="20" />
+        </label>
+        <label>Y max
+          <input type="number" value="80" />
+        </label>
+        <label>X points
+          <input type="number" value="25" />
+        </label>
+        <label>Y points
+          <input type="number" value="25" />
+        </label>
+        <label>XY feedrate
+          <input type="number" value="600" />
+        </label>
+        <label>Output
+          <input value="data/web_scan_output.csv" />
+        </label>
+      </div>
+
+      <div class="control-grid">
+        <button data-action="preview-scan">Preview Scan</button>
+        <button class="primary" data-action="start-scan">Start Scan</button>
+        <button data-action="stop-scan">Stop</button>
+        <button data-action="export-scan">Export</button>
+      </div>
+    </section>
+
+    <section class="panel view-panel" data-phase="2.4">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.4</span>
+        <h2>Live View / Measurement</h2>
+      </div>
+
+      <div class="plot-placeholder">
+        <div>
+          <strong>Live scan preview</strong>
+          <p>CSV / PNG / Gwyddion-compatible export will be connected here.</p>
+        </div>
+      </div>
+
+      <div class="log" id="operator-log">
+        <p>[Phase 2.0] Web operator console loaded.</p>
+      </div>
+    </section>
+  </main>
+
+  <section class="phase-roadmap" data-phase="2.5">
+    <div class="panel-header">
+      <span class="phase-tag">Phase 2.5</span>
+      <h2>Integration Roadmap</h2>
+    </div>
+    <div id="phase-map" class="phase-map"></div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
