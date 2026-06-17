@@ -1,0 +1,32 @@
+{
+  "phase": "9.6",
+  "script": "tools\\phase9_xy_10x10_topography_skeleton.py",
+  "started_at": "2026-06-12T09:24:54",
+  "execute": false,
+  "size": 2,
+  "total_points": 4,
+  "csv_out": "data\\phase9_6_dryrun_probe.csv",
+  "png_out": "data\\phase9_6_dryrun_probe.png",
+  "raw_log": "data\\phase9_6_dryrun_probe_raw.txt",
+  "controller": {
+    "name": "Prusa MK4 controller",
+    "port": "COM5",
+    "baudrate": 115200,
+    "usb_name": "Serielles USB-Ger\u00e4t (COM5)",
+    "usb_vid": "2C99",
+    "usb_pid": "000D",
+    "firmware_name": "Prusa-Firmware-Buddy 6.2.4+8909",
+    "machine_type": "Prusa-MK4",
+    "protocol_version": "1.0",
+    "uuid": "cede2a2f-41a2-4748-9b12-c55c62f367ff"
+  },
+  "safe_center": {
+    "x": 125.0,
+    "y": 105.0
+  },
+  "safe_retract_z": 120.0,
+  "contact_z": 56.0,
+  "status": "dry_run_plan_complete",
+  "error": null,
+  "finished_at": "2026-06-12T09:24:54"
+}

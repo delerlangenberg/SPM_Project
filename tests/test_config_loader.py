@@ -14,9 +14,9 @@ def test_get_prusa_backend_kwargs_extracts_limits():
             "baudrate": 115200,
         },
         "motion_limits": {
-            "x": [20, 80],
-            "y": [20, 80],
-            "z": [5, 50],
+            "x": [0, 250],
+            "y": [0, 210],
+            "z": [0, 220],
         },
     }
 
@@ -24,9 +24,9 @@ def test_get_prusa_backend_kwargs_extracts_limits():
 
     assert kwargs["port"] == "COM5"
     assert kwargs["baudrate"] == 115200
-    assert kwargs["x_limits"] == (20, 80)
-    assert kwargs["y_limits"] == (20, 80)
-    assert kwargs["z_limits"] == (5, 50)
+    assert kwargs["x_limits"] == (0, 250)
+    assert kwargs["y_limits"] == (0, 210)
+    assert kwargs["z_limits"] == (0, 220)
 
 
 def test_get_safe_feedrates():
@@ -65,3 +65,32 @@ def test_get_safe_raster_config():
     assert raster["scan_z"] == 20
     assert raster["simulated_z_signal"] == 0.0
     assert raster["output_file"] == "data/safe_raster_3x3_output.csv"
+
+
+def test_get_parking_position():
+    from core.education.config_loader import get_parking_position
+
+    config = {
+        "parking_position": {
+            "x": 1,
+            "y": 1,
+            "z": 100,
+        }
+    }
+
+    assert get_parking_position(config) == {"x": 1, "y": 1, "z": 100}
+
+
+def test_get_scan_mode_preset_reads_hardware_and_z_settings():
+    from core.education.config_loader import get_scan_mode_preset
+
+    config = load_config("config/spm_mk4s_config.json")
+    preset = get_scan_mode_preset(config, "STM_DEMO")
+
+    assert preset["scan_area"]["x_min"] == 49
+    assert preset["scan_area"]["x_max"] == 51
+    assert preset["feedrates"]["xy"] == 300
+    assert preset["feedrates"]["z"] == 60
+    assert preset["z_control"]["feedback"].startswith("constant-current")
+    assert preset["hardware"]["z_stage"] == "Original Prusa MK4S Z axis now; fine Z scanner planned later"
+    assert preset["hardware"]["sensor"] == "tunneling-current channel planned later"

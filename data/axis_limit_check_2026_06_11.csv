@@ -1,0 +1,12 @@
+step,axis,target,actual_x,actual_y,actual_z,result
+safe_z_before_xy,Z,20.0,52.0,52.0,20.0,PASS
+center_xy,XY,50.0,50.0,50.0,20.0,PASS
+x_min,X,20.0,20.0,50.0,20.0,PASS
+x_max,X,80.0,80.0,50.0,20.0,PASS
+x_center,X,50.0,50.0,50.0,20.0,PASS
+y_min,Y,20.0,50.0,20.0,20.0,PASS
+y_max,Y,80.0,50.0,80.0,20.0,PASS
+y_center,Y,50.0,50.0,50.0,20.0,PASS
+z_min,Z,5.0,50.0,50.0,5.0,PASS
+z_max,Z,50.0,50.0,50.0,50.0,PASS
+z_safe_return,Z,20.0,50.0,50.0,20.0,PASS

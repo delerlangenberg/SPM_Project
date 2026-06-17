@@ -1,0 +1,7 @@
+step,axis,target,actual_x,actual_y,actual_z,result
+clearance_z_before_xy,Z,50.0,50.0,50.0,50.0,PASS
+center_xy,XY,50.0,50.0,50.0,50.0,PASS
+x_official_min,X,0.0,0.0,50.0,50.0,PASS
+x_return_center,X,50.0,50.0,50.0,50.0,PASS
+y_official_min,Y,0.0,50.0,0.0,50.0,PASS
+return_safe_center,XYZ,20.0,50.0,50.0,20.0,PASS

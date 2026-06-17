@@ -1,0 +1,4 @@
+point,x,y,contact_z,position_response
+1,115.0,105.0,56.0,ok
+2,125.0,105.0,56.0,echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing
+3,135.0,105.0,56.0,ok

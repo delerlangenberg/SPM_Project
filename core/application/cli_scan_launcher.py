@@ -1,6 +1,11 @@
 import argparse
 import subprocess
 import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.education.config_loader import (
     load_config,
@@ -41,8 +46,8 @@ def apply_cli_overrides(profile: ScanProfile, args: argparse.Namespace) -> ScanP
         z=args.z if args.z is not None else profile.z,
         x_resolution=args.x_resolution if args.x_resolution is not None else profile.x_resolution,
         y_resolution=args.y_resolution if args.y_resolution is not None else profile.y_resolution,
-        feedrate_xy=profile.feedrate_xy,
-        feedrate_z=profile.feedrate_z,
+        feedrate_xy=args.feedrate_xy if getattr(args, "feedrate_xy", None) is not None else profile.feedrate_xy,
+        feedrate_z=args.feedrate_z if getattr(args, "feedrate_z", None) is not None else profile.feedrate_z,
         mode=profile.mode,
     )
 
@@ -60,7 +65,11 @@ def build_motion_limits_from_config(config: dict) -> MotionLimits:
     )
 
 
-def build_hardware_command(profile: ScanProfile, output_file: str | None = None) -> list[str]:
+def build_hardware_command(
+    profile: ScanProfile,
+    output_file: str | None = None,
+    dry_run: bool = False,
+) -> list[str]:
     command = [
         sys.executable,
         "tools/run_configured_raster_scan.py",
@@ -80,7 +89,14 @@ def build_hardware_command(profile: ScanProfile, output_file: str | None = None)
         str(profile.x_resolution),
         "--y-resolution",
         str(profile.y_resolution),
+        "--feedrate-xy",
+        str(profile.feedrate_xy),
+        "--feedrate-z",
+        str(profile.feedrate_z),
     ]
+
+    if dry_run:
+        command.insert(2, "--dry-run")
 
     if output_file is not None:
         command.extend(["--output-file", output_file])
@@ -91,6 +107,14 @@ def build_hardware_command(profile: ScanProfile, output_file: str | None = None)
 def run_verified_hardware_raster(profile: ScanProfile, output_file: str | None = None) -> int:
     result = subprocess.run(
         build_hardware_command(profile, output_file),
+        check=False,
+    )
+    return result.returncode
+
+
+def run_verified_software_raster(profile: ScanProfile, output_file: str | None = None) -> int:
+    result = subprocess.run(
+        build_hardware_command(profile, output_file, dry_run=True),
         check=False,
     )
     return result.returncode
@@ -113,6 +137,8 @@ def main() -> None:
     parser.add_argument("--z", type=float)
     parser.add_argument("--x-resolution", type=int)
     parser.add_argument("--y-resolution", type=int)
+    parser.add_argument("--feedrate-xy", type=float)
+    parser.add_argument("--feedrate-z", type=float)
 
     args = parser.parse_args()
 
@@ -138,7 +164,14 @@ def main() -> None:
     print(f"Output file: {output_file}")
 
     if args.dry_run:
-        print("Dry run only. No hardware movement.")
+        print("Dry run requested. No hardware movement.")
+        print("Generating verified synthetic raster output...")
+        exit_code = run_verified_software_raster(profile, output_file)
+
+        if exit_code != 0:
+            raise SystemExit(exit_code)
+
+        print("Dry-run synthetic raster complete.")
         return
 
     if args.execute_hardware:

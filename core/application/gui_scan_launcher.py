@@ -954,25 +954,31 @@ class ScanGUI(QWidget):
         )
 
     def refresh_hardware_parameters(self, phase: str) -> None:
-        def fmt(axis: str) -> str:
-            value = self.current_position.get(axis)
-            return "unknown" if value is None else f"{float(value):.2f}"
+        try:
+            def fmt(axis: str) -> str:
+                value = self.current_position.get(axis)
+                return "unknown" if value is None else f"{float(value):.2f}"
 
-        mode = self.scan_mode_dropdown.currentText() if hasattr(self, "scan_mode_dropdown") else "unknown"
-        self.hardware_parameters_label.setText(
-            "Hardware Parameters\n"
-            f"Phase: {phase}\n"
-            f"Project: Educational SPM\n"
-            f"Controller: Prusa MK4S on {self.config['printer']['port']} @ {self.config['printer']['baudrate']}\n"
-            f"Motion enabled: {self.workstation_status.real_motion_enabled}\n"
-            f"System check: {self.workstation_status.system_check_passed}\n"
-            f"Mode: {mode}\n"
-            f"Position: X {fmt('x')} | Y {fmt('y')} | Z {fmt('z')}\n"
-            f"Resolution: {self.x_res.text()} x {self.y_res.text()} (max {MAX_SCAN_RESOLUTION})\n"
-            f"XY speed: {self.xy_feedrate.text()} mm/min | Z speed: {self.z_feedrate.text()} mm/min\n"
-            f"Shutdown ready: {self.shutdown_complete}"
-        )
+            mode = self.scan_mode_dropdown.currentText() if hasattr(self, "scan_mode_dropdown") else "unknown"
+            self.hardware_parameters_label.setText(
+                "Hardware Parameters\n"
+                f"Phase: {phase}\n"
+                f"Project: Educational SPM\n"
+                f"Controller: Prusa MK4S on {self.config['printer']['port']} @ {self.config['printer']['baudrate']}\n"
+                f"Motion enabled: {self.workstation_status.real_motion_enabled}\n"
+                f"System check: {self.workstation_status.system_check_passed}\n"
+                f"Mode: {mode}\n"
+                f"Position: X {fmt('x')} | Y {fmt('y')} | Z {fmt('z')}\n"
+                f"Resolution: {self.x_res.text()} x {self.y_res.text()} (max {MAX_SCAN_RESOLUTION})\n"
+                f"XY speed: {self.xy_feedrate.text()} mm/min | Z speed: {self.z_feedrate.text()} mm/min\n"
+                f"Shutdown ready: {self.shutdown_complete}"
+            )
 
+        except RuntimeError:
+            # Qt may deliver a late status refresh during shutdown after QLabel
+            # widgets have already been deleted. Status refresh must not crash.
+            print("Hardware parameter refresh ignored during Qt shutdown.")
+            return
     def field_with_tip(self, field: QLineEdit, tip_text: str) -> QWidget:
         container = QWidget()
         layout = QHBoxLayout()
@@ -2188,7 +2194,12 @@ class ScanGUI(QWidget):
     # Append message to log
     # ------------------------------------------------------------
     def append_log(self, message: str) -> None:
-        self.log.append(message)
+        try:
+            self.log.append(message)
+        except RuntimeError:
+            # Qt may deliver a late callback during shutdown after QTextEdit
+            # has already been deleted. Logging must never crash the GUI.
+            return
 
     # ------------------------------------------------------------
     # Build scan profile from GUI fields

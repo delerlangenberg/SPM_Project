@@ -29,12 +29,12 @@ def test_cli_builds_motion_limits_from_config():
 
     limits = build_motion_limits_from_config(config)
 
-    assert limits.x_min == 20
-    assert limits.x_max == 80
-    assert limits.y_min == 20
-    assert limits.y_max == 80
-    assert limits.z_min == 5
-    assert limits.z_max == 50
+    assert limits.x_min == 0
+    assert limits.x_max == 250
+    assert limits.y_min == 0
+    assert limits.y_max == 210
+    assert limits.z_min == 0
+    assert limits.z_max == 220
 
 def test_run_verified_hardware_raster_uses_verified_script(monkeypatch):
     calls = {}
@@ -73,6 +73,51 @@ def test_run_verified_hardware_raster_uses_verified_script(monkeypatch):
 
     assert exit_code == 0
     assert calls["command"][1] == "tools/run_configured_raster_scan.py"
+    assert "--feedrate-xy" in calls["command"]
+    assert "--feedrate-z" in calls["command"]
+    assert calls["check"] is False
+
+
+def test_run_verified_software_raster_uses_dry_run_flag(monkeypatch):
+    calls = {}
+
+    def fake_run(command, check):
+        calls["command"] = command
+        calls["check"] = check
+
+        class Result:
+            returncode = 0
+
+        return Result()
+
+    monkeypatch.setattr(
+        "core.application.cli_scan_launcher.subprocess.run",
+        fake_run,
+    )
+
+    from core.application.cli_scan_launcher import run_verified_software_raster
+    from core.education.scan_profile import ScanProfile
+
+    profile = ScanProfile(
+        x_min=48,
+        x_max=52,
+        y_min=48,
+        y_max=52,
+        z=20,
+        x_resolution=3,
+        y_resolution=3,
+        feedrate_xy=1200,
+        feedrate_z=300,
+        mode="SIMULATED_SURFACE",
+    )
+
+    exit_code = run_verified_software_raster(profile, "data/dry_run.csv")
+
+    assert exit_code == 0
+    assert calls["command"][1] == "tools/run_configured_raster_scan.py"
+    assert "--dry-run" in calls["command"]
+    assert "--feedrate-xy" in calls["command"]
+    assert "--feedrate-z" in calls["command"]
     assert calls["check"] is False
 
 def test_cli_overrides_scan_profile_values():
@@ -102,6 +147,8 @@ def test_cli_overrides_scan_profile_values():
         z=20,
         x_resolution=3,
         y_resolution=3,
+        feedrate_xy=900,
+        feedrate_z=150,
     )
 
     updated = apply_cli_overrides(profile, args)
@@ -113,8 +160,8 @@ def test_cli_overrides_scan_profile_values():
     assert updated.z == 20
     assert updated.x_resolution == 3
     assert updated.y_resolution == 3
-    assert updated.feedrate_xy == 1200
-    assert updated.feedrate_z == 300
+    assert updated.feedrate_xy == 900
+    assert updated.feedrate_z == 150
     assert updated.mode == "SIMULATED_SURFACE"
 
 
@@ -160,7 +207,7 @@ def test_cli_validation_failure_returns_clean_error(capsys):
         "cli_scan_launcher.py",
         "--dry-run",
         "--x-min",
-        "10",
+        "-10",
         "--x-max",
         "52",
     ]

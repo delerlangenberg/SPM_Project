@@ -1,0 +1,905 @@
+PHASE 1.2J - Z SETPOINT CLIPBOARD REPORT
+Project: D:\SPM_Prusa_Project
+
+Goal: find why user-entered Z values such as 0, 2, 10 do not control Z and system stays around 60 mm.
+
+
+================================================================================
+1) GUI functions/classes that probably touch scan, preview, Z, hardware, or profile
+================================================================================
+FILE: core\application\gui_scan_launcher.py
+
+lines 74-770: def __init__(self):
+lines 771-784: def create_direction_preview_label(self, direction: str) -> QLabel:
+lines 785-791: def build_tool_dialog(self, title: str, content_layout: QVBoxLayout, width: int, height: int) -> QDialog:
+lines 797-801: def open_hardware_tools_window(self) -> None:
+lines 807-811: def open_z_regulation_window(self) -> None:
+lines 812-814: def open_z_tools_window(self) -> None:
+lines 815-826: def show_about(self) -> None:
+lines 847-864: def open_direction_window(self, direction: str) -> None:
+lines 865-882: def run_hardware_check_only(self) -> None:
+lines 883-897: def update_operation_mode(self, mode: str) -> None:
+lines 919-946: def documentation_markdown(self) -> str:
+lines 947-947: def refresh_hardware_parameters(self, phase: str) -> None:
+lines 948-966: def fmt(axis: str) -> str:
+lines 982-995: def connect_scan_setting_updates(self) -> None:
+lines 996-1040: def apply_scan_mode_preset(self, mode: str, show_limits: bool = True) -> None:
+lines 1041-1073: def refresh_timing_estimate(self) -> None:
+lines 1074-1082: def current_z_setup_summary(self) -> str:
+lines 1083-1089: def show_scan_mode_limits(self, mode: str) -> None:
+lines 1095-1105: def fmt(axis: str) -> str:
+lines 1121-1137: def z_axis_visual(self, current_z: float, start_z: float, target_z: float) -> str:
+lines 1138-1146: def show_z_training_visual(self, title: str, current_z: float, start_z: float, target_z: float) -> None:
+lines 1147-1177: def set_initialized_controls_enabled(self, enabled: bool) -> None:
+lines 1178-1193: def require_initialized(self, action_name: str) -> bool:
+lines 1194-1259: def apply_instrument_style(self) -> None:
+lines 1260-1292: def refresh_workstation_status_ui(self) -> None:
+lines 1351-1406: def power_off_workstation(self) -> bool:
+lines 1407-1416: def close_after_power_off(self) -> None:
+lines 1430-1458: def start_live_demo_scan(self) -> None:
+lines 1459-1473: def build_live_scan_points(self, profile: ScanProfile) -> list[dict[str, float | str | int]]:
+lines 1481-1491: def synthetic_regulated_height(self, x: float, y: float, profile: ScanProfile) -> float:
+lines 1492-1539: def advance_live_scan(self) -> None:
+lines 1540-1565: def finish_live_scan(self, cancelled: bool) -> None:
+lines 1566-1589: def write_live_scan_csv(self, output_path: str) -> None:
+lines 1594-1617: def draw_live_line_scan(self) -> None:
+lines 1618-1640: def draw_live_topography(self) -> None:
+lines 1662-1686: def run_main_scan(self) -> None:
+lines 1692-1700: def stop_scan(self) -> None:
+lines 1701-1720: def set_z_connection_indicator(self, connected: bool) -> None:
+lines 1731-1734: def confirm_z_action(self, title: str, message: str) -> bool:
+lines 1735-1762: def build_scan_confirmation_message(
+lines 1763-1783: def refresh_z_driver_status(self, prefix: str = "Z dry-run status") -> None:
+lines 1784-1799: def report_z_failure(self, status_text: str, log_text: str) -> None:
+lines 1800-1817: def run_z_dry_connect(self) -> None:
+lines 1818-1854: def run_z_dry_move_test(self) -> None:
+lines 1855-1936: def run_z_dry_approach(self) -> None:
+lines 1937-2018: def run_z_dry_retract(self) -> None:
+lines 2019-2036: def run_z_dry_disconnect(self) -> None:
+lines 2037-2047: def run_main_z_create(self) -> None:
+lines 2048-2056: def run_main_z_move(self) -> None:
+lines 2057-2089: def run_main_z_manual_step(self, direction: str) -> None:
+lines 2090-2135: def run_main_z_auto_approach(self) -> None:
+lines 2136-2162: def run_main_z_retract(self) -> None:
+lines 2169-2185: def build_profile(self) -> ScanProfile:
+lines 2186-2227: def validate_profile(self, require_initialized: bool = True) -> ScanProfile | None:
+lines 2228-2267: def build_cli_command(self, profile: ScanProfile, execute_hardware: bool) -> list[str]:
+lines 2275-2289: def build_plot_command(self) -> list[str]:
+lines 2318-2347: def refresh_acquisition_preview(self, csv_path: str, plot_path: str) -> None:
+lines 2348-2365: def refresh_plot_preview(self, plot_path: str) -> None:
+lines 2393-2464: def run_dry_scan(self, require_initialized: bool = True) -> None:
+lines 2465-2543: def initiate_system_check(self) -> None:
+lines 2544-2572: def arm_hardware(self) -> None:
+lines 2573-2595: def disarm_hardware(self) -> None:
+lines 2596-2683: def run_hardware_scan(self) -> None:
+lines 2684-2706: def closeEvent(self, event) -> None:
+
+================================================================================
+2) GUI: where ScanProfile / scan start / preview / hardware is used
+================================================================================
+FILE: core\application\gui_scan_launcher.py
+
+
+--- Context around line 42 ---
+   34:     QGridLayout,
+   35: )
+   36: from PyQt5.QtGui import QPixmap
+   37: from PyQt5.QtCore import Qt, QTimer
+   38: 
+   39: from core.acquisition.raster_stream import load_raster_frame
+   40: from core.application.workstation_status import WorkstationStatus
+   41: from core.education.config_loader import load_config, get_safe_feedrates, get_scan_mode_preset
+>> 42: from core.education.scan_profile import (
+   43:     ScanProfile,
+   44:     MotionLimits,
+   45:     VALID_SCAN_MODES,
+   46:     validate_scan_profile,
+   47:     MAX_SCAN_RESOLUTION,
+   48: )
+   49: from core.system.hardware_diagnostics import run_hardware_communication_report
+   50: from core.system.hardware_profile import SPMHardwareProfile
+   51: from core.system.mk4s_z_auto_approach import run_mk4s_z_auto_approach, run_mk4s_z_manual_step, run_mk4s_z_safe_retract
+   52: from core.system.workstation_initializer import run_workstation_initialization
+   53: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+   54: from core.motion.parking import park_mk4s
+   55: 
+   56: from core.z_control.crtouch_probe_plan import CRTouchProbePlan
+
+--- Context around line 46 ---
+   38: 
+   39: from core.acquisition.raster_stream import load_raster_frame
+   40: from core.application.workstation_status import WorkstationStatus
+   41: from core.education.config_loader import load_config, get_safe_feedrates, get_scan_mode_preset
+   42: from core.education.scan_profile import (
+   43:     ScanProfile,
+   44:     MotionLimits,
+   45:     VALID_SCAN_MODES,
+>> 46:     validate_scan_profile,
+   47:     MAX_SCAN_RESOLUTION,
+   48: )
+   49: from core.system.hardware_diagnostics import run_hardware_communication_report
+   50: from core.system.hardware_profile import SPMHardwareProfile
+   51: from core.system.mk4s_z_auto_approach import run_mk4s_z_auto_approach, run_mk4s_z_manual_step, run_mk4s_z_safe_retract
+   52: from core.system.workstation_initializer import run_workstation_initialization
+   53: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+   54: from core.motion.parking import park_mk4s
+   55: 
+   56: from core.z_control.crtouch_probe_plan import CRTouchProbePlan
+   57: from core.z_control.z_driver_arduino_safe import ZDriverArduino
+   58: 
+   59: 
+   60: # ============================================================
+
+--- Context around line 49 ---
+   41: from core.education.config_loader import load_config, get_safe_feedrates, get_scan_mode_preset
+   42: from core.education.scan_profile import (
+   43:     ScanProfile,
+   44:     MotionLimits,
+   45:     VALID_SCAN_MODES,
+   46:     validate_scan_profile,
+   47:     MAX_SCAN_RESOLUTION,
+   48: )
+>> 49: from core.system.hardware_diagnostics import run_hardware_communication_report
+   50: from core.system.hardware_profile import SPMHardwareProfile
+   51: from core.system.mk4s_z_auto_approach import run_mk4s_z_auto_approach, run_mk4s_z_manual_step, run_mk4s_z_safe_retract
+   52: from core.system.workstation_initializer import run_workstation_initialization
+   53: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+   54: from core.motion.parking import park_mk4s
+   55: 
+   56: from core.z_control.crtouch_probe_plan import CRTouchProbePlan
+   57: from core.z_control.z_driver_arduino_safe import ZDriverArduino
+   58: 
+   59: 
+   60: # ============================================================
+   61: # SPM Educational GUI
+   62: # Safe GUI wrapper around the verified CLI scan launcher
+   63: # ============================================================
+
+--- Context around line 50 ---
+   42: from core.education.scan_profile import (
+   43:     ScanProfile,
+   44:     MotionLimits,
+   45:     VALID_SCAN_MODES,
+   46:     validate_scan_profile,
+   47:     MAX_SCAN_RESOLUTION,
+   48: )
+   49: from core.system.hardware_diagnostics import run_hardware_communication_report
+>> 50: from core.system.hardware_profile import SPMHardwareProfile
+   51: from core.system.mk4s_z_auto_approach import run_mk4s_z_auto_approach, run_mk4s_z_manual_step, run_mk4s_z_safe_retract
+   52: from core.system.workstation_initializer import run_workstation_initialization
+   53: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+   54: from core.motion.parking import park_mk4s
+   55: 
+   56: from core.z_control.crtouch_probe_plan import CRTouchProbePlan
+   57: from core.z_control.z_driver_arduino_safe import ZDriverArduino
+   58: 
+   59: 
+   60: # ============================================================
+   61: # SPM Educational GUI
+   62: # Safe GUI wrapper around the verified CLI scan launcher
+   63: # ============================================================
+   64: APP_VERSION = "v0.25.0"
+
+--- Context around line 85 ---
+   77: 
+   78:         # ------------------------------------------------------------
+   79:         # Load configuration
+   80:         # ------------------------------------------------------------
+   81:         self.config = load_config()
+   82:         self.safe_feedrates = get_safe_feedrates(self.config)
+   83:         self.workstation_status = WorkstationStatus.from_config(self.config)
+   84:         self.crtouch_plan = CRTouchProbePlan()
+>> 85:         self.hardware_profile = SPMHardwareProfile.from_config(self.config)
+   86:         self.current_position = {"x": None, "y": None, "z": None}
+   87:         self.shutdown_complete = False
+   88:         self.last_plot_path = ""
+   89:         self.scan_viewers = []
+   90:         self.direction_viewers = {}
+   91:         self.direction_preview_labels = {}
+   92:         self.direction_window_labels = {}
+   93:         self.z_approached = False
+   94:         self.scan_stop_requested = False
+   95:         self.scan_pause_requested = False
+   96:         self.live_scan_timer = QTimer(self)
+   97:         self.live_scan_timer.timeout.connect(self.advance_live_scan)
+   98:         self.live_scan_points = []
+   99:         self.live_scan_index = 0
+
+--- Context around line 91 ---
+   83:         self.workstation_status = WorkstationStatus.from_config(self.config)
+   84:         self.crtouch_plan = CRTouchProbePlan()
+   85:         self.hardware_profile = SPMHardwareProfile.from_config(self.config)
+   86:         self.current_position = {"x": None, "y": None, "z": None}
+   87:         self.shutdown_complete = False
+   88:         self.last_plot_path = ""
+   89:         self.scan_viewers = []
+   90:         self.direction_viewers = {}
+>> 91:         self.direction_preview_labels = {}
+   92:         self.direction_window_labels = {}
+   93:         self.z_approached = False
+   94:         self.scan_stop_requested = False
+   95:         self.scan_pause_requested = False
+   96:         self.live_scan_timer = QTimer(self)
+   97:         self.live_scan_timer.timeout.connect(self.advance_live_scan)
+   98:         self.live_scan_points = []
+   99:         self.live_scan_index = 0
+   100:         self.live_scan_rows = []
+   101:         self.live_scan_current_line = []
+   102:         self.live_scan_profile = None
+   103:         self.live_scan_active = False
+   104:         self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+   105: 
+
+================================================================================
+3) GUI: direct Z-like lines
+================================================================================
+FILE: core\application\gui_scan_launcher.py
+
+
+--- Context around line 56 ---
+   48: )
+   49: from core.system.hardware_diagnostics import run_hardware_communication_report
+   50: from core.system.hardware_profile import SPMHardwareProfile
+   51: from core.system.mk4s_z_auto_approach import run_mk4s_z_auto_approach, run_mk4s_z_manual_step, run_mk4s_z_safe_retract
+   52: from core.system.workstation_initializer import run_workstation_initialization
+   53: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+   54: from core.motion.parking import park_mk4s
+   55: 
+>> 56: from core.z_control.crtouch_probe_plan import CRTouchProbePlan
+   57: from core.z_control.z_driver_arduino_safe import ZDriverArduino
+   58: 
+   59: 
+   60: # ============================================================
+   61: # SPM Educational GUI
+   62: # Safe GUI wrapper around the verified CLI scan launcher
+   63: # ============================================================
+   64: APP_VERSION = "v0.25.0"
+   65: APP_PHASE = "Focused SPM Workflow - Connection, Approach, Measurement"
+   66: APP_BUILD_DATE = "2026-06-12"
+   67: APP_TITLE = f"Educational SPM {APP_VERSION} - Operator Workspace - Prusa MK4S"
+   68: 
+   69: 
+   70: class ScanGUI(QWidget):
+
+--- Context around line 57 ---
+   49: from core.system.hardware_diagnostics import run_hardware_communication_report
+   50: from core.system.hardware_profile import SPMHardwareProfile
+   51: from core.system.mk4s_z_auto_approach import run_mk4s_z_auto_approach, run_mk4s_z_manual_step, run_mk4s_z_safe_retract
+   52: from core.system.workstation_initializer import run_workstation_initialization
+   53: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+   54: from core.motion.parking import park_mk4s
+   55: 
+   56: from core.z_control.crtouch_probe_plan import CRTouchProbePlan
+>> 57: from core.z_control.z_driver_arduino_safe import ZDriverArduino
+   58: 
+   59: 
+   60: # ============================================================
+   61: # SPM Educational GUI
+   62: # Safe GUI wrapper around the verified CLI scan launcher
+   63: # ============================================================
+   64: APP_VERSION = "v0.25.0"
+   65: APP_PHASE = "Focused SPM Workflow - Connection, Approach, Measurement"
+   66: APP_BUILD_DATE = "2026-06-12"
+   67: APP_TITLE = f"Educational SPM {APP_VERSION} - Operator Workspace - Prusa MK4S"
+   68: 
+   69: 
+   70: class ScanGUI(QWidget):
+   71:     # ------------------------------------------------------------
+
+--- Context around line 86 ---
+   78:         # ------------------------------------------------------------
+   79:         # Load configuration
+   80:         # ------------------------------------------------------------
+   81:         self.config = load_config()
+   82:         self.safe_feedrates = get_safe_feedrates(self.config)
+   83:         self.workstation_status = WorkstationStatus.from_config(self.config)
+   84:         self.crtouch_plan = CRTouchProbePlan()
+   85:         self.hardware_profile = SPMHardwareProfile.from_config(self.config)
+>> 86:         self.current_position = {"x": None, "y": None, "z": None}
+   87:         self.shutdown_complete = False
+   88:         self.last_plot_path = ""
+   89:         self.scan_viewers = []
+   90:         self.direction_viewers = {}
+   91:         self.direction_preview_labels = {}
+   92:         self.direction_window_labels = {}
+   93:         self.z_approached = False
+   94:         self.scan_stop_requested = False
+   95:         self.scan_pause_requested = False
+   96:         self.live_scan_timer = QTimer(self)
+   97:         self.live_scan_timer.timeout.connect(self.advance_live_scan)
+   98:         self.live_scan_points = []
+   99:         self.live_scan_index = 0
+   100:         self.live_scan_rows = []
+
+--- Context around line 93 ---
+   85:         self.hardware_profile = SPMHardwareProfile.from_config(self.config)
+   86:         self.current_position = {"x": None, "y": None, "z": None}
+   87:         self.shutdown_complete = False
+   88:         self.last_plot_path = ""
+   89:         self.scan_viewers = []
+   90:         self.direction_viewers = {}
+   91:         self.direction_preview_labels = {}
+   92:         self.direction_window_labels = {}
+>> 93:         self.z_approached = False
+   94:         self.scan_stop_requested = False
+   95:         self.scan_pause_requested = False
+   96:         self.live_scan_timer = QTimer(self)
+   97:         self.live_scan_timer.timeout.connect(self.advance_live_scan)
+   98:         self.live_scan_points = []
+   99:         self.live_scan_index = 0
+   100:         self.live_scan_rows = []
+   101:         self.live_scan_current_line = []
+   102:         self.live_scan_profile = None
+   103:         self.live_scan_active = False
+   104:         self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+   105: 
+   106:         # ------------------------------------------------------------
+   107:         # Locked motion limits
+
+--- Context around line 104 ---
+   96:         self.live_scan_timer = QTimer(self)
+   97:         self.live_scan_timer.timeout.connect(self.advance_live_scan)
+   98:         self.live_scan_points = []
+   99:         self.live_scan_index = 0
+   100:         self.live_scan_rows = []
+   101:         self.live_scan_current_line = []
+   102:         self.live_scan_profile = None
+   103:         self.live_scan_active = False
+>> 104:         self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+   105: 
+   106:         # ------------------------------------------------------------
+   107:         # Locked motion limits
+   108:         # ------------------------------------------------------------
+   109:         self.limits = MotionLimits(
+   110:             x_min=self.config["motion_limits"]["x"][0],
+   111:             x_max=self.config["motion_limits"]["x"][1],
+   112:             y_min=self.config["motion_limits"]["y"][0],
+   113:             y_max=self.config["motion_limits"]["y"][1],
+   114:             z_min=self.config["motion_limits"]["z"][0],
+   115:             z_max=self.config["motion_limits"]["z"][1],
+   116:         )
+   117: 
+   118:         scan_area = self.config["scan_area"]
+
+--- Context around line 114 ---
+   106:         # ------------------------------------------------------------
+   107:         # Locked motion limits
+   108:         # ------------------------------------------------------------
+   109:         self.limits = MotionLimits(
+   110:             x_min=self.config["motion_limits"]["x"][0],
+   111:             x_max=self.config["motion_limits"]["x"][1],
+   112:             y_min=self.config["motion_limits"]["y"][0],
+   113:             y_max=self.config["motion_limits"]["y"][1],
+>> 114:             z_min=self.config["motion_limits"]["z"][0],
+   115:             z_max=self.config["motion_limits"]["z"][1],
+   116:         )
+   117: 
+   118:         scan_area = self.config["scan_area"]
+   119: 
+   120:         # ------------------------------------------------------------
+   121:         # Layouts
+   122:         # ------------------------------------------------------------
+   123:         main_layout = QVBoxLayout()
+   124:         form_layout = QFormLayout()
+   125: 
+   126:         # ------------------------------------------------------------
+   127:         # Scan input fields
+   128:         # ------------------------------------------------------------
+
+--- Context around line 115 ---
+   107:         # Locked motion limits
+   108:         # ------------------------------------------------------------
+   109:         self.limits = MotionLimits(
+   110:             x_min=self.config["motion_limits"]["x"][0],
+   111:             x_max=self.config["motion_limits"]["x"][1],
+   112:             y_min=self.config["motion_limits"]["y"][0],
+   113:             y_max=self.config["motion_limits"]["y"][1],
+   114:             z_min=self.config["motion_limits"]["z"][0],
+>> 115:             z_max=self.config["motion_limits"]["z"][1],
+   116:         )
+   117: 
+   118:         scan_area = self.config["scan_area"]
+   119: 
+   120:         # ------------------------------------------------------------
+   121:         # Layouts
+   122:         # ------------------------------------------------------------
+   123:         main_layout = QVBoxLayout()
+   124:         form_layout = QFormLayout()
+   125: 
+   126:         # ------------------------------------------------------------
+   127:         # Scan input fields
+   128:         # ------------------------------------------------------------
+   129:         self.x_min = QLineEdit(str(scan_area["x_min"]))
+
+--- Context around line 133 ---
+   125: 
+   126:         # ------------------------------------------------------------
+   127:         # Scan input fields
+   128:         # ------------------------------------------------------------
+   129:         self.x_min = QLineEdit(str(scan_area["x_min"]))
+   130:         self.x_max = QLineEdit(str(scan_area["x_max"]))
+   131:         self.y_min = QLineEdit(str(scan_area["y_min"]))
+   132:         self.y_max = QLineEdit(str(scan_area["y_max"]))
+>> 133:         self.z = QLineEdit(str(scan_area["z"]))
+   134:         self.x_res = QLineEdit(str(scan_area["x_resolution"]))
+   135:         self.y_res = QLineEdit(str(scan_area["y_resolution"]))
+   136:         self.xy_feedrate = QLineEdit(str(self.safe_feedrates["xy"]))
+   137:         self.z_feedrate = QLineEdit(str(self.safe_feedrates["z"]))
+   138:         self.z_dwell_ms = QLineEdit("50")
+   139:         self.line_time_estimate_label = QLabel("Line time: waiting for scan settings")
+   140:         self.frame_time_estimate_label = QLabel("Frame time: waiting for scan settings")
+   141:         self.mode_readiness_label = QLabel("")
+   142:         self.mode_readiness_label.setWordWrap(True)
+   143: 
+   144:         # ------------------------------------------------------------
+   145:         # Output CSV path
+   146:         # ------------------------------------------------------------
+   147:         self.output_file = QLineEdit("data/interface_test_output.csv")
+
+================================================================================
+4) ScanProfile validation
+================================================================================
+FILE: core\education\scan_profile.py
+
+
+--- Context around line 10 ---
+   2: 
+   3: 
+   4: @dataclass(frozen=True)
+   5: class MotionLimits:
+   6:     x_min: float
+   7:     x_max: float
+   8:     y_min: float
+   9:     y_max: float
+>> 10:     z_min: float
+   11:     z_max: float
+   12: 
+   13: 
+   14: @dataclass(frozen=True)
+   15: class ScanProfile:
+   16:     x_min: float
+   17:     x_max: float
+   18:     y_min: float
+   19:     y_max: float
+   20:     z: float
+   21:     x_resolution: int
+   22:     y_resolution: int
+   23:     feedrate_xy: float
+   24:     feedrate_z: float
+
+--- Context around line 11 ---
+   3: 
+   4: @dataclass(frozen=True)
+   5: class MotionLimits:
+   6:     x_min: float
+   7:     x_max: float
+   8:     y_min: float
+   9:     y_max: float
+   10:     z_min: float
+>> 11:     z_max: float
+   12: 
+   13: 
+   14: @dataclass(frozen=True)
+   15: class ScanProfile:
+   16:     x_min: float
+   17:     x_max: float
+   18:     y_min: float
+   19:     y_max: float
+   20:     z: float
+   21:     x_resolution: int
+   22:     y_resolution: int
+   23:     feedrate_xy: float
+   24:     feedrate_z: float
+   25:     mode: str = "SIMULATED_SURFACE"
+
+--- Context around line 15 ---
+   7:     x_max: float
+   8:     y_min: float
+   9:     y_max: float
+   10:     z_min: float
+   11:     z_max: float
+   12: 
+   13: 
+   14: @dataclass(frozen=True)
+>> 15: class ScanProfile:
+   16:     x_min: float
+   17:     x_max: float
+   18:     y_min: float
+   19:     y_max: float
+   20:     z: float
+   21:     x_resolution: int
+   22:     y_resolution: int
+   23:     feedrate_xy: float
+   24:     feedrate_z: float
+   25:     mode: str = "SIMULATED_SURFACE"
+   26: 
+   27: 
+   28: VALID_SCAN_MODES = {
+   29:     "SIMULATED_SURFACE",
+
+--- Context around line 20 ---
+   12: 
+   13: 
+   14: @dataclass(frozen=True)
+   15: class ScanProfile:
+   16:     x_min: float
+   17:     x_max: float
+   18:     y_min: float
+   19:     y_max: float
+>> 20:     z: float
+   21:     x_resolution: int
+   22:     y_resolution: int
+   23:     feedrate_xy: float
+   24:     feedrate_z: float
+   25:     mode: str = "SIMULATED_SURFACE"
+   26: 
+   27: 
+   28: VALID_SCAN_MODES = {
+   29:     "SIMULATED_SURFACE",
+   30:     "CONTACT_PROBE",
+   31:     "AFM_CONTACT",
+   32:     "STM_DEMO",
+   33: }
+   34: 
+
+--- Context around line 24 ---
+   16:     x_min: float
+   17:     x_max: float
+   18:     y_min: float
+   19:     y_max: float
+   20:     z: float
+   21:     x_resolution: int
+   22:     y_resolution: int
+   23:     feedrate_xy: float
+>> 24:     feedrate_z: float
+   25:     mode: str = "SIMULATED_SURFACE"
+   26: 
+   27: 
+   28: VALID_SCAN_MODES = {
+   29:     "SIMULATED_SURFACE",
+   30:     "CONTACT_PROBE",
+   31:     "AFM_CONTACT",
+   32:     "STM_DEMO",
+   33: }
+   34: 
+   35: 
+   36: MAX_SCAN_RESOLUTION = 250
+   37: 
+   38: 
+
+--- Context around line 39 ---
+   31:     "AFM_CONTACT",
+   32:     "STM_DEMO",
+   33: }
+   34: 
+   35: 
+   36: MAX_SCAN_RESOLUTION = 250
+   37: 
+   38: 
+>> 39: def validate_scan_profile(profile: ScanProfile, limits: MotionLimits) -> None:
+   40:     if profile.mode not in VALID_SCAN_MODES:
+   41:         raise ValueError(f"Invalid scan mode: {profile.mode}")
+   42: 
+   43:     if profile.x_min >= profile.x_max:
+   44:         raise ValueError("x_min must be smaller than x_max")
+   45: 
+   46:     if profile.y_min >= profile.y_max:
+   47:         raise ValueError("y_min must be smaller than y_max")
+   48: 
+   49:     if profile.x_resolution < 2:
+   50:         raise ValueError("x_resolution must be at least 2")
+   51: 
+   52:     if profile.y_resolution < 2:
+   53:         raise ValueError("y_resolution must be at least 2")
+
+================================================================================
+5) Backend move_to Z command generation
+================================================================================
+FILE: core\motion\prusa_gcode_backend.py
+
+
+--- Context around line 44 ---
+   36:         self.baudrate = baudrate
+   37:         self.timeout = timeout
+   38:         self.auto_detect_port = auto_detect_port
+   39:         self.x_limits = x_limits
+   40:         self.y_limits = y_limits
+   41:         self.z_limits = z_limits
+   42:         self._ser = None
+   43:         self._connected = False
+>> 44:         self._last_position: Dict[str, float] = {}
+   45:         self._last_state: Dict = {"connected": False, "position": {}}
+   46: 
+   47:     # -------------------------
+   48:     # low-level helpers
+   49:     # -------------------------
+   50:     def _require_serial(self) -> None:
+   51:         if serial is None:
+   52:             raise RuntimeError("pyserial is not installed. Run: python -m pip install pyserial")
+   53: 
+   54:     def _auto_detect_prusa_port(self) -> Optional[str]:
+   55:         """
+   56:         Best-effort serial port discovery for Prusa/USB CDC devices.
+   57:         """
+   58:         if serial is None:
+
+--- Context around line 96 ---
+   88:         joined = " ".join(lines)
+   89:         out: Dict[str, float] = {}
+   90:         for axis in ("X", "Y", "Z", "E"):
+   91:             m = re.search(rf"\b{axis}:\s*(-?\d+(?:\.\d+)?)", joined)
+   92:             if m:
+   93:                 out[axis.lower()] = float(m.group(1))
+   94:         return out
+   95: 
+>> 96:     def _check_limits(self, *, x: Optional[float], y: Optional[float], z: Optional[float]) -> None:
+   97:         checks = (
+   98:             ("X", x, self.x_limits),
+   99:             ("Y", y, self.y_limits),
+   100:             ("Z", z, self.z_limits),
+   101:         )
+   102:         for axis, value, limits in checks:
+   103:             if value is None or limits is None:
+   104:                 continue
+   105:             low, high = limits
+   106:             if value < low or value > high:
+   107:                 raise ValueError(f"{axis} target {value} is out of limits [{low}, {high}].")
+   108: 
+   109:     def _read_until_ok(self, timeout: float = 3.0) -> List[str]:
+   110:         """Collect lines until 'ok' or timeout."""
+
+--- Context around line 171 ---
+   163:         except Exception:
+   164:             pass
+   165: 
+   166:         self._connected = True
+   167:         self._last_state = {
+   168:             "connected": True,
+   169:             "port": self.port,
+   170:             "baudrate": self.baudrate,
+>> 171:             "position": dict(self._last_position),
+   172:         }
+   173: 
+   174:         # Safe: absolute mode only, no motion
+   175:         try:
+   176:             self.send_gcode("G90", timeout=2.0)
+   177:         except Exception:
+   178:             # Some firmwares may respond differently; don't fail hard here.
+   179:             pass
+   180: 
+   181:         # Best-effort initial position readback.
+   182:         try:
+   183:             lines = self.send_gcode("M114", timeout=2.5)
+   184:             parsed = self._parse_m114(lines)
+   185:             if parsed:
+
+--- Context around line 186 ---
+   178:             # Some firmwares may respond differently; don't fail hard here.
+   179:             pass
+   180: 
+   181:         # Best-effort initial position readback.
+   182:         try:
+   183:             lines = self.send_gcode("M114", timeout=2.5)
+   184:             parsed = self._parse_m114(lines)
+   185:             if parsed:
+>> 186:                 self._last_position.update(parsed)
+   187:         except Exception:
+   188:             pass
+   189: 
+   190:         self._last_state["position"] = dict(self._last_position)
+   191: 
+   192:     def disconnect(self) -> None:
+   193:         if self._ser is not None:
+   194:             try:
+   195:                 self._ser.close()
+   196:             except Exception:
+   197:                 pass
+   198:         self._ser = None
+   199:         self._connected = False
+   200:         self._last_state = {"connected": False, "position": dict(self._last_position)}
+
+--- Context around line 190 ---
+   182:         try:
+   183:             lines = self.send_gcode("M114", timeout=2.5)
+   184:             parsed = self._parse_m114(lines)
+   185:             if parsed:
+   186:                 self._last_position.update(parsed)
+   187:         except Exception:
+   188:             pass
+   189: 
+>> 190:         self._last_state["position"] = dict(self._last_position)
+   191: 
+   192:     def disconnect(self) -> None:
+   193:         if self._ser is not None:
+   194:             try:
+   195:                 self._ser.close()
+   196:             except Exception:
+   197:                 pass
+   198:         self._ser = None
+   199:         self._connected = False
+   200:         self._last_state = {"connected": False, "position": dict(self._last_position)}
+   201: 
+   202:     def home(self) -> None:
+   203:         # This WILL move the printer. Keep as explicit call.
+   204:         self.send_gcode("G28", timeout=30.0)
+
+--- Context around line 200 ---
+   192:     def disconnect(self) -> None:
+   193:         if self._ser is not None:
+   194:             try:
+   195:                 self._ser.close()
+   196:             except Exception:
+   197:                 pass
+   198:         self._ser = None
+   199:         self._connected = False
+>> 200:         self._last_state = {"connected": False, "position": dict(self._last_position)}
+   201: 
+   202:     def home(self) -> None:
+   203:         # This WILL move the printer. Keep as explicit call.
+   204:         self.send_gcode("G28", timeout=30.0)
+   205:         try:
+   206:             lines = self.send_gcode("M114", timeout=3.0)
+   207:             parsed = self._parse_m114(lines)
+   208:             if parsed:
+   209:                 self._last_position.update(parsed)
+   210:         except Exception:
+   211:             pass
+   212:         self._last_state["position"] = dict(self._last_position)
+   213: 
+   214:     def move_to(
+
+================================================================================
+6) Possible 60 mm source in auto approach
+================================================================================
+FILE: core\system\mk4s_z_auto_approach.py
+
+
+--- Context around line 56 ---
+   48:     contact_z = float(reference["manual_near_contact_z"])
+   49:     minimum_z = float(reference["do_not_go_below_without_contact_detection"])
+   50:     stop_z = contact_z + float(setpoint_distance_mm)
+   51:     if stop_z < minimum_z:
+   52:         raise ValueError(f"Approach target Z {stop_z:.2f} is below safe minimum Z {minimum_z:.2f}")
+   53:     if stop_z > start_z:
+   54:         raise ValueError(f"Approach target Z {stop_z:.2f} is above start Z {start_z:.2f}")
+   55:     feedrate = float(auto["feedrate"])
+>> 56:     safe_retract_z = float(auto["safe_retract_z"])
+   57: 
+   58:     commands = [
+   59:         "M114",
+   60:         "M17",
+   61:         "G90",
+   62:         f"G1 Z{start_z:.2f} F600",
+   63:         "M400",
+   64:         f"G1 X{x:.2f} Y{y:.2f} F1200",
+   65:         "M400",
+   66:         "M114",
+   67:     ]
+   68:     steps = [110.0, 100.0, 90.0, 80.0, 70.0, 60.0]
+   69:     current = 60.0
+   70:     while current - 1.0 > stop_z:
+
+--- Context around line 68 ---
+   60:         "M17",
+   61:         "G90",
+   62:         f"G1 Z{start_z:.2f} F600",
+   63:         "M400",
+   64:         f"G1 X{x:.2f} Y{y:.2f} F1200",
+   65:         "M400",
+   66:         "M114",
+   67:     ]
+>> 68:     steps = [110.0, 100.0, 90.0, 80.0, 70.0, 60.0]
+   69:     current = 60.0
+   70:     while current - 1.0 > stop_z:
+   71:         current -= 1.0
+   72:         steps.append(current)
+   73:     if steps[-1] != stop_z:
+   74:         steps.append(stop_z)
+   75: 
+   76:     for z_value in steps:
+   77:         if z_value < stop_z:
+   78:             raise ValueError(f"planned Z step {z_value} is below requested stop Z {stop_z}")
+   79:         commands.extend([f"G1 Z{z_value:.2f} F{feedrate:.0f}", "M400", "M114"])
+   80:     if retract_after:
+   81:         commands.extend([f"G1 Z{safe_retract_z:.2f} F600", "M400", "M114"])
+   82:     return commands
+
+--- Context around line 69 ---
+   61:         "G90",
+   62:         f"G1 Z{start_z:.2f} F600",
+   63:         "M400",
+   64:         f"G1 X{x:.2f} Y{y:.2f} F1200",
+   65:         "M400",
+   66:         "M114",
+   67:     ]
+   68:     steps = [110.0, 100.0, 90.0, 80.0, 70.0, 60.0]
+>> 69:     current = 60.0
+   70:     while current - 1.0 > stop_z:
+   71:         current -= 1.0
+   72:         steps.append(current)
+   73:     if steps[-1] != stop_z:
+   74:         steps.append(stop_z)
+   75: 
+   76:     for z_value in steps:
+   77:         if z_value < stop_z:
+   78:             raise ValueError(f"planned Z step {z_value} is below requested stop Z {stop_z}")
+   79:         commands.extend([f"G1 Z{z_value:.2f} F{feedrate:.0f}", "M400", "M114"])
+   80:     if retract_after:
+   81:         commands.extend([f"G1 Z{safe_retract_z:.2f} F600", "M400", "M114"])
+   82:     return commands
+   83: 
+
+--- Context around line 81 ---
+   73:     if steps[-1] != stop_z:
+   74:         steps.append(stop_z)
+   75: 
+   76:     for z_value in steps:
+   77:         if z_value < stop_z:
+   78:             raise ValueError(f"planned Z step {z_value} is below requested stop Z {stop_z}")
+   79:         commands.extend([f"G1 Z{z_value:.2f} F{feedrate:.0f}", "M400", "M114"])
+   80:     if retract_after:
+>> 81:         commands.extend([f"G1 Z{safe_retract_z:.2f} F600", "M400", "M114"])
+   82:     return commands
+   83: 
+   84: 
+   85: def _read_until_ok(ser: serial.Serial, *, timeout_s: float) -> list[str]:
+   86:     lines: list[str] = []
+   87:     end = time.time() + timeout_s
+   88:     while time.time() < end:
+   89:         line = ser.readline().decode(errors="replace").strip()
+   90:         if not line:
+   91:             continue
+   92:         lines.append(line)
+   93:         if line.lower().startswith("echo:busy"):
+   94:             end = time.time() + timeout_s
+   95:             continue
+
+--- Context around line 111 ---
+   103:     execute: bool = False,
+   104:     setpoint_distance_mm: float = 0.0,
+   105:     retract_after: bool = False,
+   106:     raw_log_path: str | Path = "logs/mk4s_z_auto_approach_raw.txt",
+   107: ) -> ZAutoApproachResult:
+   108:     commands = planned_auto_approach_commands(setpoint_distance_mm=setpoint_distance_mm, retract_after=retract_after)
+   109:     reference = confirmed_approach_reference()
+   110:     auto = reference["auto_step_approach_confirmed"]
+>> 111:     final_z = float(auto["safe_retract_z"] if retract_after else reference["manual_near_contact_z"] + setpoint_distance_mm)
+   112:     if not execute:
+   113:         return ZAutoApproachResult(
+   114:             success=True,
+   115:             dry_run=True,
+   116:             commands=commands,
+   117:             responses=[],
+   118:             final_z=final_z,
+   119:             message="Preview only. No MK4S movement was sent.",
+   120:         )
+   121: 
+   122:     settings = get_motion_controller_settings()
+   123:     raw_path = Path(raw_log_path)
+   124:     raw_path.parent.mkdir(parents=True, exist_ok=True)
+   125:     responses: list[str] = []
+
+--- Context around line 183 ---
+   175:             responses=[],
+   176:             target_z=0.0,
+   177:             message="Preview only. No MK4S movement was sent.",
+   178:         )
+   179: 
+   180:     settings = get_motion_controller_settings()
+   181:     reference = confirmed_approach_reference()
+   182:     safe_min = float(reference["do_not_go_below_without_contact_detection"])
+>> 183:     safe_max = float(reference["safe_retract_z"])
+   184:     responses: list[str] = []
+   185:     with serial.Serial(settings["port"], int(settings["baudrate"]), timeout=2) as ser:
+   186:         time.sleep(2)
+   187:         ser.write(b"M114\n")
+   188:         current_lines = _read_until_ok(ser, timeout_s=8.0)
+   189:         responses.extend(current_lines)
+   190:         current_z = _parse_z_from_lines(current_lines)
+   191:         if current_z is None:
+   192:             raise RuntimeError("Could not read current Z before manual move")
+   193:         delta = step_mm if direction_clean == "up" else -step_mm
+   194:         target_z = current_z + delta
+   195:         if target_z < safe_min or target_z > safe_max:
+   196:             raise ValueError(f"Manual Z target {target_z:.2f} outside safe approach range {safe_min:.2f}..{safe_max:.2f}")
+   197:         command = f"G1 Z{target_z:.2f} F300"

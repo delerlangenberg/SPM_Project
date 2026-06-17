@@ -1,0 +1,75 @@
+
+--- PAGE 1 ---
+CR-Touch → Educational Macro-SPM Z-
+Probe Project (Final Version)
+1. Project Overview
+This project converts a Creality CR-Touch auto-leveling sensor into a contact-based Z probe 
+for macro-scale surface scanning. The system demonstrates core principles of scanning 
+probe microscopy (SPM) using low-cost, accessible components. Two probe tip 
+configurations are supported: a rigid steel needle (recommended for stability) and a pogo-
+pin probe (optional, safer but less precise).
+
+--- PAGE 2 ---
+Figure: System overview (sensor, guide, probe tip, magnet)
+2. 1. Working Principle
+The CR-Touch contains a spring-loaded probe and a small internal magnet. A Hall-effect 
+sensor detects magnet displacement and a microcontroller outputs a digital trigger. 
+Replacing the probe tip with a needle or pogo pin converts the device into a precise contact 
+probe. The added external guide improves vertical stability and repeatability.
+
+--- PAGE 3 ---
+3. 2. Bill of Materials (BOM)
+REQUIRED PARTS:
+- Creality CR-Touch sensor
+- Neodymium magnet 2x2 mm (mandatory, pogo pins are NOT magnetic)
+- PTFE tube 2 mm OD / 1 mm ID
+- M3 screws
+PROBE OPTIONS:
+Option A (Recommended): Steel needle (~1 mm diameter)
+Option B (Optional): Pogo pin (P50-B1 or P75-B1, spring-loaded, requires glued magnet)
+3D PRINTED PARTS:
+- CR-Touch mount
+- Guide tube holder
+- Calibration shims
+4. 3. Probe Tip Options (Important Decision)
+Steel Needle:
+- High repeatability
+- Single spring system (CR-Touch only)
+- Sharp tip for better spatial resolution
+Pogo Pin (P50/P75):
+- Built-in spring (safer contact)
+- Requires external magnet attachment
+- Creates double-spring system -> lower measurement precision
+5. 4. CAD and Mechanical Design
+- Guide hole: 2.0–2.1 mm
+- Guide length: 10–15 mm
+- Mount must be rigid
+- Probe axis must be perfectly vertical
+- Ensure smooth motion with minimal friction
+6. 5. Assembly Instructions
+1. Remove original CR-Touch probe pin
+2. Prepare probe:
+   - Needle: cut to ~18 mm
+   - Pogo pin: use full length
+3. Glue magnet to top (centered and aligned)
+
+--- PAGE 4 ---
+4. Insert with original spring
+5. Print and install guide + PTFE tube
+6. Mount to printer using printed mount
+7. Align probe vertically
+7. 6. Testing Procedure
+- Power CR-Touch
+- Press probe manually
+- Verify consistent trigger point
+- If unstable: adjust magnet position
+- Ensure smooth motion without sticking
+8. 7. Safety Notes
+- Needle tips are sharp → handle carefully
+- Use slow Z movement
+- Avoid hard collisions
+- Keep magnets away from electronics
+9. 8. Summary
+This system provides a low-cost, educational Z-probe solution. For best performance use a 
+steel needle. For safer contact a pogo pin can be used, but requires compromises in 
+precision.

@@ -22,3 +22,21 @@ Thumbs.db
 
 # Local old GitHub review copy
 docs/old_github_review/
+# --- Local runtime output ---
+logs/
+# --- Local milestone backups ---
+backups/
+# --- Python cache/test cache ---
+*.pyo
+*.pyd
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+# --- Editor and office temporary files ---
+.~lock.*#
+*.tmp
+*.bak
+*.swp
+*.swo
+# --- Virtual environments ---

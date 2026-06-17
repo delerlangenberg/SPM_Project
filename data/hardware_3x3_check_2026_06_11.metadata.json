@@ -1,0 +1,19 @@
+{
+  "channel": "simulated_surface",
+  "created_at": "2026-06-11T09:07:49",
+  "execution_mode": "HARDWARE",
+  "output_file": "data\\hardware_3x3_check_2026_06_11.csv",
+  "point_count": 9,
+  "scan_profile": {
+    "feedrate_xy": 1200,
+    "feedrate_z": 300,
+    "mode": "SIMULATED_SURFACE",
+    "x_max": 52.0,
+    "x_min": 48.0,
+    "x_resolution": 3,
+    "y_max": 52.0,
+    "y_min": 48.0,
+    "y_resolution": 3,
+    "z": 20.0
+  }
+}

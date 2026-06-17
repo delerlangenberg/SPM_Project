@@ -47,6 +47,8 @@ def test_valid_scan_profile_passes():
         ("z", 100),
         ("x_resolution", 1),
         ("y_resolution", 1),
+        ("x_resolution", 251),
+        ("y_resolution", 251),
         ("feedrate_xy", 0),
         ("feedrate_z", 0),
         ("mode", "BAD_MODE"),

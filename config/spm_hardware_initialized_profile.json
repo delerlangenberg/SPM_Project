@@ -1,4 +1,4 @@
-﻿{
+{
   "hardware_initialized_profile": {
     "confirmed": true,
     "confirmed_date": "2026-06-11",
@@ -6,7 +6,7 @@
       "name": "Prusa MK4 controller",
       "port": "COM5",
       "baudrate": 115200,
-      "usb_name": "Serielles USB-Gerät (COM5)",
+      "usb_name": "Serielles USB-Ger\u00e4t (COM5)",
       "usb_vid": "2C99",
       "usb_pid": "000D",
       "firmware_name": "Prusa-Firmware-Buddy 6.2.4+8909",
@@ -30,6 +30,93 @@
       "homing_allowed_during_initialization": false,
       "scan_allowed_during_initialization": false,
       "z_approach_allowed_during_initialization": false
+    },
+    "motion_limits": {
+      "source": "Firmware M211 read-only query",
+      "confirmed_date": "2026-06-11",
+      "units": "mm",
+      "soft_endstops": "ON",
+      "x_min": -1.0,
+      "x_max": 251.0,
+      "y_min": -4.0,
+      "y_max": 211.0,
+      "z_min": 0.0,
+      "z_max": 221.0,
+      "safe_test_position": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 100.0
+      },
+      "phase8_confirmed_motion": {
+        "x_visible_move_5mm": true,
+        "y_visible_move_5mm": true
+      },
+      "axis_direction_observation": {
+        "confirmed_date": "2026-06-11",
+        "x_axis": {
+          "tested_command": "G1 X251 followed by G1 X1",
+          "software_coordinate_change": "X 1.00 -> X 251.00 -> X 1.00",
+          "observed_physical_motion": "right-to-left during full X travel",
+          "confirmed_by_user": true
+        },
+        "note": "Use this physical direction mapping later for raster scan planning and GUI labels.",
+        "y_axis": {
+          "tested_command": "G1 Y211 followed by G1 Y1",
+          "software_coordinate_change": "Y 1.00 -> Y 211.00 -> Y 1.00",
+          "observed_physical_motion": "forward during Y max travel, backward during return",
+          "confirmed_by_user": true
+        },
+        "z_axis": {
+          "tested_command": "G1 Z120 followed by G1 Z100",
+          "software_coordinate_change": "Z 100.00 -> Z 120.00 -> Z 100.00",
+          "observed_physical_motion": "up during Z increase, down during return",
+          "confirmed_by_user": true
+        }
+      }
+    },
+    "z_approach_reference": {
+      "phase": "Phase 9.2 manual foam approach",
+      "confirmed_date": "2026-06-11",
+      "object": "black packaging foam",
+      "object_size_mm": {
+        "x": 55,
+        "y": 65,
+        "z": 110
+      },
+      "approach_position": {
+        "x": 125.0,
+        "y": 105.0
+      },
+      "safe_start_z": 120.0,
+      "manual_near_contact_z": 56.0,
+      "do_not_go_below_without_contact_detection": 54.0,
+      "safe_retract_z": 120.0,
+      "confirmed_by_user": true,
+      "safety_note": "Manual approach only. Automatic hit-stop/contact detection not yet implemented.",
+      "auto_step_approach_confirmed": {
+        "confirmed_date": "2026-06-11",
+        "method": "software-controlled step approach",
+        "x": 125.0,
+        "y": 105.0,
+        "start_z": 120.0,
+        "stop_z": 56.0,
+        "step_sequence": [
+          110,
+          100,
+          90,
+          80,
+          70,
+          60,
+          59,
+          58,
+          57,
+          56
+        ],
+        "feedrate": 60,
+        "contact_observed_by_user": true,
+        "safe_retract_z": 120.0,
+        "result": "success"
+      }
     }
   }
 }

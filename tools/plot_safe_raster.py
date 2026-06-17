@@ -100,10 +100,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Plot safe educational SPM raster CSV output."
     )
-    parser.add_argument("--input-file", required=True)
-    parser.add_argument("--output-file", required=True)
+    parser.add_argument("--input-file", default="data/safe_raster_5x5_output.csv")
+    parser.add_argument("--output-file", default="data/safe_raster_5x5_output.png")
     parser.add_argument(
         "--color-map",
+        "--cmap",
+        dest="color_map",
         default="viridis",
         choices=["viridis", "plasma", "inferno", "magma"],
     )

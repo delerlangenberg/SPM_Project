@@ -4,6 +4,11 @@
     "baudrate": 115200
   },
   "motion_limits": {
+    "x": [0, 250],
+    "y": [0, 210],
+    "z": [0, 220]
+  },
+  "spm_safe_limits": {
     "x": [20, 80],
     "y": [20, 80],
     "z": [5, 50]
@@ -11,6 +16,132 @@
   "safe_feedrates": {
     "xy": 1200,
     "z": 300
+  },
+  "scan_mode_presets": {
+    "SIMULATED_SURFACE": {
+      "description": "Educational SPM default using the original Prusa MK4S motion system and synthetic topography readback.",
+      "scan_area": {
+        "x_min": 46,
+        "x_max": 54,
+        "y_min": 46,
+        "y_max": 54,
+        "z": 20,
+        "x_resolution": 5,
+        "y_resolution": 5
+      },
+      "feedrates": {
+        "xy": 1200,
+        "z": 300
+      },
+      "z_control": {
+        "feedback": "MK4S Z height is used for clearance; fine SPM feedback is simulated until the later Z scanner is installed",
+        "approach_start": 20,
+        "approach_target": 17,
+        "retract_target": 20,
+        "step_size": 1,
+        "dwell_ms": 50,
+        "auto_approach_ready": true,
+        "manual_move_ready": true
+      },
+      "hardware": {
+        "xy_stage": "Original Prusa MK4S X/Y stage",
+        "z_stage": "Original Prusa MK4S Z axis",
+        "sensor": "synthetic surface channel"
+      }
+    },
+    "CONTACT_PROBE": {
+      "description": "Educational contact-probe preparation using original MK4S motion; real contact probe will be added later.",
+      "scan_area": {
+        "x_min": 48,
+        "x_max": 52,
+        "y_min": 48,
+        "y_max": 52,
+        "z": 20,
+        "x_resolution": 3,
+        "y_resolution": 3
+      },
+      "feedrates": {
+        "xy": 600,
+        "z": 120
+      },
+      "z_control": {
+        "feedback": "contact threshold is planned later; current tests use original MK4S Z clearance plus dry-run feedback",
+        "approach_start": 30,
+        "approach_target": 18,
+        "retract_target": 30,
+        "step_size": 0.5,
+        "dwell_ms": 100,
+        "auto_approach_ready": false,
+        "manual_move_ready": true
+      },
+      "hardware": {
+        "xy_stage": "Prusa MK4S safe SPM area",
+        "z_stage": "Original Prusa MK4S Z axis now; fine Z scanner planned later",
+        "sensor": "contact event channel planned later"
+      }
+    },
+    "AFM_CONTACT": {
+      "description": "AFM-style educational template using original MK4S motion; force feedback is simulated for now.",
+      "scan_area": {
+        "x_min": 48,
+        "x_max": 52,
+        "y_min": 48,
+        "y_max": 52,
+        "z": 20,
+        "x_resolution": 5,
+        "y_resolution": 5
+      },
+      "feedrates": {
+        "xy": 480,
+        "z": 90
+      },
+      "z_control": {
+        "feedback": "constant-force concept is simulated until the future force/Z subsystem is installed",
+        "approach_start": 35,
+        "approach_target": 18,
+        "retract_target": 35,
+        "step_size": 0.25,
+        "dwell_ms": 150,
+        "auto_approach_ready": false,
+        "manual_move_ready": true
+      },
+      "hardware": {
+        "xy_stage": "Prusa MK4S safe SPM area",
+        "z_stage": "Original Prusa MK4S Z axis now; fine Z scanner planned later",
+        "sensor": "force/contact channel planned later"
+      }
+    },
+    "STM_DEMO": {
+      "description": "STM-style educational template using original MK4S motion; tunneling-current channel is simulated for now.",
+      "scan_area": {
+        "x_min": 49,
+        "x_max": 51,
+        "y_min": 49,
+        "y_max": 51,
+        "z": 20,
+        "x_resolution": 5,
+        "y_resolution": 5
+      },
+      "feedrates": {
+        "xy": 300,
+        "z": 60
+      },
+      "z_control": {
+        "feedback": "constant-current concept is simulated until STM electronics and fine Z are installed",
+        "approach_start": 40,
+        "approach_target": 19,
+        "retract_target": 40,
+        "step_size": 0.1,
+        "dwell_ms": 200,
+        "auto_approach_ready": false,
+        "manual_move_ready": true
+      },
+      "hardware": {
+        "xy_stage": "Prusa MK4S safe SPM area",
+        "z_stage": "Original Prusa MK4S Z axis now; fine Z scanner planned later",
+        "sensor": "tunneling-current channel planned later"
+      }
+    }
   },
   "scan_area": {
     "x_min": 46,
@@ -20,6 +151,11 @@
     "z": 20,
     "x_resolution": 5,
     "y_resolution": 5
+  },
+  "parking_position": {
+    "x": 1,
+    "y": 1,
+    "z": 100
   },
   "safe_raster": {
     "simulated_z_signal": 0.0,

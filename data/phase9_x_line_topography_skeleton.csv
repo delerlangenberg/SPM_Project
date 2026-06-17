@@ -1,0 +1,4 @@
+point,x,y,contact_z_assumed,method,position_response
+1,115.0,105.0,56.0,software_step_to_known_foam_contact_z,echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing | echo:busy: processing
+2,125.0,105.0,56.0,software_step_to_known_foam_contact_z,ok
+3,135.0,105.0,56.0,software_step_to_known_foam_contact_z,ok

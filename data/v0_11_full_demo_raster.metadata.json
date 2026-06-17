@@ -1,0 +1,19 @@
+{
+  "channel": "simulated_surface",
+  "created_at": "2026-06-11T16:22:54",
+  "execution_mode": "DRY_RUN",
+  "output_file": "data\\v0_11_full_demo_raster.csv",
+  "point_count": 192,
+  "scan_profile": {
+    "feedrate_xy": 1200.0,
+    "feedrate_z": 300.0,
+    "mode": "SIMULATED_SURFACE",
+    "x_max": 54.0,
+    "x_min": 46.0,
+    "x_resolution": 8,
+    "y_max": 54.0,
+    "y_min": 46.0,
+    "y_resolution": 6,
+    "z": 20.0
+  }
+}

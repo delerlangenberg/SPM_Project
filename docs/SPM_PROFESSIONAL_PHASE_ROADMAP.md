@@ -478,3 +478,31 @@ Next Phase 6 target:
 
 ## Tests
 - Full suite passed: 125 passed
+
+---
+
+# Phase 18 — AI-Assisted SPM Operation and Interpretation
+
+## Problem
+After the mechanical scanning pipeline is safe, AI should help interpret scan behavior, optimize parameters, and support the operator.
+
+## Scope
+- AI-assisted scan parameter recommendation
+- AI review of scan logs
+- AI detection of unsafe trends
+- AI interpretation of topography output
+- AI-guided adaptive scan planning
+- API integration only after hardware safety is proven
+
+## Not allowed
+- AI must not directly move hardware without safety gates
+- AI must not bypass limits
+- AI must not run unattended high-resolution scans
+- AI must not override emergency stop or retract logic
+
+## Done when
+- API integration is isolated
+- AI suggestions are logged
+- Human confirmation is required for hardware actions
+- Safety tests pass
+- Hardware scan behavior remains deterministic and bounded

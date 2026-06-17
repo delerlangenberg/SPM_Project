@@ -1,0 +1,1501 @@
+﻿# Phase 1 Code Map
+
+Project: D:\SPM_Prusa_Project
+Roadmap phase: Phase 1 - Stabilize Existing Scanner
+Step: 1.1R - Corrected inspection report
+
+Purpose:
+Map where Z setpoint, preview, generated surface, hardware scan, and live display logic appear before editing.
+
+
+## Pattern: z_setpoint
+
+- core\application\gui_scan_launcher.py:104: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- core\application\gui_scan_launcher.py:354: self.z_setpoint_distance_mm = QLineEdit("0.0")
+- core\application\gui_scan_launcher.py:693: z_parameter_layout.addRow("Setpoint above surface mm:", self.z_setpoint_distance_mm)
+- core\application\gui_scan_launcher.py:1439: self.live_scan_z_setpoint = profile.z
+- core\application\gui_scan_launcher.py:2094: setpoint_distance = float(self.z_setpoint_distance_mm.text())
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:56: self.z_setpoint_spin = QDoubleSpinBox()
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:57: self.z_setpoint_spin.setPrefix("Z Height (nm): ")
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:58: self.z_setpoint_spin.setRange(0.1, 100.0)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:59: self.z_setpoint_spin.setSingleStep(0.1)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:60: self.z_setpoint_spin.setEnabled(False)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:98: settings_layout.addWidget(self.z_setpoint_spin)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:138: self.z_setpoint_spin.setEnabled(True)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:142: self.z_setpoint_spin.setEnabled(False)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:268: self.z_setpoint_spin.setEnabled(False)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:293: self.z_setpoint_spin.setEnabled(True)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:298: self.z_setpoint_spin.setEnabled(False)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:325: target = self.z_setpoint_spin.value()
+- docs\old_github_review\interface\panels\z_regulation_gui.py:56: self.z_setpoint_spin = QDoubleSpinBox()
+- docs\old_github_review\interface\panels\z_regulation_gui.py:57: self.z_setpoint_spin.setPrefix("Z Height (nm): ")
+- docs\old_github_review\interface\panels\z_regulation_gui.py:58: self.z_setpoint_spin.setRange(0.1, 100.0)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:59: self.z_setpoint_spin.setSingleStep(0.1)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:60: self.z_setpoint_spin.setEnabled(False)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:98: settings_layout.addWidget(self.z_setpoint_spin)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:138: self.z_setpoint_spin.setEnabled(True)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:142: self.z_setpoint_spin.setEnabled(False)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:268: self.z_setpoint_spin.setEnabled(False)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:293: self.z_setpoint_spin.setEnabled(True)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:298: self.z_setpoint_spin.setEnabled(False)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:325: target = self.z_setpoint_spin.value()
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:102: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1329: self.live_scan_z_setpoint = profile.z
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:102: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1338: self.live_scan_z_setpoint = profile.z
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:102: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1346: self.live_scan_z_setpoint = profile.z
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:103: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:1402: self.live_scan_z_setpoint = profile.z
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\gui_scan_launcher.py:104: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\gui_scan_launcher.py:1403: self.live_scan_z_setpoint = profile.z
+- docs\versions\v0.23.0_single_z_scanner_gwyddion_cleanup_2026-06-12\gui_scan_launcher.py:104: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\versions\v0.23.0_single_z_scanner_gwyddion_cleanup_2026-06-12\gui_scan_launcher.py:1396: self.live_scan_z_setpoint = profile.z
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\gui_scan_launcher.py:104: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\gui_scan_launcher.py:354: self.z_setpoint_distance_mm = QLineEdit("0.0")
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\gui_scan_launcher.py:691: z_parameter_layout.addRow("Setpoint above surface mm:", self.z_setpoint_distance_mm)
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\gui_scan_launcher.py:1439: self.live_scan_z_setpoint = profile.z
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\gui_scan_launcher.py:2094: setpoint_distance = float(self.z_setpoint_distance_mm.text())
+- docs\versions\v0.25.0_focused_main_workflow_cleanup_2026-06-15\gui_scan_launcher.py:104: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\versions\v0.25.0_focused_main_workflow_cleanup_2026-06-15\gui_scan_launcher.py:354: self.z_setpoint_distance_mm = QLineEdit("0.0")
+- docs\versions\v0.25.0_focused_main_workflow_cleanup_2026-06-15\gui_scan_launcher.py:693: z_parameter_layout.addRow("Setpoint above surface mm:", self.z_setpoint_distance_mm)
+- docs\versions\v0.25.0_focused_main_workflow_cleanup_2026-06-15\gui_scan_launcher.py:1439: self.live_scan_z_setpoint = profile.z
+- docs\versions\v0.25.0_focused_main_workflow_cleanup_2026-06-15\gui_scan_launcher.py:2094: setpoint_distance = float(self.z_setpoint_distance_mm.text())
+- docs\PHASE1_CODE_MAP.md:11: ## Pattern: z_setpoint
+- docs\PHASE1_CODE_MAP.md:13: - core\application\gui_scan_launcher.py:104: self.live_scan_z_setpoint = float(self.config["scan_area"]["z"])
+- docs\PHASE1_CODE_MAP.md:14: - core\application\gui_scan_launcher.py:354: self.z_setpoint_distance_mm = QLineEdit("0.0")
+- docs\PHASE1_CODE_MAP.md:15: - core\application\gui_scan_launcher.py:693: z_parameter_layout.addRow("Setpoint above surface mm:", self.z_setpoint_distance_mm)
+- docs\PHASE1_CODE_MAP.md:16: - core\application\gui_scan_launcher.py:1439: self.live_scan_z_setpoint = profile.z
+- docs\PHASE1_CODE_MAP.md:17: - core\application\gui_scan_launcher.py:2094: setpoint_distance = float(self.z_setpoint_distance_mm.text())
+- docs\PHASE1_CODE_MAP.md:18: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:56: self.z_setpoint_spin = QDoubleSpinBox()
+- docs\PHASE1_CODE_MAP.md:19: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:57: self.z_setpoint_spin.setPrefix("Z Height (nm): ")
+- docs\PHASE1_CODE_MAP.md:20: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:58: self.z_setpoint_spin.setRange(0.1, 100.0)
+- docs\PHASE1_CODE_MAP.md:21: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:59: self.z_setpoint_spin.setSingleStep(0.1)
+- docs\PHASE1_CODE_MAP.md:22: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:60: self.z_setpoint_spin.setEnabled(False)
+- docs\PHASE1_CODE_MAP.md:23: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:98: settings_layout.addWidget(self.z_setpoint_spin)
+- docs\PHASE1_CODE_MAP.md:24: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:138: self.z_setpoint_spin.setEnabled(True)
+- docs\PHASE1_CODE_MAP.md:25: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:142: self.z_setpoint_spin.setEnabled(False)
+- docs\PHASE1_CODE_MAP.md:26: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:268: self.z_setpoint_spin.setEnabled(False)
+- docs\PHASE1_CODE_MAP.md:27: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:293: self.z_setpoint_spin.setEnabled(True)
+- docs\PHASE1_CODE_MAP.md:28: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:298: self.z_setpoint_spin.setEnabled(False)
+- docs\PHASE1_CODE_MAP.md:29: - docs\old_github_review\integration_preview\panels\z_regulation_gui.py:325: target = self.z_setpoint_spin.value()
+- docs\PHASE1_CODE_MAP.md:30: - docs\old_github_review\interface\panels\z_regulation_gui.py:56: self.z_setpoint_spin = QDoubleSpinBox()
+- docs\PHASE1_CODE_MAP.md:31: - docs\old_github_review\interface\panels\z_regulation_gui.py:57: self.z_setpoint_spin.setPrefix("Z Height (nm): ")
+- docs\PHASE1_CODE_MAP.md:32: - docs\old_github_review\interface\panels\z_regulation_gui.py:58: self.z_setpoint_spin.setRange(0.1, 100.0)
+- docs\PHASE1_CODE_MAP.md:33: - docs\old_github_review\interface\panels\z_regulation_gui.py:59: self.z_setpoint_spin.setSingleStep(0.1)
+- docs\PHASE1_CODE_MAP.md:34: - docs\old_github_review\interface\panels\z_regulation_gui.py:60: self.z_setpoint_spin.setEnabled(False)
+- docs\PHASE1_CODE_MAP.md:35: - docs\old_github_review\interface\panels\z_regulation_gui.py:98: settings_layout.addWidget(self.z_setpoint_spin)
+- docs\PHASE1_CODE_MAP.md:36: - docs\old_github_review\interface\panels\z_regulation_gui.py:138: self.z_setpoint_spin.setEnabled(True)
+- docs\PHASE1_CODE_MAP.md:37: - docs\old_github_review\interface\panels\z_regulation_gui.py:142: self.z_setpoint_spin.setEnabled(False)
+- docs\PHASE1_CODE_MAP.md:38: - docs\old_github_review\interface\panels\z_regulation_gui.py:268: self.z_setpoint_spin.setEnabled(False)
+- docs\PHASE1_CODE_MAP.md:39: - docs\old_github_review\interface\panels\z_regulation_gui.py:293: self.z_setpoint_spin.setEnabled(True)
+- docs\PHASE1_CODE_MAP.md:40: - docs\old_github_review\interface\panels\z_regulation_gui.py:298: self.z_setpoint_spin.setEnabled(False)
+
+## Pattern: Z setpoint
+
+- docs\PHASE1_CODE_MAP.md:8: Map where Z setpoint, preview, generated surface, hardware scan, and live display logic appear before editing.
+- docs\PHASE1_CODE_MAP.md:94: ## Pattern: Z setpoint
+- docs\PHASE1_CODE_MAP.md:96: - docs\PHASE1_CODE_MAP.md:8: Map where Z setpoint, preview, generated surface, hardware scan, and live display logic appear before editing.
+- docs\PHASE1_CODE_MAP.md:97: - docs\PHASE1_CODE_MAP.md:65: ## Pattern: Z setpoint
+- docs\PHASE1_CODE_MAP.md:98: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:99: - docs\PHASE1_CODE_MAP.md:68: - docs\PHASE1_CODE_MAP.md:13: Phase 1.2 - Fix Z setpoint handling first, because wrong Z behavior is the highest safety priority.
+- docs\PHASE1_CODE_MAP.md:100: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:101: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:102: - docs\PHASE1_CODE_MAP.md:1309: Phase 1.2 - Fix Z setpoint handling first, because wrong Z behavior is the highest safety priority.
+- docs\PHASE1_CODE_MAP.md:316: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:318: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:319: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:323: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:324: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:326: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:1437: Phase 1.2 - Fix Z setpoint handling first, because wrong Z behavior is the highest safety priority.
+
+## Pattern: contact_z
+
+- core\system\mk4s_z_auto_approach.py:48: contact_z = float(reference["manual_near_contact_z"])
+- core\system\mk4s_z_auto_approach.py:50: stop_z = contact_z + float(setpoint_distance_mm)
+- core\system\mk4s_z_auto_approach.py:111: final_z = float(auto["safe_retract_z"] if retract_after else reference["manual_near_contact_z"] + setpoint_distance_mm)
+- tools\phase9_xy_10x10_topography_skeleton.py:32: CONTACT_Z = 56.0
+- tools\phase9_xy_10x10_topography_skeleton.py:50: contact_z: float
+- tools\phase9_xy_10x10_topography_skeleton.py:181: "contact_z",
+- tools\phase9_xy_10x10_topography_skeleton.py:220: z_by_xy = {(float(row["x"]), float(row["y"])): float(row["contact_z"]) for row in completed}
+- tools\phase9_xy_10x10_topography_skeleton.py:254: contact_z=float(row["contact_z"]),
+- tools\phase9_xy_10x10_topography_skeleton.py:318: "contact_z": CONTACT_Z,
+- tools\phase9_xy_10x10_topography_skeleton.py:328: print(f"{index:03d}: row={row_index} col={col_index} X={x:.3f} Y={y:.3f} Z={CONTACT_Z:.3f}")
+- tools\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- tools\phase9_xy_10x10_topography_skeleton.py:378: contact_z=CONTACT_Z,
+- tools\phase9_xy_10x10_topography_skeleton.py:380: method="phase9_6_fixed_known_foam_contact_z_robust_partial_save",
+- tools\phase9_xy_3x3_topography_skeleton.py:26: contact_z = 56.0
+- tools\phase9_xy_3x3_topography_skeleton.py:69: move_and_wait(f"G1 Z{contact_z} F60", read_time=120)
+- tools\phase9_xy_3x3_topography_skeleton.py:76: "contact_z": contact_z,
+- tools\phase9_xy_3x3_topography_skeleton.py:77: "method": "fixed_known_foam_contact_z_skeleton",
+- tools\phase9_xy_3x3_topography_skeleton.py:92: fieldnames=["point", "x", "y", "contact_z", "method", "position_response"],
+- tools\phase9_xy_3x3_topography_skeleton.py:100: next(r["contact_z"] for r in rows if r["x"] == x and r["y"] == y)
+- tools\phase9_x_line_topography_skeleton.py:67: "contact_z_assumed": 56.0,
+- tools\phase9_x_line_topography_skeleton.py:68: "method": "software_step_to_known_foam_contact_z",
+- tools\phase9_x_line_topography_skeleton.py:89: "contact_z_assumed",
+- tools\phase9_x_line_topography_skeleton_v2.py:42: contact_z = 56.0
+- tools\phase9_x_line_topography_skeleton_v2.py:60: send(f"G1 Z{contact_z} F60", read_time=80)
+- tools\phase9_x_line_topography_skeleton_v2.py:68: "contact_z": contact_z,
+- tools\phase9_x_line_topography_skeleton_v2.py:83: writer = csv.DictWriter(f, fieldnames=["point", "x", "y", "contact_z", "position_response"])
+- tools\phase9_x_line_topography_skeleton_v2.py:88: plt.plot([r["x"] for r in rows], [r["contact_z"] for r in rows], marker="o")
+- config\spm_hardware_initialized_profile.json:91: "manual_near_contact_z": 56.0,
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:32: CONTACT_Z = 56.0
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:50: contact_z: float
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:181: "contact_z",
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:220: z_by_xy = {(float(row["x"]), float(row["y"])): float(row["contact_z"]) for row in completed}
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:254: contact_z=float(row["contact_z"]),
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:318: "contact_z": CONTACT_Z,
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:328: print(f"{index:03d}: row={row_index} col={col_index} X={x:.3f} Y={y:.3f} Z={CONTACT_Z:.3f}")
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:378: contact_z=CONTACT_Z,
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:380: method="phase9_6_fixed_known_foam_contact_z_robust_partial_save",
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:48: contact_z = float(reference["manual_near_contact_z"])
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:50: stop_z = contact_z + float(setpoint_distance_mm)
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:111: final_z = float(auto["safe_retract_z"] if retract_after else reference["manual_near_contact_z"] + setpoint_distance_mm)
+- docs\PHASE1_CODE_MAP.md:104: ## Pattern: contact_z
+- docs\PHASE1_CODE_MAP.md:106: - core\system\mk4s_z_auto_approach.py:48: contact_z = float(reference["manual_near_contact_z"])
+- docs\PHASE1_CODE_MAP.md:107: - core\system\mk4s_z_auto_approach.py:50: stop_z = contact_z + float(setpoint_distance_mm)
+- docs\PHASE1_CODE_MAP.md:108: - core\system\mk4s_z_auto_approach.py:111: final_z = float(auto["safe_retract_z"] if retract_after else reference["manual_near_contact_z"] + setpoint_distance_mm)
+- docs\PHASE1_CODE_MAP.md:109: - tools\phase9_xy_10x10_topography_skeleton.py:32: CONTACT_Z = 56.0
+- docs\PHASE1_CODE_MAP.md:110: - tools\phase9_xy_10x10_topography_skeleton.py:50: contact_z: float
+- docs\PHASE1_CODE_MAP.md:111: - tools\phase9_xy_10x10_topography_skeleton.py:181: "contact_z",
+- docs\PHASE1_CODE_MAP.md:112: - tools\phase9_xy_10x10_topography_skeleton.py:220: z_by_xy = {(float(row["x"]), float(row["y"])): float(row["contact_z"]) for row in completed}
+- docs\PHASE1_CODE_MAP.md:113: - tools\phase9_xy_10x10_topography_skeleton.py:254: contact_z=float(row["contact_z"]),
+- docs\PHASE1_CODE_MAP.md:114: - tools\phase9_xy_10x10_topography_skeleton.py:318: "contact_z": CONTACT_Z,
+- docs\PHASE1_CODE_MAP.md:115: - tools\phase9_xy_10x10_topography_skeleton.py:328: print(f"{index:03d}: row={row_index} col={col_index} X={x:.3f} Y={y:.3f} Z={CONTACT_Z:.3f}")
+- docs\PHASE1_CODE_MAP.md:116: - tools\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- docs\PHASE1_CODE_MAP.md:117: - tools\phase9_xy_10x10_topography_skeleton.py:378: contact_z=CONTACT_Z,
+- docs\PHASE1_CODE_MAP.md:118: - tools\phase9_xy_10x10_topography_skeleton.py:380: method="phase9_6_fixed_known_foam_contact_z_robust_partial_save",
+- docs\PHASE1_CODE_MAP.md:119: - tools\phase9_xy_3x3_topography_skeleton.py:26: contact_z = 56.0
+- docs\PHASE1_CODE_MAP.md:120: - tools\phase9_xy_3x3_topography_skeleton.py:69: move_and_wait(f"G1 Z{contact_z} F60", read_time=120)
+- docs\PHASE1_CODE_MAP.md:121: - tools\phase9_xy_3x3_topography_skeleton.py:76: "contact_z": contact_z,
+- docs\PHASE1_CODE_MAP.md:122: - tools\phase9_xy_3x3_topography_skeleton.py:77: "method": "fixed_known_foam_contact_z_skeleton",
+- docs\PHASE1_CODE_MAP.md:123: - tools\phase9_xy_3x3_topography_skeleton.py:92: fieldnames=["point", "x", "y", "contact_z", "method", "position_response"],
+- docs\PHASE1_CODE_MAP.md:124: - tools\phase9_xy_3x3_topography_skeleton.py:100: next(r["contact_z"] for r in rows if r["x"] == x and r["y"] == y)
+- docs\PHASE1_CODE_MAP.md:125: - tools\phase9_x_line_topography_skeleton.py:67: "contact_z_assumed": 56.0,
+- docs\PHASE1_CODE_MAP.md:126: - tools\phase9_x_line_topography_skeleton.py:68: "method": "software_step_to_known_foam_contact_z",
+- docs\PHASE1_CODE_MAP.md:127: - tools\phase9_x_line_topography_skeleton.py:89: "contact_z_assumed",
+- docs\PHASE1_CODE_MAP.md:128: - tools\phase9_x_line_topography_skeleton_v2.py:42: contact_z = 56.0
+- docs\PHASE1_CODE_MAP.md:129: - tools\phase9_x_line_topography_skeleton_v2.py:60: send(f"G1 Z{contact_z} F60", read_time=80)
+- docs\PHASE1_CODE_MAP.md:130: - tools\phase9_x_line_topography_skeleton_v2.py:68: "contact_z": contact_z,
+- docs\PHASE1_CODE_MAP.md:131: - tools\phase9_x_line_topography_skeleton_v2.py:83: writer = csv.DictWriter(f, fieldnames=["point", "x", "y", "contact_z", "position_response"])
+- docs\PHASE1_CODE_MAP.md:132: - tools\phase9_x_line_topography_skeleton_v2.py:88: plt.plot([r["x"] for r in rows], [r["contact_z"] for r in rows], marker="o")
+- docs\PHASE1_CODE_MAP.md:133: - config\spm_hardware_initialized_profile.json:91: "manual_near_contact_z": 56.0,
+- docs\PHASE1_CODE_MAP.md:134: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:32: CONTACT_Z = 56.0
+- docs\PHASE1_CODE_MAP.md:135: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:50: contact_z: float
+- docs\PHASE1_CODE_MAP.md:136: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:181: "contact_z",
+- docs\PHASE1_CODE_MAP.md:137: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:220: z_by_xy = {(float(row["x"]), float(row["y"])): float(row["contact_z"]) for row in completed}
+- docs\PHASE1_CODE_MAP.md:138: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:254: contact_z=float(row["contact_z"]),
+- docs\PHASE1_CODE_MAP.md:139: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:318: "contact_z": CONTACT_Z,
+- docs\PHASE1_CODE_MAP.md:140: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:328: print(f"{index:03d}: row={row_index} col={col_index} X={x:.3f} Y={y:.3f} Z={CONTACT_Z:.3f}")
+- docs\PHASE1_CODE_MAP.md:141: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- docs\PHASE1_CODE_MAP.md:142: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:378: contact_z=CONTACT_Z,
+- docs\PHASE1_CODE_MAP.md:143: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:380: method="phase9_6_fixed_known_foam_contact_z_robust_partial_save",
+
+## Pattern: safe_z
+
+- core\system\mk4s_z_auto_approach.py:214: safe_z = float(reference["safe_retract_z"])
+- core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- core\system\mk4s_z_auto_approach.py:221: target_z=safe_z,
+- core\system\mk4s_z_auto_approach.py:237: target_z=safe_z,
+- core\system\mk4s_z_auto_approach.py:238: message=f"Z safe retract complete. Target Z={safe_z:.2f}",
+- tools\phase9_xy_3x3_topography_skeleton.py:25: safe_z = 120.0
+- tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- tools\phase9_xy_3x3_topography_skeleton.py:81: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- tools\phase9_x_line_topography_skeleton_v2.py:43: safe_z = 120.0
+- tools\phase9_x_line_topography_skeleton_v2.py:50: send(f"G1 Z{safe_z} F600", read_time=40)
+- tools\phase9_x_line_topography_skeleton_v2.py:72: send(f"G1 Z{safe_z} F600", read_time=40)
+- tools\run_axis_limit_check.py:87: rows.append(make_row("safe_z_before_xy", "Z", z_safe, backend.get_state()))
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:214: safe_z = float(reference["safe_retract_z"])
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:221: target_z=safe_z,
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:237: target_z=safe_z,
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:238: message=f"Z safe retract complete. Target Z={safe_z:.2f}",
+- docs\PHASE1_CODE_MAP.md:187: ## Pattern: safe_z
+- docs\PHASE1_CODE_MAP.md:189: - core\system\mk4s_z_auto_approach.py:214: safe_z = float(reference["safe_retract_z"])
+- docs\PHASE1_CODE_MAP.md:190: - core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:191: - core\system\mk4s_z_auto_approach.py:221: target_z=safe_z,
+- docs\PHASE1_CODE_MAP.md:192: - core\system\mk4s_z_auto_approach.py:237: target_z=safe_z,
+- docs\PHASE1_CODE_MAP.md:193: - core\system\mk4s_z_auto_approach.py:238: message=f"Z safe retract complete. Target Z={safe_z:.2f}",
+- docs\PHASE1_CODE_MAP.md:194: - tools\phase9_xy_3x3_topography_skeleton.py:25: safe_z = 120.0
+- docs\PHASE1_CODE_MAP.md:195: - tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:196: - tools\phase9_xy_3x3_topography_skeleton.py:81: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:197: - tools\phase9_x_line_topography_skeleton_v2.py:43: safe_z = 120.0
+- docs\PHASE1_CODE_MAP.md:198: - tools\phase9_x_line_topography_skeleton_v2.py:50: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:199: - tools\phase9_x_line_topography_skeleton_v2.py:72: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:200: - tools\run_axis_limit_check.py:87: rows.append(make_row("safe_z_before_xy", "Z", z_safe, backend.get_state()))
+- docs\PHASE1_CODE_MAP.md:201: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:214: safe_z = float(reference["safe_retract_z"])
+- docs\PHASE1_CODE_MAP.md:202: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:203: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:221: target_z=safe_z,
+- docs\PHASE1_CODE_MAP.md:204: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:237: target_z=safe_z,
+- docs\PHASE1_CODE_MAP.md:205: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:238: message=f"Z safe retract complete. Target Z={safe_z:.2f}",
+- docs\PHASE1_CODE_MAP.md:206: - docs\PHASE1_CODE_MAP.md:114: ## Pattern: safe_z
+- docs\PHASE1_CODE_MAP.md:207: - docs\PHASE1_CODE_MAP.md:116: - core\system\mk4s_z_auto_approach.py:214: safe_z = float(reference["safe_retract_z"])
+- docs\PHASE1_CODE_MAP.md:208: - docs\PHASE1_CODE_MAP.md:117: - core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:209: - docs\PHASE1_CODE_MAP.md:118: - core\system\mk4s_z_auto_approach.py:221: target_z=safe_z,
+- docs\PHASE1_CODE_MAP.md:210: - docs\PHASE1_CODE_MAP.md:119: - core\system\mk4s_z_auto_approach.py:237: target_z=safe_z,
+- docs\PHASE1_CODE_MAP.md:211: - docs\PHASE1_CODE_MAP.md:120: - core\system\mk4s_z_auto_approach.py:238: message=f"Z safe retract complete. Target Z={safe_z:.2f}",
+- docs\PHASE1_CODE_MAP.md:212: - docs\PHASE1_CODE_MAP.md:121: - tools\phase9_xy_3x3_topography_skeleton.py:25: safe_z = 120.0
+- docs\PHASE1_CODE_MAP.md:213: - docs\PHASE1_CODE_MAP.md:122: - tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:214: - docs\PHASE1_CODE_MAP.md:123: - tools\phase9_xy_3x3_topography_skeleton.py:81: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:215: - docs\PHASE1_CODE_MAP.md:124: - tools\phase9_x_line_topography_skeleton_v2.py:43: safe_z = 120.0
+- docs\PHASE1_CODE_MAP.md:216: - docs\PHASE1_CODE_MAP.md:125: - tools\phase9_x_line_topography_skeleton_v2.py:50: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:217: - docs\PHASE1_CODE_MAP.md:126: - tools\phase9_x_line_topography_skeleton_v2.py:72: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:218: - docs\PHASE1_CODE_MAP.md:127: - tools\run_axis_limit_check.py:87: rows.append(make_row("safe_z_before_xy", "Z", z_safe, backend.get_state()))
+- docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:128: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:214: safe_z = float(reference["safe_retract_z"])
+- docs\PHASE1_CODE_MAP.md:220: - docs\PHASE1_CODE_MAP.md:129: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:221: - docs\PHASE1_CODE_MAP.md:130: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:221: target_z=safe_z,
+- docs\PHASE1_CODE_MAP.md:222: - docs\PHASE1_CODE_MAP.md:131: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:237: target_z=safe_z,
+- docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:132: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:238: message=f"Z safe retract complete. Target Z={safe_z:.2f}",
+- docs\PHASE1_CODE_MAP.md:224: - docs\PHASE1_CODE_MAP.md:1165: - core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:225: - docs\PHASE1_CODE_MAP.md:1185: - tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:226: - docs\PHASE1_CODE_MAP.md:1187: - tools\phase9_xy_3x3_topography_skeleton.py:81: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:227: - docs\PHASE1_CODE_MAP.md:1191: - tools\phase9_x_line_topography_skeleton_v2.py:50: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:228: - docs\PHASE1_CODE_MAP.md:1193: - tools\phase9_x_line_topography_skeleton_v2.py:72: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:229: - docs\PHASE1_CODE_MAP.md:1219: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:1277: - core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:1297: - tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:1299: - tools\phase9_xy_3x3_topography_skeleton.py:81: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:1303: - tools\phase9_x_line_topography_skeleton_v2.py:50: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:1305: - tools\phase9_x_line_topography_skeleton_v2.py:72: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:1331: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:1339: - docs\PHASE1_CODE_MAP.md:117: - core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:1340: - docs\PHASE1_CODE_MAP.md:122: - tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:1341: - docs\PHASE1_CODE_MAP.md:123: - tools\phase9_xy_3x3_topography_skeleton.py:81: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:1342: - docs\PHASE1_CODE_MAP.md:125: - tools\phase9_x_line_topography_skeleton_v2.py:50: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:1343: - docs\PHASE1_CODE_MAP.md:126: - tools\phase9_x_line_topography_skeleton_v2.py:72: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:1344: - docs\PHASE1_CODE_MAP.md:129: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+
+## Pattern: preview
+
+- core\acquisition\raster_stream.py:8: MAX_TEXT_PREVIEW_WIDTH = 80
+- core\acquisition\raster_stream.py:48: f"Last line preview: {', '.join(f'{value:.3f}' for value in _sample_values(self.latest_line, 12))}\n"
+- core\acquisition\raster_stream.py:123: values = _sample_values(values, MAX_TEXT_PREVIEW_WIDTH)
+- core\application\gui_scan_launcher.py:91: self.direction_preview_labels = {}
+- core\application\gui_scan_launcher.py:359: self.plot_placeholder = QLabel("Live Data / Raster Plot Preview\n\nPlaceholder for last generated PNG, future live raster image, and signal monitor.")
+- core\application\gui_scan_launcher.py:375: f"2D Topography Scan\n\nWaiting for raster/topography data.\nPreview frame is fixed; max input resolution is {MAX_SCAN_RESOLUTION} x {MAX_SCAN_RESOLUTION}."
+- core\application\gui_scan_launcher.py:510: z_move_group = QGroupBox("Manual Z Move Preview")
+- core\application\gui_scan_launcher.py:515: z_approach_group = QGroupBox("Auto Approach Preview")
+- core\application\gui_scan_launcher.py:523: z_retract_group = QGroupBox("Safe Retract Preview")
+- core\application\gui_scan_launcher.py:572: # feedback_tabs.addTab(self.plot_placeholder, "Raster Preview")
+- core\application\gui_scan_launcher.py:771: def create_direction_preview_label(self, direction: str) -> QLabel:
+- core\application\gui_scan_launcher.py:852: label = self.create_direction_preview_label(direction)
+- core\application\gui_scan_launcher.py:1564: self.refresh_acquisition_preview(self.output_file.text(), plot_path)
+- core\application\gui_scan_launcher.py:1844: "Manual Z Move Preview",
+- core\application\gui_scan_launcher.py:1922: "Auto Approach Preview",
+- core\application\gui_scan_launcher.py:2004: "Safe Retract Preview",
+- core\application\gui_scan_launcher.py:2318: def refresh_acquisition_preview(self, csv_path: str, plot_path: str) -> None:
+- core\application\gui_scan_launcher.py:2322: self.workstation_status.acquisition_status = f"preview unavailable: {error}"
+- core\application\gui_scan_launcher.py:2324: self.append_log(f"[ACQUISITION] Preview update failed: {error}")
+- core\application\gui_scan_launcher.py:2333: self.refresh_plot_preview(plot_path)
+- core\application\gui_scan_launcher.py:2341: for direction, label in self.direction_preview_labels.items():
+- core\application\gui_scan_launcher.py:2346: self.append_log(f"[ACQUISITION] Loaded raster preview from {csv_path}")
+- core\application\gui_scan_launcher.py:2348: def refresh_plot_preview(self, plot_path: str) -> None:
+- core\application\gui_scan_launcher.py:2352: "Live Data / Raster Plot Preview\n\n"
+- core\application\gui_scan_launcher.py:2429: self.refresh_acquisition_preview(self.output_file.text(), plot_path)
+- core\application\gui_scan_launcher.py:2639: self.refresh_acquisition_preview(self.output_file.text(), plot_path)
+- core\application\hardware_test_console_gui.py:81: self.preview_motion_action()
+- core\application\hardware_test_console_gui.py:82: self.preview_information_action()
+- core\application\hardware_test_console_gui.py:156: self.info_preview = QLabel("")
+- core\application\hardware_test_console_gui.py:157: self.info_preview.setWordWrap(True)
+- core\application\hardware_test_console_gui.py:158: self.info_preview.setStyleSheet("border: 1px solid #b0bec5; background: #ffffff; padding: 8px;")
+- core\application\hardware_test_console_gui.py:160: preview_btn = QPushButton("Preview Info Commands")
+- core\application\hardware_test_console_gui.py:161: preview_btn.clicked.connect(self.preview_information_action)
+- core\application\hardware_test_console_gui.py:172: layout.addWidget(preview_btn)
+- core\application\hardware_test_console_gui.py:175: layout.addWidget(self.info_preview)
+- core\application\hardware_test_console_gui.py:178: self.info_action.currentTextChanged.connect(self.preview_information_action)
+- core\application\hardware_test_console_gui.py:188: self.motion_action.currentTextChanged.connect(self.preview_motion_action)
+- core\application\hardware_test_console_gui.py:193: self.step_mm.valueChanged.connect(self.preview_motion_action)
+- core\application\hardware_test_console_gui.py:199: self.supervised_motion_checkbox.stateChanged.connect(self.preview_motion_action)
+- core\application\hardware_test_console_gui.py:202: self.confirm_text.textChanged.connect(self.preview_motion_action)
+- core\application\hardware_test_console_gui.py:211: self.motion_preview = QLabel("")
+- core\application\hardware_test_console_gui.py:212: self.motion_preview.setWordWrap(True)
+- core\application\hardware_test_console_gui.py:213: self.motion_preview.setStyleSheet("border: 1px solid #b0bec5; background: #ffffff; padding: 8px;")
+- core\application\hardware_test_console_gui.py:214: layout.addWidget(self.motion_preview)
+- core\application\hardware_test_console_gui.py:217: preview_selected_btn = QPushButton("Preview Selected Command")
+- core\application\hardware_test_console_gui.py:218: preview_selected_btn.clicked.connect(lambda: self.run_motion_action(self.motion_action.currentText(), execute=False))
+- core\application\hardware_test_console_gui.py:222: action_row.addWidget(preview_selected_btn)
+- core\application\hardware_test_console_gui.py:243: button = QPushButton("Preview " + action.replace("_", " "))
+- core\application\hardware_test_console_gui.py:264: def preview_information_action(self) -> None:
+- core\application\hardware_test_console_gui.py:266: self.info_preview.setText(
+- core\application\hardware_test_console_gui.py:276: self.connection_status.setText("Connection: preview only")
+- core\application\hardware_test_console_gui.py:277: self.append_log("[INFO PREVIEW] " + ", ".join(f"{name}->{command}" for name, command in commands))
+- core\application\hardware_test_console_gui.py:278: self.preview_information_action()
+- core\application\hardware_test_console_gui.py:363: self.preview_motion_action()
+- core\application\hardware_test_console_gui.py:399: def preview_motion_action(self) -> None:
+- core\application\hardware_test_console_gui.py:402: mode = "REAL MOTION UNLOCKED" if self.real_motion_unlocked() else "REAL MOTION LOCKED - preview only"
+- core\application\hardware_test_console_gui.py:408: "REAL MOTION LOCKED: buttons only preview commands. To move hardware, check the box and type SUPERVISED."
+- core\application\hardware_test_console_gui.py:411: self.motion_preview.setText(
+- core\application\hardware_test_console_gui.py:419: self.motion_preview.setText(f"Invalid motion plan: {error}")
+- core\application\hardware_test_console_gui.py:426: self.preview_motion_action()
+- core\application\hardware_test_console_gui.py:445: self.preview_motion_action()
+- core\application\hardware_test_console_gui.py:467: mode = "REAL" if execute else "PREVIEW"
+- core\application\hardware_test_console_gui.py:475: self.preview_motion_action()
+- core\system\mk4s_z_auto_approach.py:119: message="Preview only. No MK4S movement was sent.",
+- core\system\mk4s_z_auto_approach.py:174: command=f"preview current Z {'+' if sign > 0 else '-'} {step_mm:.2f}",
+- core\system\mk4s_z_auto_approach.py:177: message="Preview only. No MK4S movement was sent.",
+- core\system\mk4s_z_auto_approach.py:222: message="Preview only. No MK4S movement was sent.",
+- tests\test_gui_z_dry_run_safety.py:45: assert "Manual Z Move Preview" in text
+- tests\test_gui_z_dry_run_safety.py:46: assert "Auto Approach Preview" in text
+- tests\test_gui_z_dry_run_safety.py:47: assert "Safe Retract Preview" in text
+- tests\test_gui_z_dry_run_safety.py:177: assert "Live Data / Raster Plot Preview" in source
+- tests\test_gui_z_dry_run_safety.py:264: def test_gui_embeds_generated_raster_plot_preview():
+- tests\test_gui_z_dry_run_safety.py:268: assert "def refresh_plot_preview" in source
+- tests\test_gui_z_dry_run_safety.py:270: assert "feedback_tabs.addTab(self.plot_placeholder, \"Raster Preview\")" in source
+- tests\test_gui_z_dry_run_safety.py:271: assert "self.refresh_plot_preview(plot_path)" in source
+- tests\test_gui_z_dry_run_safety.py:289: assert "feedback_tabs.addTab(self.plot_placeholder, \"Raster Preview\")" in source
+- tests\test_gui_z_dry_run_safety.py:538: assert "self.direction_preview_labels" in source
+- tests\test_hardware_test_console_gui.py:13: assert "Preview Selected Command" in source
+- tests\test_hardware_test_console_gui.py:35: assert '"PREVIEW"' in source
+- tests\test_mk4s_z_auto_approach.py:13: def test_auto_approach_preview_does_not_execute_motion():
+
+## Pattern: half
+
+- docs\PHASE1_CODE_MAP.md:98: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:100: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:101: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:314: ## Pattern: half
+- docs\PHASE1_CODE_MAP.md:316: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:317: - docs\PHASE1_CODE_MAP.md:217: ## Pattern: half
+- docs\PHASE1_CODE_MAP.md:318: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:319: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:323: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:324: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:326: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+
+## Pattern: ball
+
+- docs\PHASE1_CODE_MAP.md:98: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:100: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:101: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:316: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:318: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:319: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:321: ## Pattern: ball
+- docs\PHASE1_CODE_MAP.md:323: - docs\PHASE1_CODE_MAP.md:67: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:324: - docs\PHASE1_CODE_MAP.md:219: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:325: - docs\PHASE1_CODE_MAP.md:221: ## Pattern: ball
+- docs\PHASE1_CODE_MAP.md:326: - docs\PHASE1_CODE_MAP.md:223: - docs\PHASE1_CODE_MAP.md:7: This report maps where Z setpoint, preview, half-ball/generated surface, scan runner, MK4S hardware, and live display logic appear in the code.
+- docs\PHASE1_CODE_MAP.md:327: - docs\PHASE1_CODE_MAP.md:224: - docs\SPM_WORKSTATION_DESIGN_DIRECTION.md:197: - Safety limits apply globally to all scanner actions.
+- docs\PHASE1_CODE_MAP.md:328: - docs\SPM_WORKSTATION_DESIGN_DIRECTION.md:197: - Safety limits apply globally to all scanner actions.
+- docs\SPM_WORKSTATION_DESIGN_DIRECTION.md:197: - Safety limits apply globally to all scanner actions.
+
+## Pattern: sphere
+
+- docs\PHASE1_CODE_MAP.md:330: ## Pattern: sphere
+- docs\PHASE1_CODE_MAP.md:332: - docs\PHASE1_CODE_MAP.md:226: ## Pattern: sphere
+
+## Pattern: surface
+
+- core\acquisition\channels.py:7: from core.education.synthetic_signal import synthetic_surface_signal
+- core\acquisition\channels.py:29: class SimulatedSurfaceChannel:
+- core\acquisition\channels.py:30: name = "simulated_surface"
+- core\acquisition\channels.py:40: value=float(synthetic_surface_signal(x, y)),
+- core\acquisition\channels.py:46: return [SimulatedSurfaceChannel()]
+- core\acquisition\raster_stream.py:72: f"Current channel: simulated surface signal\n"
+- core\application\cli_scan_launcher.py:128: parser.add_argument("--mode", default="SIMULATED_SURFACE")
+- core\application\gui_scan_launcher.py:177: self.scan_mode_dropdown.setCurrentText("SIMULATED_SURFACE")
+- core\application\gui_scan_launcher.py:693: z_parameter_layout.addRow("Setpoint above surface mm:", self.z_setpoint_distance_mm)
+- core\application\gui_scan_launcher.py:1188: "USB is connected, the bed/surface is clear, and no probe or sample can collide."
+- core\application\gui_scan_launcher.py:1287: self.main_z_status_label.setText("Approach ready. Set the surface distance, then use manual move or auto approach.")
+- core\application\gui_scan_launcher.py:2096: QMessageBox.warning(self, "Invalid setpoint", "Setpoint above surface must be a number in mm.")
+- core\application\gui_scan_launcher.py:2099: QMessageBox.warning(self, "Invalid setpoint", "Setpoint above surface cannot be negative.")
+- core\application\gui_scan_launcher.py:2106: f"- step Z down to setpoint {setpoint_distance:.2f} mm above the confirmed surface reference\n\n"
+- core\application\gui_scan_launcher.py:2473: "- bed/surface area is clear\n"
+- core\application\gui_scan_launcher.py:2569: "Current step: real motion is enabled. Supervise the MK4S and run hardware scan only with a clear object/surface path."
+- core\education\scan_profile.py:25: mode: str = "SIMULATED_SURFACE"
+- core\education\scan_profile.py:29: "SIMULATED_SURFACE",
+- core\education\synthetic_signal.py:4: def synthetic_surface_signal(x, y, *, center_x=50.0, center_y=50.0):
+- core\education\synthetic_signal.py:8: This simulates a surface with:
+- core\scan\modes\afm_contact_mode.py:26: self.simulated_surface = None
+- core\scan\modes\afm_contact_mode.py:30: self.simulated_surface = self._generate_simulated_surface()
+- core\scan\modes\afm_contact_mode.py:56: def _generate_simulated_surface(self):
+- core\scan\modes\afm_contact_mode.py:66: return self.simulated_surface[iy, ix]
+- core\scan\modes\afm_noncontact_mode.py:16: Simulates AFM Non-Contact Mode, where tip oscillation amplitude is used for surface interaction.
+- core\scan\modes\afm_noncontact_mode.py:29: self.simulated_surface = None
+- core\scan\modes\afm_noncontact_mode.py:33: self.simulated_surface = self._generate_simulated_amplitude_map()
+- core\scan\modes\afm_noncontact_mode.py:70: return self.simulated_surface[iy, ix]
+- core\scan\modes\profiling_mode.py:11: Profiling mode for 1D surface scanning along a single axis (X or Y),
+- core\scan\modes\profiling_mode.py:12: useful for quick surface height profiling at high resolution.
+- core\scan\modes\stm_mode.py:36: self.simulated_surface = None
+- core\scan\modes\stm_mode.py:49: self.simulated_surface = self._generate_simulated_surface()
+- core\scan\modes\stm_mode.py:75: def _generate_simulated_surface(self):
+- core\scan\modes\stm_mode.py:77: Create a synthetic 2D topography surface.
+- core\scan\modes\stm_mode.py:87: Approximate the Z-height for a given (x, y) from the simulated surface.
+- core\scan\modes\stm_mode.py:91: return self.simulated_surface[iy, ix]
+- tools\run_configured_raster_scan.py:15: from core.education.synthetic_signal import synthetic_surface_signal
+- tools\run_configured_raster_scan.py:16: from core.acquisition.channels import SimulatedSurfaceChannel
+- tools\run_configured_raster_scan.py:79: parser.add_argument("--mode", default="SIMULATED_SURFACE")
+- tools\run_configured_raster_scan.py:98: channel = SimulatedSurfaceChannel()
+- tools\run_configured_raster_scan.py:162: channel="simulated_surface",
+- tools\run_configured_raster_scan.py:185: z_driver.move_to(synthetic_surface_signal(x, y))
+- tools\run_configured_raster_scan.py:201: channel="simulated_surface",
+- tests\test_acquisition_channels.py:1: from core.acquisition.channels import SimulatedSurfaceChannel, available_default_channels
+- tests\test_acquisition_channels.py:4: def test_simulated_surface_channel_returns_synchronized_sample():
+- tests\test_acquisition_channels.py:5: channel = SimulatedSurfaceChannel()
+- tests\test_acquisition_channels.py:9: assert sample.channel == "simulated_surface"
+- tests\test_acquisition_channels.py:20: assert [channel.name for channel in channels] == ["simulated_surface"]
+- tests\test_cli_scan_launcher.py:12: profile = build_scan_profile_from_config(config, mode="SIMULATED_SURFACE")
+- tests\test_cli_scan_launcher.py:24: assert profile.mode == "SIMULATED_SURFACE"
+- tests\test_cli_scan_launcher.py:69: mode="SIMULATED_SURFACE",
+- tests\test_cli_scan_launcher.py:111: mode="SIMULATED_SURFACE",
+- tests\test_cli_scan_launcher.py:139: mode="SIMULATED_SURFACE",
+- tests\test_cli_scan_launcher.py:165: assert updated.mode == "SIMULATED_SURFACE"
+- tests\test_cli_scan_launcher.py:184: mode="SIMULATED_SURFACE",
+- tests\test_gui_z_dry_run_safety.py:395: assert "bed/surface area is clear" in source
+- tests\test_hardware_profile.py:21: assert "Resolution: 3-250; start 3/5" in profile.scan_mode_limits_text("SIMULATED_SURFACE")
+- tests\test_hardware_profile.py:22: assert "Official MK4S build volume: 250 x 210 x 220 mm" in profile.scan_mode_limits_text("SIMULATED_SURFACE")
+- tests\test_hardware_profile.py:23: assert "Official maxima tested: X250, Y210, Z220" in profile.scan_mode_limits_text("SIMULATED_SURFACE")
+- tests\test_mk4s_z_auto_approach.py:22: def test_auto_approach_setpoint_stops_above_surface_reference():
+- tests\test_scan_profile.py:32: mode="SIMULATED_SURFACE",
+- tests\test_scan_session.py:22: mode="SIMULATED_SURFACE",
+- tests\test_scan_session.py:32: channel="simulated_surface",
+- tests\test_scan_session.py:36: assert metadata["channel"] == "simulated_surface"
+- tests\test_scan_session.py:53: channel="simulated_surface",
+- tests\test_synthetic_signal.py:1: from core.education.synthetic_signal import synthetic_surface_signal
+- tests\test_synthetic_signal.py:4: def test_synthetic_surface_signal_returns_float():
+- tests\test_synthetic_signal.py:5: value = synthetic_surface_signal(50, 50)
+- tests\test_synthetic_signal.py:9: def test_synthetic_surface_signal_is_repeatable():
+- tests\test_synthetic_signal.py:10: value1 = synthetic_surface_signal(50, 50)
+- tests\test_synthetic_signal.py:11: value2 = synthetic_surface_signal(50, 50)
+- tests\test_synthetic_signal.py:15: def test_synthetic_surface_signal_center_is_stronger_than_far_point():
+- tests\test_synthetic_signal.py:16: center = synthetic_surface_signal(50, 50)
+- tests\test_synthetic_signal.py:17: far = synthetic_surface_signal(48, 48)
+- config\spm_mk4s_config.json:21: "SIMULATED_SURFACE": {
+- config\spm_mk4s_config.json:49: "sensor": "synthetic surface channel"
+- docs\old_github_review\simulation\scan_profiles.py:34: Return a small random height fluctuation over the surface.
+- docs\old_github_review\simulation\scan_profiles.py:50: def generate_custom_surface(width, height, resolution, mode='bumps', **kwargs):
+- docs\old_github_review\simulation\scan_simulator.py:10: Simulates a 2D area scan by moving a virtual tip over a synthetic surface.
+- docs\old_github_review\simulation\scan_simulator.py:21: self.surface = self.generate_surface(profile_type)
+
+## Pattern: scan_profile
+
+- core\acquisition\scan_session.py:8: from core.education.scan_profile import ScanProfile
+- core\acquisition\scan_session.py:25: "scan_profile": asdict(profile),
+- core\application\cli_scan_launcher.py:15: from core.education.scan_profile import (
+- core\application\cli_scan_launcher.py:18: validate_scan_profile,
+- core\application\cli_scan_launcher.py:22: def build_scan_profile_from_config(config: dict, mode: str) -> ScanProfile:
+- core\application\cli_scan_launcher.py:146: profile = build_scan_profile_from_config(config, args.mode)
+- core\application\cli_scan_launcher.py:151: validate_scan_profile(profile, limits)
+- core\application\gui_scan_launcher.py:42: from core.education.scan_profile import (
+- core\application\gui_scan_launcher.py:46: validate_scan_profile,
+- core\application\gui_scan_launcher.py:102: self.live_scan_profile = None
+- core\application\gui_scan_launcher.py:1438: self.live_scan_profile = profile
+- core\application\gui_scan_launcher.py:1501: if not self.live_scan_profile:
+- core\application\gui_scan_launcher.py:1511: z_value = self.synthetic_regulated_height(float(point["x"]), float(point["y"]), self.live_scan_profile)
+- core\application\gui_scan_launcher.py:1521: "actual_z": float(self.live_scan_profile.z),
+- core\application\gui_scan_launcher.py:2192: validate_scan_profile(profile, self.limits)
+- core\application\workstation_status.py:13: scan_profile_valid: bool = False
+- core\application\workstation_status.py:39: self.scan_profile_valid = True
+- core\application\workstation_status.py:43: self.scan_profile_valid = False
+- core\application\workstation_status.py:90: validation = "VALID" if self.scan_profile_valid else "NOT VALIDATED"
+- core\education\scan_profile.py:39: def validate_scan_profile(profile: ScanProfile, limits: MotionLimits) -> None:
+- tools\run_configured_raster_scan.py:24: from core.education.scan_profile import (
+- tools\run_configured_raster_scan.py:27: validate_scan_profile,
+- tools\run_configured_raster_scan.py:44: def build_scan_profile(config: dict, args: argparse.Namespace) -> ScanProfile:
+- tools\run_configured_raster_scan.py:135: profile = build_scan_profile(config, args)
+- tools\run_configured_raster_scan.py:139: validate_scan_profile(profile, limits)
+- tests\test_cli_scan_launcher.py:3: build_scan_profile_from_config,
+- tests\test_cli_scan_launcher.py:6: from core.education.scan_profile import validate_scan_profile
+- tests\test_cli_scan_launcher.py:9: def test_cli_builds_valid_scan_profile_from_config():
+- tests\test_cli_scan_launcher.py:12: profile = build_scan_profile_from_config(config, mode="SIMULATED_SURFACE")
+- tests\test_cli_scan_launcher.py:15: validate_scan_profile(profile, limits)
+- tests\test_cli_scan_launcher.py:57: from core.education.scan_profile import ScanProfile
+- tests\test_cli_scan_launcher.py:99: from core.education.scan_profile import ScanProfile
+- tests\test_cli_scan_launcher.py:123: def test_cli_overrides_scan_profile_values():
+- tests\test_cli_scan_launcher.py:127: from core.education.scan_profile import ScanProfile
+- tests\test_cli_scan_launcher.py:172: from core.education.scan_profile import ScanProfile
+- tests\test_scan_profile.py:3: from core.education.scan_profile import (
+- tests\test_scan_profile.py:6: validate_scan_profile,
+- tests\test_scan_profile.py:36: def test_valid_scan_profile_passes():
+- tests\test_scan_profile.py:37: validate_scan_profile(valid_profile(), limits())
+- tests\test_scan_profile.py:57: def test_invalid_scan_profile_fails(field, value):
+- tests\test_scan_profile.py:64: validate_scan_profile(bad_profile, limits())
+- tests\test_scan_profile.py:73: validate_scan_profile(ScanProfile(**profile_data), limits())
+- tests\test_scan_profile.py:82: validate_scan_profile(ScanProfile(**profile_data), limits())
+- tests\test_scan_session.py:8: from core.education.scan_profile import ScanProfile
+- tests\test_scan_session.py:38: assert metadata["scan_profile"]["x_resolution"] == 5
+- tests\test_workstation_status.py:43: assert status.scan_profile_valid is False
+- docs\old_github_review\simulation\scan_profiles.py:1: # simulation/scan_profiles.py
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:39: from core.education.scan_profile import (
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:43: validate_scan_profile,
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1687: validate_scan_profile(profile, self.limits)
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:39: from core.education.scan_profile import (
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:43: validate_scan_profile,
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1680: validate_scan_profile(profile, self.limits)
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:42: from core.education.scan_profile import (
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:46: validate_scan_profile,
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:100: self.live_scan_profile = None
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1328: self.live_scan_profile = profile
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1391: if not self.live_scan_profile:
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1401: z_value = self.synthetic_regulated_height(float(point["x"]), float(point["y"]), self.live_scan_profile)
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1411: "actual_z": float(self.live_scan_profile.z),
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1984: validate_scan_profile(profile, self.limits)
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:42: from core.education.scan_profile import (
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:46: validate_scan_profile,
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:100: self.live_scan_profile = None
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1337: self.live_scan_profile = profile
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1400: if not self.live_scan_profile:
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1410: z_value = self.synthetic_regulated_height(float(point["x"]), float(point["y"]), self.live_scan_profile)
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1420: "actual_z": float(self.live_scan_profile.z),
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1993: validate_scan_profile(profile, self.limits)
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:42: from core.education.scan_profile import (
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:46: validate_scan_profile,
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:100: self.live_scan_profile = None
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1345: self.live_scan_profile = profile
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1408: if not self.live_scan_profile:
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1418: z_value = self.synthetic_regulated_height(float(point["x"]), float(point["y"]), self.live_scan_profile)
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1428: "actual_z": float(self.live_scan_profile.z),
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1976: validate_scan_profile(profile, self.limits)
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:42: from core.education.scan_profile import (
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:46: validate_scan_profile,
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:101: self.live_scan_profile = None
+
+## Pattern: ScanProfile
+
+- core\acquisition\scan_session.py:8: from core.education.scan_profile import ScanProfile
+- core\acquisition\scan_session.py:13: profile: ScanProfile,
+- core\acquisition\scan_session.py:35: profile: ScanProfile,
+- core\application\cli_scan_launcher.py:17: ScanProfile,
+- core\application\cli_scan_launcher.py:22: def build_scan_profile_from_config(config: dict, mode: str) -> ScanProfile:
+- core\application\cli_scan_launcher.py:26: return ScanProfile(
+- core\application\cli_scan_launcher.py:40: def apply_cli_overrides(profile: ScanProfile, args: argparse.Namespace) -> ScanProfile:
+- core\application\cli_scan_launcher.py:41: return ScanProfile(
+- core\application\cli_scan_launcher.py:69: profile: ScanProfile,
+- core\application\cli_scan_launcher.py:107: def run_verified_hardware_raster(profile: ScanProfile, output_file: str | None = None) -> int:
+- core\application\cli_scan_launcher.py:115: def run_verified_software_raster(profile: ScanProfile, output_file: str | None = None) -> int:
+- core\application\gui_scan_launcher.py:43: ScanProfile,
+- core\application\gui_scan_launcher.py:1459: def build_live_scan_points(self, profile: ScanProfile) -> list[dict[str, float | str | int]]:
+- core\application\gui_scan_launcher.py:1481: def synthetic_regulated_height(self, x: float, y: float, profile: ScanProfile) -> float:
+- core\application\gui_scan_launcher.py:1737: profile: ScanProfile,
+- core\application\gui_scan_launcher.py:2169: def build_profile(self) -> ScanProfile:
+- core\application\gui_scan_launcher.py:2170: return ScanProfile(
+- core\application\gui_scan_launcher.py:2186: def validate_profile(self, require_initialized: bool = True) -> ScanProfile | None:
+- core\application\gui_scan_launcher.py:2228: def build_cli_command(self, profile: ScanProfile, execute_hardware: bool) -> list[str]:
+- core\education\scan_profile.py:15: class ScanProfile:
+- core\education\scan_profile.py:39: def validate_scan_profile(profile: ScanProfile, limits: MotionLimits) -> None:
+- tools\run_configured_raster_scan.py:26: ScanProfile,
+- tools\run_configured_raster_scan.py:44: def build_scan_profile(config: dict, args: argparse.Namespace) -> ScanProfile:
+- tools\run_configured_raster_scan.py:48: return ScanProfile(
+- tools\run_configured_raster_scan.py:62: def scan_area_from_profile(profile: ScanProfile) -> dict:
+- tools\run_configured_raster_scan.py:96: def build_simulated_raster_data(profile: ScanProfile, active_scan_area: dict) -> list[dict]:
+- tests\test_cli_scan_launcher.py:57: from core.education.scan_profile import ScanProfile
+- tests\test_cli_scan_launcher.py:59: profile = ScanProfile(
+- tests\test_cli_scan_launcher.py:99: from core.education.scan_profile import ScanProfile
+- tests\test_cli_scan_launcher.py:101: profile = ScanProfile(
+- tests\test_cli_scan_launcher.py:127: from core.education.scan_profile import ScanProfile
+- tests\test_cli_scan_launcher.py:129: profile = ScanProfile(
+- tests\test_cli_scan_launcher.py:172: from core.education.scan_profile import ScanProfile
+- tests\test_cli_scan_launcher.py:174: profile = ScanProfile(
+- tests\test_scan_profile.py:5: ScanProfile,
+- tests\test_scan_profile.py:22: return ScanProfile(
+- tests\test_scan_profile.py:61: bad_profile = ScanProfile(**profile_data)
+- tests\test_scan_profile.py:73: validate_scan_profile(ScanProfile(**profile_data), limits())
+- tests\test_scan_profile.py:82: validate_scan_profile(ScanProfile(**profile_data), limits())
+- tests\test_scan_session.py:8: from core.education.scan_profile import ScanProfile
+- tests\test_scan_session.py:12: return ScanProfile(
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:40: ScanProfile,
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1355: profile: ScanProfile,
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1664: def build_profile(self) -> ScanProfile:
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1665: return ScanProfile(
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1681: def validate_profile(self, require_initialized: bool = True) -> ScanProfile | None:
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1723: def build_cli_command(self, profile: ScanProfile, execute_hardware: bool) -> list[str]:
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:40: ScanProfile,
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1348: profile: ScanProfile,
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1657: def build_profile(self) -> ScanProfile:
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1658: return ScanProfile(
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1674: def validate_profile(self, require_initialized: bool = True) -> ScanProfile | None:
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1716: def build_cli_command(self, profile: ScanProfile, execute_hardware: bool) -> list[str]:
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:43: ScanProfile,
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1349: def build_live_scan_points(self, profile: ScanProfile) -> list[dict[str, float | str | int]]:
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1371: def synthetic_regulated_height(self, x: float, y: float, profile: ScanProfile) -> float:
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1652: profile: ScanProfile,
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1961: def build_profile(self) -> ScanProfile:
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1962: return ScanProfile(
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1978: def validate_profile(self, require_initialized: bool = True) -> ScanProfile | None:
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:2020: def build_cli_command(self, profile: ScanProfile, execute_hardware: bool) -> list[str]:
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:43: ScanProfile,
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1358: def build_live_scan_points(self, profile: ScanProfile) -> list[dict[str, float | str | int]]:
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1380: def synthetic_regulated_height(self, x: float, y: float, profile: ScanProfile) -> float:
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1661: profile: ScanProfile,
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1970: def build_profile(self) -> ScanProfile:
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1971: return ScanProfile(
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1987: def validate_profile(self, require_initialized: bool = True) -> ScanProfile | None:
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:2029: def build_cli_command(self, profile: ScanProfile, execute_hardware: bool) -> list[str]:
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:43: ScanProfile,
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1366: def build_live_scan_points(self, profile: ScanProfile) -> list[dict[str, float | str | int]]:
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1388: def synthetic_regulated_height(self, x: float, y: float, profile: ScanProfile) -> float:
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1644: profile: ScanProfile,
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1953: def build_profile(self) -> ScanProfile:
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1954: return ScanProfile(
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1970: def validate_profile(self, require_initialized: bool = True) -> ScanProfile | None:
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:2012: def build_cli_command(self, profile: ScanProfile, execute_hardware: bool) -> list[str]:
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:43: ScanProfile,
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:1422: def build_live_scan_points(self, profile: ScanProfile) -> list[dict[str, float | str | int]]:
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:1444: def synthetic_regulated_height(self, x: float, y: float, profile: ScanProfile) -> float:
+
+## Pattern: run_scan
+
+- core\scan\controller\scan_manager.py:27: self._scan_thread = threading.Thread(target=self._run_scan_loop, daemon=True)
+- core\scan\controller\scan_manager.py:31: def _run_scan_loop(self):
+- tools\phase9_xy_10x10_topography_skeleton.py:294: def run_scan(args: argparse.Namespace) -> int:
+- tools\phase9_xy_10x10_topography_skeleton.py:445: return run_scan(args)
+- docs\old_github_review\simulation\scan_simulator.py:57: def run_scan(self, callback=None):
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:294: def run_scan(args: argparse.Namespace) -> int:
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:445: return run_scan(args)
+- docs\PHASE1_CODE_MAP.md:583: ## Pattern: run_scan
+- docs\PHASE1_CODE_MAP.md:585: - core\scan\controller\scan_manager.py:27: self._scan_thread = threading.Thread(target=self._run_scan_loop, daemon=True)
+- docs\PHASE1_CODE_MAP.md:586: - core\scan\controller\scan_manager.py:31: def _run_scan_loop(self):
+- docs\PHASE1_CODE_MAP.md:587: - tools\phase9_xy_10x10_topography_skeleton.py:294: def run_scan(args: argparse.Namespace) -> int:
+- docs\PHASE1_CODE_MAP.md:588: - tools\phase9_xy_10x10_topography_skeleton.py:445: return run_scan(args)
+- docs\PHASE1_CODE_MAP.md:589: - docs\old_github_review\simulation\scan_simulator.py:57: def run_scan(self, callback=None):
+- docs\PHASE1_CODE_MAP.md:590: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:294: def run_scan(args: argparse.Namespace) -> int:
+- docs\PHASE1_CODE_MAP.md:591: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:445: return run_scan(args)
+- docs\PHASE1_CODE_MAP.md:592: - docs\PHASE1_CODE_MAP.md:479: ## Pattern: run_scan
+- docs\PHASE1_CODE_MAP.md:593: - docs\PHASE1_CODE_MAP.md:481: - core\scan\controller\scan_manager.py:27: self._scan_thread = threading.Thread(target=self._run_scan_loop, daemon=True)
+- docs\PHASE1_CODE_MAP.md:594: - docs\PHASE1_CODE_MAP.md:482: - core\scan\controller\scan_manager.py:31: def _run_scan_loop(self):
+- docs\PHASE1_CODE_MAP.md:595: - docs\PHASE1_CODE_MAP.md:483: - tools\phase9_xy_10x10_topography_skeleton.py:294: def run_scan(args: argparse.Namespace) -> int:
+- docs\PHASE1_CODE_MAP.md:596: - docs\PHASE1_CODE_MAP.md:484: - tools\phase9_xy_10x10_topography_skeleton.py:445: return run_scan(args)
+- docs\PHASE1_CODE_MAP.md:597: - docs\PHASE1_CODE_MAP.md:485: - docs\old_github_review\simulation\scan_simulator.py:57: def run_scan(self, callback=None):
+- docs\PHASE1_CODE_MAP.md:598: - docs\PHASE1_CODE_MAP.md:486: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:294: def run_scan(args: argparse.Namespace) -> int:
+- docs\PHASE1_CODE_MAP.md:599: - docs\PHASE1_CODE_MAP.md:487: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:445: return run_scan(args)
+
+## Pattern: scan_runner
+
+- docs\PHASE1_CODE_MAP.md:601: ## Pattern: scan_runner
+- docs\PHASE1_CODE_MAP.md:603: - docs\PHASE1_CODE_MAP.md:489: ## Pattern: scan_runner
+
+## Pattern: progress
+
+- core\application\gui_scan_launcher.py:29: QProgressBar,
+- core\application\gui_scan_launcher.py:309: self.scan_progress_bar = QProgressBar()
+- core\application\gui_scan_launcher.py:310: self.scan_progress_bar.setRange(0, 100)
+- core\application\gui_scan_launcher.py:311: self.scan_progress_bar.setValue(0)
+- core\application\gui_scan_launcher.py:615: measurement_live_layout.addWidget(self.scan_progress_bar)
+- core\application\gui_scan_launcher.py:1247: QProgressBar {
+- core\application\gui_scan_launcher.py:1254: QProgressBar::chunk {
+- core\application\gui_scan_launcher.py:1425: def set_scan_progress(self, value: int, message: str) -> None:
+- core\application\gui_scan_launcher.py:1426: self.scan_progress_bar.setValue(max(0, min(100, int(value))))
+- core\application\gui_scan_launcher.py:1455: self.set_scan_progress(0, "live demo scan running")
+- core\application\gui_scan_launcher.py:1531: progress = int((self.live_scan_index / max(1, len(self.live_scan_points))) * 100)
+- core\application\gui_scan_launcher.py:1533: self.set_scan_progress(progress, f"live scan line {current.get('line', '?')} {current.get('scan_direction', '')}")
+- core\application\gui_scan_launcher.py:1551: self.set_scan_progress(self.scan_progress_bar.value(), "live scan stopped")
+- core\application\gui_scan_launcher.py:1557: self.set_scan_progress(100, "live demo scan complete")
+- core\application\gui_scan_launcher.py:1690: self.set_scan_progress(self.scan_progress_bar.value(), "pause requested")
+- core\application\gui_scan_launcher.py:1695: self.set_scan_progress(self.scan_progress_bar.value(), "stop requested")
+- core\application\gui_scan_launcher.py:2332: self.set_scan_progress(100, f"{frame.point_count} raster points loaded")
+- core\application\gui_scan_launcher.py:2418: self.set_scan_progress(10, "demo scan starting")
+- core\application\gui_scan_launcher.py:2425: self.set_scan_progress(75, "generating raster plot")
+- core\application\gui_scan_launcher.py:2628: self.set_scan_progress(10, "hardware scan starting")
+- core\application\gui_scan_launcher.py:2635: self.set_scan_progress(75, "generating raster plot")
+- tests\test_gui_z_dry_run_safety.py:274: def test_gui_has_scan_progress_indicator():
+- tests\test_gui_z_dry_run_safety.py:277: assert "QProgressBar" in source
+- tests\test_gui_z_dry_run_safety.py:278: assert "self.scan_progress_bar.setRange(0, 100)" in source
+- tests\test_gui_z_dry_run_safety.py:279: assert "def set_scan_progress" in source
+- tests\test_gui_z_dry_run_safety.py:280: assert "measurement_live_layout.addWidget(self.scan_progress_bar)" in source
+- tests\test_gui_z_dry_run_safety.py:294: assert "QProgressBar::chunk" in source
+- tests\test_gui_z_dry_run_safety.py:469: assert "measurement_live_layout.addWidget(self.scan_progress_bar)" in source
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:5: QHBoxLayout, QGroupBox, QComboBox, QDoubleSpinBox, QProgressBar
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:110: # Progress Bar
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:111: self.progress = QProgressBar()
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:112: self.progress.setRange(0, 100)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:113: self.progress.setValue(0)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:114: self.layout.addWidget(self.progress)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:161: self.progress.setValue(0)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:177: self.progress.setValue(min(int((self.t / 10) * 100), 100))
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:198: self.progress.setValue(self.t)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:215: self.progress.setValue(0)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:225: self.progress.setValue(0)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:286: self.progress.setValue(0)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:341: self.progress.setValue(int(min(100, (signal / target) * 100)) if target > 0 else 0)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:5: QHBoxLayout, QGroupBox, QComboBox, QDoubleSpinBox, QProgressBar
+- docs\old_github_review\interface\panels\z_regulation_gui.py:110: # Progress Bar
+- docs\old_github_review\interface\panels\z_regulation_gui.py:111: self.progress = QProgressBar()
+- docs\old_github_review\interface\panels\z_regulation_gui.py:112: self.progress.setRange(0, 100)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:113: self.progress.setValue(0)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:114: self.layout.addWidget(self.progress)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:161: self.progress.setValue(0)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:177: self.progress.setValue(min(int((self.t / 10) * 100), 100))
+- docs\old_github_review\interface\panels\z_regulation_gui.py:198: self.progress.setValue(self.t)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:215: self.progress.setValue(0)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:225: self.progress.setValue(0)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:286: self.progress.setValue(0)
+- docs\old_github_review\interface\panels\z_regulation_gui.py:341: self.progress.setValue(int(min(100, (signal / target) * 100)) if target > 0 else 0)
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:26: QProgressBar,
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:295: self.scan_progress_bar = QProgressBar()
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:296: self.scan_progress_bar.setRange(0, 100)
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:297: self.scan_progress_bar.setValue(0)
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:523: measurement_live_layout.addWidget(self.scan_progress_bar)
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1116: QProgressBar {
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1123: QProgressBar::chunk {
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1275: def set_scan_progress(self, value: int, message: str) -> None:
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1276: self.scan_progress_bar.setValue(max(0, min(100, int(value))))
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1308: self.set_scan_progress(self.scan_progress_bar.value(), "pause requested")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1313: self.set_scan_progress(self.scan_progress_bar.value(), "stop requested")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1827: self.set_scan_progress(100, f"{frame.point_count} raster points loaded")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1913: self.set_scan_progress(10, "demo scan starting")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1920: self.set_scan_progress(75, "generating raster plot")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:2103: self.set_scan_progress(10, "hardware scan starting")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:2110: self.set_scan_progress(75, "generating raster plot")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\test_gui_z_dry_run_safety.py:274: def test_gui_has_scan_progress_indicator():
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\test_gui_z_dry_run_safety.py:277: assert "QProgressBar" in source
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\test_gui_z_dry_run_safety.py:278: assert "self.scan_progress_bar.setRange(0, 100)" in source
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\test_gui_z_dry_run_safety.py:279: assert "def set_scan_progress" in source
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\test_gui_z_dry_run_safety.py:280: assert "measurement_live_layout.addWidget(self.scan_progress_bar)" in source
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\test_gui_z_dry_run_safety.py:294: assert "QProgressBar::chunk" in source
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\test_gui_z_dry_run_safety.py:463: assert "measurement_live_layout.addWidget(self.scan_progress_bar)" in source
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:26: QProgressBar,
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:295: self.scan_progress_bar = QProgressBar()
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:296: self.scan_progress_bar.setRange(0, 100)
+
+## Pattern: update
+
+- core\application\gui_scan_launcher.py:173: self.color_map_dropdown.currentTextChanged.connect(self.update_color_map)
+- core\application\gui_scan_launcher.py:189: self.operation_mode_dropdown.currentTextChanged.connect(self.update_operation_mode)
+- core\application\gui_scan_launcher.py:762: self.connect_scan_setting_updates()
+- core\application\gui_scan_launcher.py:872: self.update_position_display(report_position, "hardware check")
+- core\application\gui_scan_launcher.py:883: def update_operation_mode(self, mode: str) -> None:
+- core\application\gui_scan_launcher.py:913: # Update selected color map
+- core\application\gui_scan_launcher.py:915: def update_color_map(self, color_map: str) -> None:
+- core\application\gui_scan_launcher.py:982: def connect_scan_setting_updates(self) -> None:
+- core\application\gui_scan_launcher.py:1090: def update_position_display(self, position: dict, source: str) -> None:
+- core\application\gui_scan_launcher.py:1281: self.refresh_hardware_parameters("status update")
+- core\application\gui_scan_launcher.py:1316: self.update_position_display(position, "readback")
+- core\application\gui_scan_launcher.py:1347: self.update_position_display(position, "parked")
+- core\application\gui_scan_launcher.py:1392: self.update_position_display(state.get("position", {}), "power-off safe park")
+- core\application\gui_scan_launcher.py:2085: self.update_position_display({"z": result.target_z}, f"manual Z {direction}")
+- core\application\gui_scan_launcher.py:2130: self.update_position_display({"z": result.final_z}, "Z auto approach")
+- core\application\gui_scan_launcher.py:2154: self.update_position_display({"z": result.target_z}, "Z retract")
+- core\application\gui_scan_launcher.py:2324: self.append_log(f"[ACQUISITION] Preview update failed: {error}")
+- core\application\gui_scan_launcher.py:2514: self.update_position_display(init_result.assessment.position, "initialization readback")
+- core\application\gui_scan_launcher.py:2646: self.update_position_display(state.get("position", {}), "post-scan safe park")
+- core\application\hardware_test_console_gui.py:303: self.update_position_status(result.response_lines)
+- core\application\hardware_test_console_gui.py:333: self.update_position_status(result.response_lines)
+- core\application\hardware_test_console_gui.py:383: self.update_position_status(result.response_lines)
+- core\application\hardware_test_console_gui.py:385: def update_position_status(self, response_lines: list[str]) -> None:
+- core\motion\prusa_gcode_backend.py:186: self._last_position.update(parsed)
+- core\motion\prusa_gcode_backend.py:209: self._last_position.update(parsed)
+- core\motion\prusa_gcode_backend.py:255: self._last_position.update(parsed)
+- core\z_control\z_feedback.py:15: def update(self, measured_value):
+- tools\refactor_spm_project.py:6: PROJECT_ROOT = r"D:\Documents\Project\SPM"  # Update if your root differs
+- tools\refactor_spm_project.py:78: def update_imports():
+- tools\refactor_spm_project.py:99: print(f"Updated imports in {path}")
+- tools\refactor_spm_project.py:105: update_imports()
+- tools\run_original_mk4s_max_check.py:53: backend_kwargs.update(
+- tests\motion\test_prusa_backend.py:31: def test_move_to_updates_cached_position(monkeypatch):
+- tests\test_cli_scan_launcher.py:154: updated = apply_cli_overrides(profile, args)
+- tests\test_cli_scan_launcher.py:156: assert updated.x_min == 48
+- tests\test_cli_scan_launcher.py:157: assert updated.x_max == 52
+- tests\test_cli_scan_launcher.py:158: assert updated.y_min == 48
+- tests\test_cli_scan_launcher.py:159: assert updated.y_max == 52
+- tests\test_cli_scan_launcher.py:160: assert updated.z == 20
+- tests\test_cli_scan_launcher.py:161: assert updated.x_resolution == 3
+- tests\test_cli_scan_launcher.py:162: assert updated.y_resolution == 3
+- tests\test_cli_scan_launcher.py:163: assert updated.feedrate_xy == 900
+- tests\test_cli_scan_launcher.py:164: assert updated.feedrate_z == 150
+- tests\test_cli_scan_launcher.py:165: assert updated.mode == "SIMULATED_SURFACE"
+- tests\test_cli_scan_launcher.py:197: updated = apply_cli_overrides(profile, args)
+- tests\test_cli_scan_launcher.py:199: assert updated == profile
+- tests\test_gui_z_dry_run_safety.py:362: def test_gui_updates_line_topography_and_z_feedback_from_scan_data():
+- tests\test_hardware_test_console_gui.py:58: assert "def update_position_status" in source
+- tests\test_simulated_z_driver.py:9: def test_simulated_z_driver_move_to_updates_position():
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:54: self.mode_dropdown.currentTextChanged.connect(self.update_feedback_label)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:118: self.timer.timeout.connect(self.update_simulation)
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:154: def update_feedback_label(self, mode):
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:170: def update_approach_feedback(self):
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:189: def update_simulation(self):
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:313: def update_simulated_feedback(self):
+- docs\old_github_review\interface\layout\live_plot_area.py:36: self.clock_timer.timeout.connect(self._update_time)
+- docs\old_github_review\interface\layout\live_plot_area.py:37: self.clock_timer.start(1000)  # Update every second
+- docs\old_github_review\interface\layout\live_plot_area.py:38: self._update_time()
+- docs\old_github_review\interface\layout\live_plot_area.py:40: def _update_time(self):
+- docs\old_github_review\interface\layout\live_plot_area.py:44: def update_status(self, message: str):
+- docs\old_github_review\interface\layout\live_plot_area.py:45: """Update the general scan status label."""
+- docs\old_github_review\interface\layout\live_plot_area.py:48: def update_z_feedback(self, value: float):
+- docs\old_github_review\interface\layout\live_plot_area.py:49: """Update the Z-axis feedback value in nm."""
+- docs\old_github_review\interface\layout\live_plot_area.py:52: def update_amplitude(self, value: float):
+- docs\old_github_review\interface\layout\live_plot_area.py:53: """Update the measured amplitude in mV (AFM mode)."""
+- docs\old_github_review\interface\layout\live_plot_area.py:98: def update_data(self, z_value, amp_value, tip_current_value):
+- docs\old_github_review\interface\layout\live_plot_area.py:100: Update the plot curves and status labels with new values.
+- docs\old_github_review\interface\layout\live_plot_area.py:116: # Update status bar with latest feedback values
+- docs\old_github_review\interface\layout\live_plot_area.py:117: self.status_bar.update_z_feedback(z_value)
+- docs\old_github_review\interface\layout\live_plot_area.py:118: self.status_bar.update_amplitude(amp_value)
+- docs\old_github_review\interface\layout\menu_bar.py:119: self.plot_widget = plot_widget  # Save reference for future updates
+- docs\old_github_review\interface\layout\menu_bar.py:178: print("Live plot interface triggered. Will update via pyqtgraph in real-time.")
+- docs\old_github_review\interface\layout\scan_control_panel.py:11: update_scan_speed = pyqtSignal(float)
+- docs\old_github_review\interface\layout\scan_control_panel.py:12: update_scan_parameters = pyqtSignal(dict)
+- docs\old_github_review\interface\layout\scan_control_panel.py:68: """Emit signal to update scan speed settings."""
+- docs\old_github_review\interface\layout\scan_control_panel.py:70: self.update_scan_speed.emit(speed)
+- docs\old_github_review\interface\layout\scan_control_panel.py:73: """Emit signal to update scan adaptation settings."""
+- docs\old_github_review\interface\layout\scan_control_panel.py:79: self.update_scan_parameters.emit(params)
+- docs\old_github_review\interface\layout\system_diagnostics.py:31: self.timestamp_label = QLabel("Last Update: ---")
+- docs\old_github_review\interface\layout\system_diagnostics.py:62: """ Update timestamp and system monitoring every 2 seconds """
+
+## Pattern: display
+
+- core\application\gui_scan_launcher.py:872: self.update_position_display(report_position, "hardware check")
+- core\application\gui_scan_launcher.py:937: "## Display Limits\n\n"
+- core\application\gui_scan_launcher.py:1090: def update_position_display(self, position: dict, source: str) -> None:
+- core\application\gui_scan_launcher.py:1316: self.update_position_display(position, "readback")
+- core\application\gui_scan_launcher.py:1347: self.update_position_display(position, "parked")
+- core\application\gui_scan_launcher.py:1392: self.update_position_display(state.get("position", {}), "power-off safe park")
+- core\application\gui_scan_launcher.py:2085: self.update_position_display({"z": result.target_z}, f"manual Z {direction}")
+- core\application\gui_scan_launcher.py:2130: self.update_position_display({"z": result.final_z}, "Z auto approach")
+- core\application\gui_scan_launcher.py:2154: self.update_position_display({"z": result.target_z}, "Z retract")
+- core\application\gui_scan_launcher.py:2514: self.update_position_display(init_result.assessment.position, "initialization readback")
+- core\application\gui_scan_launcher.py:2646: self.update_position_display(state.get("position", {}), "post-scan safe park")
+- docs\old_github_review\interface\layout\live_plot_area.py:10: Displays scan state, tip feedback, and live time.
+- docs\old_github_review\interface\layout\live_plot_area.py:59: Displays Z-position, amplitude trace, tip current, and system status.
+- docs\old_github_review\interface\layout\system_diagnostics.py:9: Displays logs, system status, and scan performance metrics.
+- docs\old_github_review\interface\layout\system_diagnostics.py:49: self.log_display = QTextEdit()
+- docs\old_github_review\interface\layout\system_diagnostics.py:50: self.log_display.setReadOnly(True)
+- docs\old_github_review\interface\layout\system_diagnostics.py:55: layout.addWidget(self.log_display)
+- docs\old_github_review\interface\layout\system_diagnostics.py:91: self.log_display.append(message)
+- docs\old_github_review\interface\layout\system_diagnostics.py:95: self.log_display.clear()
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:759: self.update_position_display(report_position, "hardware check")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:824: "## Display Limits\n\n"
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:977: def update_position_display(self, position: dict, source: str) -> None:
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1175: self.update_position_display(position, "readback")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1206: self.update_position_display(position, "parked")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1250: self.update_position_display(state.get("position", {}), "power-off safe park")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:1994: self.update_position_display(report_position, "initialization readback")
+- docs\versions\v0.10.0_matrix_workspace_phase1_2026-06-11\backup\gui_scan_launcher.py:2121: self.update_position_display(state.get("position", {}), "post-scan safe park")
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:752: self.update_position_display(report_position, "hardware check")
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:817: "## Display Limits\n\n"
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:970: def update_position_display(self, position: dict, source: str) -> None:
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1168: self.update_position_display(position, "readback")
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1199: self.update_position_display(position, "parked")
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1243: self.update_position_display(state.get("position", {}), "power-off safe park")
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:1987: self.update_position_display(report_position, "initialization readback")
+- docs\versions\v0.10.1_clear_workstation_windows_2026-06-11\backup\gui_scan_launcher.py:2114: self.update_position_display(state.get("position", {}), "post-scan safe park")
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:799: self.update_position_display(report_position, "hardware check")
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:864: "## Display Limits\n\n"
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1017: def update_position_display(self, position: dict, source: str) -> None:
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1215: self.update_position_display(position, "readback")
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1246: self.update_position_display(position, "parked")
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:1290: self.update_position_display(state.get("position", {}), "power-off safe park")
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:2291: self.update_position_display(report_position, "initialization readback")
+- docs\versions\v0.11.0_live_spm_raster_measurement_2026-06-11\backup\gui_scan_launcher.py:2418: self.update_position_display(state.get("position", {}), "post-scan safe park")
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:799: self.update_position_display(report_position, "hardware check")
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:864: "## Display Limits\n\n"
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1017: def update_position_display(self, position: dict, source: str) -> None:
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1215: self.update_position_display(position, "readback")
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1246: self.update_position_display(position, "parked")
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:1291: self.update_position_display(state.get("position", {}), "power-off safe park")
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:2300: self.update_position_display(report_position, "initialization readback")
+- docs\versions\v0.11.1_crash_hardened_live_measurement_2026-06-11\backup\gui_scan_launcher.py:2427: self.update_position_display(state.get("position", {}), "post-scan safe park")
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:807: self.update_position_display(report_position, "hardware check")
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:872: "## Display Limits\n\n"
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1025: def update_position_display(self, position: dict, source: str) -> None:
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1223: self.update_position_display(position, "readback")
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1254: self.update_position_display(position, "parked")
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:1299: self.update_position_display(state.get("position", {}), "power-off safe park")
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:2283: self.update_position_display(report_position, "initialization readback")
+- docs\versions\v0.11.2_text_live_scan_stability_2026-06-11\backup\gui_scan_launcher.py:2410: self.update_position_display(state.get("position", {}), "post-scan safe park")
+- docs\versions\v0.12.0_phase6_hardware_command_foundation_2026-06-11\backup\SPM_PROFESSIONAL_PHASE_ROADMAP.md:188: - Limits display
+- docs\versions\v0.13.0_phase7_general_system_initialization_2026-06-11\backup\SPM_PROFESSIONAL_PHASE_ROADMAP.md:188: - Limits display
+- docs\versions\v0.19.0_ht3_3_guided_hardware_connection_check_2026-06-12\README.md:16: - Added a connection status display.
+- docs\versions\v0.19.0_ht3_3_guided_hardware_connection_check_2026-06-12\README.md:17: - Added an XYZ position status display.
+- docs\versions\v0.19.0_ht3_3_guided_hardware_connection_check_2026-06-12\TWO_LAYER_SPM_DEVELOPMENT_ROADMAP_2026-06-12.md:263: - Added connection status display.
+- docs\versions\v0.19.0_ht3_3_guided_hardware_connection_check_2026-06-12\TWO_LAYER_SPM_DEVELOPMENT_ROADMAP_2026-06-12.md:264: - Added live XYZ position status display.
+- docs\versions\v0.20.0_ht3_4_smart_operator_console_2026-06-12\TWO_LAYER_SPM_DEVELOPMENT_ROADMAP_2026-06-12.md:263: - Added connection status display.
+- docs\versions\v0.20.0_ht3_4_smart_operator_console_2026-06-12\TWO_LAYER_SPM_DEVELOPMENT_ROADMAP_2026-06-12.md:264: - Added live XYZ position status display.
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:845: self.update_position_display(report_position, "hardware check")
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:910: "## Display Limits\n\n"
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:1063: def update_position_display(self, position: dict, source: str) -> None:
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:1279: self.update_position_display(position, "readback")
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:1310: self.update_position_display(position, "parked")
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:1355: self.update_position_display(state.get("position", {}), "power-off safe park")
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:2398: self.update_position_display(init_result.assessment.position, "initialization readback")
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\gui_scan_launcher.py:2530: self.update_position_display(state.get("position", {}), "post-scan safe park")
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\TWO_LAYER_SPM_DEVELOPMENT_ROADMAP_2026-06-12.md:263: - Added connection status display.
+- docs\versions\v0.21.0_main_initialize_and_z_scanner_workflow_2026-06-12\TWO_LAYER_SPM_DEVELOPMENT_ROADMAP_2026-06-12.md:264: - Added live XYZ position status display.
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\gui_scan_launcher.py:846: self.update_position_display(report_position, "hardware check")
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\gui_scan_launcher.py:911: "## Display Limits\n\n"
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\gui_scan_launcher.py:1064: def update_position_display(self, position: dict, source: str) -> None:
+
+## Pattern: plot
+
+- core\acquisition\raster_stream.py:6: from tools.plot_safe_raster import load_raster_csv
+- core\application\gui_scan_launcher.py:88: self.last_plot_path = ""
+- core\application\gui_scan_launcher.py:168: # Plot color map selection
+- core\application\gui_scan_launcher.py:179: form_layout.addRow("Plot color map:", self.color_map_dropdown)
+- core\application\gui_scan_launcher.py:359: self.plot_placeholder = QLabel("Live Data / Raster Plot Preview\n\nPlaceholder for last generated PNG, future live raster image, and signal monitor.")
+- core\application\gui_scan_launcher.py:360: self.plot_placeholder.setStyleSheet("border: 1px solid #9e9e9e; padding: 12px; background-color: #fafafa;")
+- core\application\gui_scan_launcher.py:361: self.plot_placeholder.setFixedSize(460, 260)
+- core\application\gui_scan_launcher.py:362: self.plot_placeholder.setAlignment(Qt.AlignCenter)
+- core\application\gui_scan_launcher.py:363: self.plot_placeholder.setScaledContents(False)
+- core\application\gui_scan_launcher.py:364: self.plot_placeholder.setWordWrap(True)
+- core\application\gui_scan_launcher.py:572: # feedback_tabs.addTab(self.plot_placeholder, "Raster Preview")
+- core\application\gui_scan_launcher.py:643: # Center data/plot panel
+- core\application\gui_scan_launcher.py:917: self.append_log(f"Plot color map selected: {self.color_map}")
+- core\application\gui_scan_launcher.py:1562: plot_exit_code, plot_path = self.generate_plot()
+- core\application\gui_scan_launcher.py:1563: if plot_exit_code == 0:
+- core\application\gui_scan_launcher.py:1564: self.refresh_acquisition_preview(self.output_file.text(), plot_path)
+- core\application\gui_scan_launcher.py:2264: # Build plot output path based on CSV output path
+- core\application\gui_scan_launcher.py:2268: def build_plot_output_path(self) -> str:
+- core\application\gui_scan_launcher.py:2273: # Build plot command for raster PNG generation
+- core\application\gui_scan_launcher.py:2275: def build_plot_command(self) -> list[str]:
+- core\application\gui_scan_launcher.py:2278: "tools/plot_safe_raster.py",
+- core\application\gui_scan_launcher.py:2282: self.build_plot_output_path(),
+- core\application\gui_scan_launcher.py:2310: # Generate PNG plot from saved CSV output
+- core\application\gui_scan_launcher.py:2312: def generate_plot(self) -> tuple[int, str]:
+- core\application\gui_scan_launcher.py:2313: plot_path = self.build_plot_output_path()
+- core\application\gui_scan_launcher.py:2314: command = self.build_plot_command()
+- core\application\gui_scan_launcher.py:2315: exit_code = self.run_command(command, "plot")
+- core\application\gui_scan_launcher.py:2316: return exit_code, plot_path
+- core\application\gui_scan_launcher.py:2318: def refresh_acquisition_preview(self, csv_path: str, plot_path: str) -> None:
+- core\application\gui_scan_launcher.py:2329: plot_path,
+- core\application\gui_scan_launcher.py:2333: self.refresh_plot_preview(plot_path)
+- core\application\gui_scan_launcher.py:2334: self.last_plot_path = plot_path
+- core\application\gui_scan_launcher.py:2348: def refresh_plot_preview(self, plot_path: str) -> None:
+- core\application\gui_scan_launcher.py:2349: pixmap = QPixmap(plot_path)
+- core\application\gui_scan_launcher.py:2351: self.plot_placeholder.setText(
+- core\application\gui_scan_launcher.py:2352: "Live Data / Raster Plot Preview\n\n"
+- core\application\gui_scan_launcher.py:2353: f"Plot image not available:\n{plot_path}"
+- core\application\gui_scan_launcher.py:2363: self.plot_placeholder.setPixmap(scaled)
+- core\application\gui_scan_launcher.py:2364: self.plot_placeholder.setToolTip(plot_path)
+- core\application\gui_scan_launcher.py:2367: if not self.last_plot_path:
+- core\application\gui_scan_launcher.py:2371: pixmap = QPixmap(self.last_plot_path)
+- core\application\gui_scan_launcher.py:2373: QMessageBox.warning(self, "Scan viewer", f"Could not load scan image:\n{self.last_plot_path}")
+- core\application\gui_scan_launcher.py:2425: self.set_scan_progress(75, "generating raster plot")
+- core\application\gui_scan_launcher.py:2426: plot_exit_code, plot_path = self.generate_plot()
+- core\application\gui_scan_launcher.py:2428: if plot_exit_code == 0:
+- core\application\gui_scan_launcher.py:2429: self.refresh_acquisition_preview(self.output_file.text(), plot_path)
+- core\application\gui_scan_launcher.py:2430: self.append_log(f"Demo scan plot generated: {plot_path}")
+- core\application\gui_scan_launcher.py:2440: f"Plot saved to:\n{plot_path}"
+- core\application\gui_scan_launcher.py:2444: self.append_log(f"Plot generation failed with exit code {plot_exit_code}")
+- core\application\gui_scan_launcher.py:2449: "Demo scan completed successfully, but plot generation failed.\n\n"
+- core\application\gui_scan_launcher.py:2635: self.set_scan_progress(75, "generating raster plot")
+- core\application\gui_scan_launcher.py:2636: plot_exit_code, plot_path = self.generate_plot()
+- core\application\gui_scan_launcher.py:2638: if plot_exit_code == 0:
+- core\application\gui_scan_launcher.py:2639: self.refresh_acquisition_preview(self.output_file.text(), plot_path)
+- core\application\gui_scan_launcher.py:2640: self.append_log(f"Hardware scan plot generated: {plot_path}")
+- core\application\gui_scan_launcher.py:2661: f"Plot saved to:\n{plot_path}"
+- core\application\gui_scan_launcher.py:2665: self.append_log(f"Plot generation failed with exit code {plot_exit_code}")
+- core\application\gui_scan_launcher.py:2670: "Hardware scan completed successfully, but plot generation failed.\n\n"
+- core\application\workstation_status.py:16: last_plot_file: str = "not generated"
+- core\application\workstation_status.py:75: def record_scan_output(self, output_file: str, plot_file: str, point_count: int) -> None:
+- core\application\workstation_status.py:77: self.last_plot_file = plot_file
+- core\application\workstation_status.py:97: return f"Output: CSV {self.last_output_file}; PNG {self.last_plot_file}"
+- core\z_control\z_plotter.py:1: # z_plotter.py
+- core\z_control\z_plotter.py:4: # core/z_control/z_plotter.py
+- core\z_control\z_plotter.py:6: def launch_z_plotter():
+- core\z_control\z_plotter.py:7: print("[Z-Plotter] Visualizing Z-axis behavior...")
+- core\z_control\z_plotter.py:9: import matplotlib.pyplot as plt
+- core\z_control\z_plotter.py:11: class ZDataPlotter:
+- core\z_control\z_plotter.py:20: def plot(self):
+- core\z_control\z_plotter.py:22: plt.plot(self.timestamps, self.z_positions)
+- core\z_control\z_plotter.py:29: def launch_z_plotter():
+- core\z_control\z_plotter.py:30: print('Stub function launch_z_plotter called.')
+- core\z_control\__init__.py:2: from . import z_plotter
+- tools\diagnose_imports.py:7: "visualization.live_plot_area",
+- tools\generate_clean_tests.py:19: "test_z_plotter.py": "core.z_control.z_plotter",
+- tools\generate_clean_tests.py:21: "test_live_plot_area.py": "visualization.live_plot_area",
+- tools\phase9_xy_10x10_topography_skeleton.py:13: import matplotlib.pyplot as plt
+- tools\phase9_xy_10x10_topography_skeleton.py:202: def plot_partial(csv_path: Path, png_path: Path) -> None:
+- tools\phase9_xy_10x10_topography_skeleton.py:332: plot_partial(csv_out, png_out)
+- tools\phase9_xy_10x10_topography_skeleton.py:388: plot_partial(csv_out, png_out)
+
+## Pattern: window
+
+- core\application\gui_scan_launcher.py:76: self.setWindowTitle(APP_TITLE)
+- core\application\gui_scan_launcher.py:92: self.direction_window_labels = {}
+- core\application\gui_scan_launcher.py:192: self.open_scan_setup_btn.clicked.connect(self.open_measurement_window)
+- core\application\gui_scan_launcher.py:194: self.open_xy_scanner_btn.clicked.connect(self.open_xy_scanner_window)
+- core\application\gui_scan_launcher.py:196: self.open_z_regulation_btn.clicked.connect(self.open_z_regulation_window)
+- core\application\gui_scan_launcher.py:198: self.open_hardware_tools_btn.clicked.connect(self.open_hardware_tools_window)
+- core\application\gui_scan_launcher.py:202: self.open_z_tools_btn.clicked.connect(self.open_measurement_window)
+- core\application\gui_scan_launcher.py:214: button.clicked.connect(lambda _checked=False, scan_direction=direction: self.open_direction_window(scan_direction))
+- core\application\gui_scan_launcher.py:787: dialog.setWindowTitle(f"Educational SPM {APP_VERSION} - {title}")
+- core\application\gui_scan_launcher.py:792: def open_measurement_window(self) -> None:
+- core\application\gui_scan_launcher.py:795: self.scan_setup_dialog.activateWindow()
+- core\application\gui_scan_launcher.py:797: def open_hardware_tools_window(self) -> None:
+- core\application\gui_scan_launcher.py:800: self.hardware_tools_dialog.activateWindow()
+- core\application\gui_scan_launcher.py:802: def open_xy_scanner_window(self) -> None:
+- core\application\gui_scan_launcher.py:805: self.xy_scanner_dialog.activateWindow()
+- core\application\gui_scan_launcher.py:807: def open_z_regulation_window(self) -> None:
+- core\application\gui_scan_launcher.py:810: self.z_regulation_dialog.activateWindow()
+- core\application\gui_scan_launcher.py:812: def open_z_tools_window(self) -> None:
+- core\application\gui_scan_launcher.py:813: self.open_z_regulation_window()
+- core\application\gui_scan_launcher.py:823: "Current phase: MATRIX-style workstation shell with separate XY, Z, hardware, and directional image windows.\n\n"
+- core\application\gui_scan_launcher.py:827: def direction_window_text(self, direction: str, frame=None) -> str:
+- core\application\gui_scan_launcher.py:847: def open_direction_window(self, direction: str) -> None:
+- core\application\gui_scan_launcher.py:850: dialog.setWindowTitle(f"Educational SPM {APP_VERSION} - {direction.title()} Image")
+- core\application\gui_scan_launcher.py:858: self.direction_window_labels[direction] = label
+- core\application\gui_scan_launcher.py:863: viewer.activateWindow()
+- core\application\gui_scan_launcher.py:932: "4. Choose the X/Y scan window inside the object. For a 100 x 100 mm object, start with a small 2-8 mm educational area.\n"
+- core\application\gui_scan_launcher.py:940: "- Use **OPEN SCAN VIEWER** for a flexible extra scan image window.\n\n"
+- core\application\gui_scan_launcher.py:1669: self.open_hardware_tools_window()
+- core\application\gui_scan_launcher.py:1682: self.open_z_tools_window()
+- core\application\gui_scan_launcher.py:2342: label.setText(self.direction_window_text(direction, frame))
+- core\application\gui_scan_launcher.py:2343: for direction, label in self.direction_window_labels.items():
+- core\application\gui_scan_launcher.py:2344: label.setText(self.direction_window_text(direction, frame))
+- core\application\gui_scan_launcher.py:2377: viewer.setWindowTitle("Educational SPM Scan Viewer")
+- core\application\gui_scan_launcher.py:2685: self.stop_live_scan_runtime("window close requested")
+- core\application\gui_scan_launcher.py:2725: "Another Educational SPM interface is already running. Use the existing window.",
+- core\application\hardware_test_console_gui.py:54: self.setWindowTitle(APP_TITLE)
+- core\motion\prusa_gcode_backend.py:75: # Fallbacks that work on Linux/macOS/Windows for USB serial printers.
+- core\motion\stepper_control.py:7: dlg.setWindowTitle("Stepper Control")
+- core\scan\modes\profiling_mode.py:75: dlg.setWindowTitle("Profiling Mode")
+- core\scan\modes\stm_mode.py:100: msg.setWindowTitle("STM Scan")
+- core\system\hardware_information_exchange.py:81: response_window_s: float = 5.0,
+- core\system\hardware_information_exchange.py:94: end = time.time() + response_window_s
+- tools\diagnose_imports.py:8: "interface.layout.main_window",
+- tools\generate_clean_tests.py:22: "test_main_window.py": "interface.layout.main_window",
+- tests\test_gui_z_dry_run_safety.py:340: assert "self.setWindowTitle(APP_TITLE)" in source
+- tests\test_gui_z_dry_run_safety.py:454: def test_gui_has_power_top_level_and_measurement_windows():
+- tests\test_gui_z_dry_run_safety.py:466: assert "def open_measurement_window" in source
+- tests\test_gui_z_dry_run_safety.py:467: assert "def open_xy_scanner_window" in source
+- tests\test_gui_z_dry_run_safety.py:468: assert "def open_z_regulation_window" in source
+- tests\test_gui_z_dry_run_safety.py:522: def test_gui_no_longer_auto_opens_measurement_window_on_launch():
+- tests\test_gui_z_dry_run_safety.py:526: assert "QTimer.singleShot(500, gui.open_measurement_window)" not in main_block
+- tests\test_gui_z_dry_run_safety.py:529: def test_gui_has_matrix_style_direction_windows_and_version_about():
+- tests\test_gui_z_dry_run_safety.py:536: assert "def open_direction_window" in source
+- tests\test_gui_z_dry_run_safety.py:537: assert "def direction_window_text" in source
+- tests\test_gui_z_dry_run_safety.py:539: assert "self.direction_window_labels" in source
+- docs\old_github_review\integration_preview\panels\z_regulation_gui.py:16: self.setWindowTitle("Z-Regulation Control Panel")
+- docs\old_github_review\integration_preview\main_window_old.py:4: QMainWindow, QMenuBar, QMenu, QAction, QDockWidget, QWidget,
+- docs\old_github_review\integration_preview\main_window_old.py:23: class MainWindow(QMainWindow):
+- docs\old_github_review\integration_preview\main_window_old.py:85: palette.setColor(QPalette.Window, QColor(10, 10, 10))
+- docs\old_github_review\integration_preview\main_window_old.py:86: palette.setColor(QPalette.WindowText, QColor(230, 230, 230))
+- docs\old_github_review\interface\helpers\system_recovery.py:17: "D:/Documents/Project/SPM_Reorganized/gui/main_window.py",
+- docs\old_github_review\interface\layout\hardware_controls.py:16: dialog.setWindowTitle("Hardware Controls")
+- docs\old_github_review\interface\layout\live_plot_area.py:125: dialog.setWindowTitle("Live Plot Area")
+- docs\old_github_review\interface\layout\main_window.py:4: QMainWindow, QMenuBar, QMenu, QAction, QDockWidget, QWidget,
+- docs\old_github_review\interface\layout\main_window.py:23: class MainWindow(QMainWindow):
+- docs\old_github_review\interface\layout\main_window.py:85: palette.setColor(QPalette.Window, QColor(10, 10, 10))
+- docs\old_github_review\interface\layout\main_window.py:86: palette.setColor(QPalette.WindowText, QColor(230, 230, 230))
+- docs\old_github_review\interface\layout\menu_bar.py:2: QMenuBar, QMenu, QAction, QMainWindow, QDockWidget, QWidget, QVBoxLayout,
+- docs\old_github_review\interface\layout\menu_bar.py:13: from PyQt5.QtWidgets import QMainWindow
+- docs\old_github_review\interface\layout\menu_bar.py:15: class MainWindow(QMainWindow):
+- docs\old_github_review\interface\layout\menu_bar.py:18: self.setWindowTitle("SPM Control Interface")
+- docs\old_github_review\interface\layout\menu_bar.py:30: palette.setColor(QPalette.Window, QColor("grey"))
+- docs\old_github_review\interface\layout\menu_bar.py:31: palette.setColor(QPalette.WindowText, QColor("white"))
+- docs\old_github_review\interface\layout\scanning_panel.py:108: dialog.setWindowTitle("Scanning Panel")
+- docs\old_github_review\interface\layout\scan_control_panel.py:86: dialog.setWindowTitle("Scan Control Panel")
+- docs\old_github_review\interface\panels\z_regulation_gui.py:16: self.setWindowTitle("Z-Regulation Control Panel")
+- docs\old_github_review\simulation\scan_simulation.py:25: dlg.setWindowTitle("Scan Simulator")
+- docs\old_github_review\simulation\z_simulator.py:22: dlg.setWindowTitle("Z Simulator")
+- docs\old_github_review\main_old_github.py:12: from interface.layout.main_window import MainWindow
+- docs\old_github_review\main_old_github.py:22: window = MainWindow()
+
+## Pattern: MK4S
+
+- core\application\gui_scan_launcher.py:51: from core.system.mk4s_z_auto_approach import run_mk4s_z_auto_approach, run_mk4s_z_manual_step, run_mk4s_z_safe_retract
+- core\application\gui_scan_launcher.py:54: from core.motion.parking import park_mk4s
+- core\application\gui_scan_launcher.py:67: APP_TITLE = f"Educational SPM {APP_VERSION} - Operator Workspace - Prusa MK4S"
+- core\application\gui_scan_launcher.py:300: self.stage_position_label = QLabel("Current MK4S position: X unknown | Y unknown | Z unknown")
+- core\application\gui_scan_launcher.py:320: self.query_position_btn = QPushButton("READ MK4S POSITION")
+- core\application\gui_scan_launcher.py:321: self.query_position_btn.clicked.connect(self.query_mk4s_position)
+- core\application\gui_scan_launcher.py:322: self.park_btn = QPushButton("PARK MK4S")
+- core\application\gui_scan_launcher.py:483: # MK4S Z / Height Control panel
+- core\application\gui_scan_launcher.py:487: z_group = QGroupBox("3 MK4S Z Height / Approach Training")
+- core\application\gui_scan_launcher.py:490: z_height_group = QGroupBox("MK4S Z Height / Safe Position")
+- core\application\gui_scan_launcher.py:822: "Current hardware target: Original Prusa MK4S motion platform.\n"
+- core\application\gui_scan_launcher.py:925: "- Installed motion hardware: original Prusa MK4S X/Y/Z system.\n"
+- core\application\gui_scan_launcher.py:929: "1. Prepare the MK4S, object, and workspace. Make sure the bed and tool path are clear.\n"
+- core\application\gui_scan_launcher.py:930: "2. Press **INITIATE SYSTEM CHECK** to validate settings and query MK4S communication without motion.\n"
+- core\application\gui_scan_launcher.py:933: "5. Set MK4S Z height/clearance and review the line/frame time estimates.\n"
+- core\application\gui_scan_launcher.py:935: "7. Enable real motion only when the MK4S path is clear and the dry-run result is acceptable.\n"
+- core\application\gui_scan_launcher.py:957: f"Controller: Prusa MK4S on {self.config['printer']['port']} @ {self.config['printer']['baudrate']}\n"
+- core\application\gui_scan_launcher.py:1024: "Current installed hardware: original Prusa MK4S X/Y/Z motion only.\n"
+- core\application\gui_scan_launcher.py:1100: f"Current MK4S position ({source}): "
+- core\application\gui_scan_launcher.py:1108: if check.name != "Prusa MK4S XY motion controller":
+- core\application\gui_scan_launcher.py:1187: "Start with CONNECT TO SPM. Confirm that the MK4S is powered on, "
+- core\application\gui_scan_launcher.py:1293: def query_mk4s_position(self) -> None:
+- core\application\gui_scan_launcher.py:1294: if not self.require_initialized("MK4S position query"):
+- core\application\gui_scan_launcher.py:1309: self.stage_position_label.setText(f"MK4S position query failed: {error}")
+- core\application\gui_scan_launcher.py:1310: self.append_log(f"[MK4S] Position query failed: {error}")
+- core\application\gui_scan_launcher.py:1317: self.append_log(f"[MK4S] No-motion position query: {state}")
+- core\application\gui_scan_launcher.py:1320: if not self.require_initialized("Park MK4S"):
+- core\application\gui_scan_launcher.py:1325: "Park MK4S",
+- core\application\gui_scan_launcher.py:1327: "Move MK4S to workstation park position?\n\n"
+- core\application\gui_scan_launcher.py:1336: state = park_mk4s(self.config)
+- core\application\gui_scan_launcher.py:1342: f"MK4S parking failed:\n\n{error}",
+- core\application\gui_scan_launcher.py:1348: self.append_log(f"[PARK] MK4S parked: {state}")
+- core\application\gui_scan_launcher.py:1361: "Continue only if the MK4S path is clear."
+- core\application\gui_scan_launcher.py:1380: state = park_mk4s(self.config)
+- core\application\gui_scan_launcher.py:1388: f"MK4S safe park failed. The software will remain open.\n\n{error}",
+- core\application\gui_scan_launcher.py:1393: self.append_log(f"[POWER OFF] MK4S safe park complete: {state}")
+- core\application\gui_scan_launcher.py:2072: "Continue only while watching the MK4S and the sample/probe clearance."
+- core\application\gui_scan_launcher.py:2078: result = run_mk4s_z_manual_step(direction=direction, step_mm=step_mm, execute=True)
+- core\application\gui_scan_launcher.py:2102: "Run the confirmed MK4S Z auto-approach sequence?\n\n"
+- core\application\gui_scan_launcher.py:2107: "Continue only if the foam/sample is placed as before and you are watching the MK4S."
+- core\application\gui_scan_launcher.py:2116: result = run_mk4s_z_auto_approach(
+- core\application\gui_scan_launcher.py:2141: "Retract Z to the confirmed safe height Z120?\n\nContinue only while watching the MK4S.",
+- core\application\gui_scan_launcher.py:2146: result = run_mk4s_z_safe_retract(execute=True)
+- core\application\gui_scan_launcher.py:2432: "Current step: dry-run completed. Inspect line/topography/Z feedback, then enable real motion only if the MK4S path is clear."
+- core\application\gui_scan_launcher.py:2471: "- MK4S power is ON\n"
+- core\application\gui_scan_launcher.py:2537: self.append_log("[CONNECT] MK4S no-motion checks passed")
+- core\application\gui_scan_launcher.py:2569: "Current step: real motion is enabled. Supervise the MK4S and run hardware scan only with a clear object/surface path."
+- core\application\gui_scan_launcher.py:2645: state = park_mk4s(self.config)
+- core\application\gui_scan_launcher.py:2692: "This protects the MK4S by forcing deinitialization, dry-run Z disconnect, "
+- core\application\hardware_test_console_gui.py:321: self.smart_recommendation.setText("Recommendation: check MK4S power, USB, COM5, and close other serial tools.")
+- core\application\hardware_test_console_gui.py:442: "4. Confirm the popup while watching the MK4S."
+- core\application\hardware_test_console_gui.py:452: "Continue only if the MK4S path is clear and you are watching the hardware."
+- core\application\hardware_test_control_cli.py:1: """CLI for supervised MK4S hardware test controls.
+- core\application\workstation_status.py:83: f"Machine: Prusa MK4S on {self.machine_port} @ {self.machine_baudrate}; "
+- core\education\config_loader.py:5: DEFAULT_CONFIG_PATH = Path("config/spm_mk4s_config.json")
+- core\education\config_loader.py:9: """Load SPM MK4S JSON configuration."""
+- core\motion\motion_backend.py:12: - G-code driven systems (e.g. Prusa MK4S)
+- core\motion\parking.py:7: def park_mk4s(config: dict) -> dict:
+- core\motion\parking.py:8: """Park MK4S by retracting Z first, then moving XY to the parking corner."""
+- core\motion\prusa_gcode_backend.py:17: Motion backend using a Prusa MK4S (or compatible) printer controlled via G-code.
+- core\system\hardware_diagnostics.py:95: name="Prusa MK4S XY motion controller",
+- core\system\hardware_diagnostics.py:110: name="Prusa MK4S XY motion controller",
+- core\system\hardware_diagnostics.py:121: message="Fine Z scanner communication is not part of the current MK4S-original hardware test.",
+- core\system\hardware_diagnostics.py:123: "Current hardware test uses the original Prusa MK4S X/Y/Z motion system.",
+- core\system\hardware_diagnostics.py:147: message="Original MK4S machine limits and recommended SPM-safe limits loaded from configuration.",
+- core\system\hardware_profile.py:19: return f"MK4S soft {self.firmware_min:g}..{self.firmware_max:g} {self.unit}"
+- core\system\hardware_profile.py:31: manual_source: str = "Prusa MK4S handbook v1.01, Product Information"
+- core\system\hardware_profile.py:43: "Higher resolution means more MK4S moves. Start 5 x 5, then 9 x 9, "
+- core\system\hardware_profile.py:47: "Machine limits now follow the original MK4S build volume. "
+- core\system\hardware_profile.py:66: f"Official MK4S build volume: {self.official_build_volume}\n"
+- core\system\hardware_profile.py:85: f"Official MK4S build volume {self.official_build_volume}; "
+- core\system\hardware_test_controls.py:1: """Supervised hardware test controls for the MK4S scanner layer.
+- core\system\mk4s_z_auto_approach.py:1: """Focused MK4S Z auto-approach sequence for the Educational SPM project."""
+- core\system\mk4s_z_auto_approach.py:101: def run_mk4s_z_auto_approach(
+- core\system\mk4s_z_auto_approach.py:106: raw_log_path: str | Path = "logs/mk4s_z_auto_approach_raw.txt",
+- core\system\mk4s_z_auto_approach.py:119: message="Preview only. No MK4S movement was sent.",
+- core\system\mk4s_z_auto_approach.py:129: log.write(f"\n=== MK4S Z AUTO APPROACH {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
+- core\system\mk4s_z_auto_approach.py:146: message=f"MK4S Z auto approach completed. Final Z={final_z:.2f}. Raw log: {raw_path}",
+- core\system\mk4s_z_auto_approach.py:158: def run_mk4s_z_manual_step(
+- core\system\mk4s_z_auto_approach.py:177: message="Preview only. No MK4S movement was sent.",
+
+## Pattern: Prusa
+
+- core\application\gui_scan_launcher.py:53: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- core\application\gui_scan_launcher.py:67: APP_TITLE = f"Educational SPM {APP_VERSION} - Operator Workspace - Prusa MK4S"
+- core\application\gui_scan_launcher.py:822: "Current hardware target: Original Prusa MK4S motion platform.\n"
+- core\application\gui_scan_launcher.py:925: "- Installed motion hardware: original Prusa MK4S X/Y/Z system.\n"
+- core\application\gui_scan_launcher.py:957: f"Controller: Prusa MK4S on {self.config['printer']['port']} @ {self.config['printer']['baudrate']}\n"
+- core\application\gui_scan_launcher.py:1024: "Current installed hardware: original Prusa MK4S X/Y/Z motion only.\n"
+- core\application\gui_scan_launcher.py:1108: if check.name != "Prusa MK4S XY motion controller":
+- core\application\gui_scan_launcher.py:1298: backend = PrusaGcodeBackend(
+- core\application\workstation_status.py:83: f"Machine: Prusa MK4S on {self.machine_port} @ {self.machine_baudrate}; "
+- core\education\config_loader.py:15: def get_prusa_backend_kwargs(config):
+- core\education\config_loader.py:16: """Extract PrusaGcodeBackend keyword arguments from config."""
+- core\motion\motion_backend.py:12: - G-code driven systems (e.g. Prusa MK4S)
+- core\motion\parking.py:3: from core.education.config_loader import get_parking_position, get_prusa_backend_kwargs
+- core\motion\parking.py:4: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- core\motion\parking.py:11: backend = PrusaGcodeBackend(**get_prusa_backend_kwargs(config))
+- core\motion\prusa_gcode_backend.py:15: class PrusaGcodeBackend(MotionBackend):
+- core\motion\prusa_gcode_backend.py:17: Motion backend using a Prusa MK4S (or compatible) printer controlled via G-code.
+- core\motion\prusa_gcode_backend.py:54: def _auto_detect_prusa_port(self) -> Optional[str]:
+- core\motion\prusa_gcode_backend.py:56: Best-effort serial port discovery for Prusa/USB CDC devices.
+- core\motion\prusa_gcode_backend.py:69: # Prefer ports that look like Prusa USB serial endpoints.
+- core\motion\prusa_gcode_backend.py:72: if "prusa" in blob:
+- core\motion\prusa_gcode_backend.py:151: self.port = self._auto_detect_prusa_port()
+- core\motion\prusa_gcode_backend.py:154: "PrusaGcodeBackend.port is not set and auto-detection failed "
+- core\system\hardware_diagnostics.py:5: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- core\system\hardware_diagnostics.py:77: def check_prusa_communication(config: dict) -> HardwareCheck:
+- core\system\hardware_diagnostics.py:81: backend = PrusaGcodeBackend(
+- core\system\hardware_diagnostics.py:95: name="Prusa MK4S XY motion controller",
+- core\system\hardware_diagnostics.py:110: name="Prusa MK4S XY motion controller",
+- core\system\hardware_diagnostics.py:123: "Current hardware test uses the original Prusa MK4S X/Y/Z motion system.",
+- core\system\hardware_diagnostics.py:156: check_prusa_communication(config),
+- core\system\hardware_profile.py:31: manual_source: str = "Prusa MK4S handbook v1.01, Product Information"
+- core\system\hardware_test_controls.py:14: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- core\system\hardware_test_controls.py:169: backend = PrusaGcodeBackend(
+- tools\phase9_xy_10x10_topography_skeleton.py:74: class RobustPrusaExecutor:
+- tools\phase9_xy_10x10_topography_skeleton.py:270: def safe_return(executor: RobustPrusaExecutor | None, metadata: dict) -> None:
+- tools\phase9_xy_10x10_topography_skeleton.py:337: executor: RobustPrusaExecutor | None = None
+- tools\phase9_xy_10x10_topography_skeleton.py:341: executor = RobustPrusaExecutor(settings["port"], int(settings["baudrate"]), raw_logger)
+- tools\prusa_ping.py:3: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tools\prusa_ping.py:7: ap = argparse.ArgumentParser(description="Prusa MK4S safe ping (no motion).")
+- tools\prusa_ping.py:17: backend = PrusaGcodeBackend(
+- tools\query_mk4s_machine_limits.py:11: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tools\query_mk4s_machine_limits.py:17: backend = PrusaGcodeBackend(
+- tools\run_axis_limit_check.py:13: from core.education.config_loader import load_config, get_prusa_backend_kwargs, get_safe_feedrates
+- tools\run_axis_limit_check.py:14: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tools\run_axis_limit_check.py:63: backend_kwargs = get_prusa_backend_kwargs(config)
+- tools\run_axis_limit_check.py:64: backend = PrusaGcodeBackend(**backend_kwargs)
+- tools\run_configured_raster_scan.py:12: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tools\run_configured_raster_scan.py:20: get_prusa_backend_kwargs,
+- tools\run_configured_raster_scan.py:132: backend_kwargs = get_prusa_backend_kwargs(config)
+- tools\run_configured_raster_scan.py:168: motion = PrusaGcodeBackend(**backend_kwargs)
+- tools\run_original_mk4s_max_check.py:13: from core.education.config_loader import load_config, get_prusa_backend_kwargs
+- tools\run_original_mk4s_max_check.py:14: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tools\run_original_mk4s_max_check.py:52: backend_kwargs = get_prusa_backend_kwargs(config)
+- tools\run_original_mk4s_max_check.py:60: backend = PrusaGcodeBackend(**backend_kwargs)
+- tools\run_original_mk4s_max_check.py:64: print("Original Prusa MK4S max-position check")
+- tools\run_original_mk4s_xy_min_check.py:13: from core.education.config_loader import load_config, get_prusa_backend_kwargs
+- tools\run_original_mk4s_xy_min_check.py:14: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tools\run_original_mk4s_xy_min_check.py:52: backend_kwargs = get_prusa_backend_kwargs(config)
+- tools\run_original_mk4s_xy_min_check.py:53: backend = PrusaGcodeBackend(**backend_kwargs)
+- tools\run_original_mk4s_xy_min_check.py:57: print("Original Prusa MK4S X/Y minimum-position check")
+- tools\run_safe_software_check.ps1:12: Write-Host "Running Prusa ping, no motion..."
+- tools\run_safe_software_check.ps1:13: .\.venv\Scripts\python.exe tools\prusa_ping.py --port COM5 --no-auto-detect
+- tools\safe_center_test.py:1: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tools\safe_center_test.py:5: p = PrusaGcodeBackend(
+- tools\safe_square_test.py:1: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tools\safe_square_test.py:6: p = PrusaGcodeBackend(
+- tests\motion\test_prusa_backend.py:1: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tests\motion\test_prusa_backend.py:6: b = PrusaGcodeBackend(port="/dev/null", auto_detect_port=False)
+- tests\motion\test_prusa_backend.py:14: b = PrusaGcodeBackend(
+- tests\motion\test_prusa_backend.py:32: b = PrusaGcodeBackend(port="/dev/null", auto_detect_port=False)
+- tests\motion\test_prusa_connect.py:3: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+- tests\motion\test_prusa_connect.py:6: def test_prusa_connect_missing_port_raises():
+- tests\motion\test_prusa_connect.py:7: b = PrusaGcodeBackend(port="COM_DOES_NOT_EXIST_9999")
+- tests\test_config_loader.py:1: from core.education.config_loader import load_config, get_prusa_backend_kwargs
+- tests\test_config_loader.py:10: def test_get_prusa_backend_kwargs_extracts_limits():
+- tests\test_config_loader.py:23: kwargs = get_prusa_backend_kwargs(config)
+- tests\test_config_loader.py:95: assert preset["hardware"]["z_stage"] == "Original Prusa MK4S Z axis now; fine Z scanner planned later"
+- tests\test_gui_z_dry_run_safety.py:345: assert "Current installed hardware: original Prusa MK4S X/Y/Z motion only" in source
+- tests\test_hardware_initialized_profile.py:16: def test_motion_controller_identity_is_prusa_mk4():
+- tests\test_hardware_initialized_profile.py:19: assert controller["machine_type"] == "Prusa-MK4"
+
+## Pattern: M114
+
+- core\application\gui_scan_launcher.py:1111: if not detail.startswith("M114:"):
+- core\application\hardware_test_console_gui.py:150: self.real_readonly_checkbox.setToolTip("Sends only M115/M105/M119/M114. No motion commands.")
+- core\motion\prusa_gcode_backend.py:83: def _parse_m114(self, lines: List[str]) -> Dict[str, float]:
+- core\motion\prusa_gcode_backend.py:85: Parse M114 response lines into position dict.
+- core\motion\prusa_gcode_backend.py:183: lines = self.send_gcode("M114", timeout=2.5)
+- core\motion\prusa_gcode_backend.py:184: parsed = self._parse_m114(lines)
+- core\motion\prusa_gcode_backend.py:206: lines = self.send_gcode("M114", timeout=3.0)
+- core\motion\prusa_gcode_backend.py:207: parsed = self._parse_m114(lines)
+- core\motion\prusa_gcode_backend.py:252: lines = self.send_gcode("M114", timeout=2.5)
+- core\motion\prusa_gcode_backend.py:253: parsed = self._parse_m114(lines)
+- core\system\hardware_diagnostics.py:91: position_lines = backend.send_gcode("M114", timeout=4.0)
+- core\system\hardware_diagnostics.py:106: f"M114: {' | '.join(position_lines) if position_lines else 'no response text'}",
+- core\system\hardware_information_exchange.py:23: "POSITION": "M114",
+- core\system\hardware_test_controls.py:83: return HardwareTestPlan(action_clean, ["M114"], False, "Read-only XYZ position query.")
+- core\system\hardware_test_controls.py:88: [f"G1 Z{SAFE_RETRACT_Z:.2f} F{DEFAULT_Z_FEEDRATE:.0f}", "M400", "M114"],
+- core\system\hardware_test_controls.py:101: "M114",
+- core\system\hardware_test_controls.py:120: [f"G1 {axis.upper()}{target:.2f} F{feedrate:.0f}", "M400", "M114"],
+- core\system\mk4s_z_auto_approach.py:59: "M114",
+- core\system\mk4s_z_auto_approach.py:66: "M114",
+- core\system\mk4s_z_auto_approach.py:79: commands.extend([f"G1 Z{z_value:.2f} F{feedrate:.0f}", "M400", "M114"])
+- core\system\mk4s_z_auto_approach.py:81: commands.extend([f"G1 Z{safe_retract_z:.2f} F600", "M400", "M114"])
+- core\system\mk4s_z_auto_approach.py:187: ser.write(b"M114\n")
+- core\system\mk4s_z_auto_approach.py:198: for gcode in ("G90", command, "M400", "M114"):
+- core\system\mk4s_z_auto_approach.py:229: for gcode in ("G90", command, "M400", "M114"):
+- tools\phase8_read_machine_limits.py:31: send("M114")
+- tools\phase8_xyz_readonly_status.py:34: send("M114")
+- tools\phase8_x_max_limit_test.py:28: send("M114")
+- tools\phase8_x_max_limit_test.py:33: send("M114")
+- tools\phase8_x_max_limit_test.py:36: send("M114")
+- tools\phase8_x_visible_move_5mm.py:28: send("M114")
+- tools\phase8_x_visible_move_5mm.py:33: send("M114")
+- tools\phase8_x_visible_move_5mm.py:36: send("M114")
+- tools\phase8_y_max_limit_test.py:28: send("M114")
+- tools\phase8_y_max_limit_test.py:33: send("M114")
+- tools\phase8_y_max_limit_test.py:36: send("M114")
+- tools\phase8_y_visible_move_5mm.py:28: send("M114")
+- tools\phase8_y_visible_move_5mm.py:33: send("M114")
+- tools\phase8_y_visible_move_5mm.py:36: send("M114")
+- tools\phase8_z_safe_visible_move.py:28: send("M114")
+- tools\phase8_z_safe_visible_move.py:33: send("M114")
+- tools\phase8_z_safe_visible_move.py:36: send("M114")
+- tools\phase9_auto_step_z_approach_foam.py:28: send("M114")
+- tools\phase9_auto_step_z_approach_foam.py:34: send("M114")
+- tools\phase9_auto_step_z_approach_foam.py:44: send("M114")
+- tools\phase9_auto_step_z_approach_foam.py:50: send("M114")
+- tools\phase9_auto_z_probe_foam.py:31: send("M114")
+- tools\phase9_auto_z_probe_foam.py:37: send("M114")
+- tools\phase9_auto_z_probe_foam.py:45: send("M114")
+- tools\phase9_auto_z_probe_foam.py:49: send("M114")
+- tools\phase9_center_alignment_only.py:28: send("M114")
+- tools\phase9_center_alignment_only.py:37: send("M114")
+- tools\phase9_manual_z_approach_foam.py:31: send("M114")
+- tools\phase9_manual_z_approach_foam.py:39: send("M114")
+- tools\phase9_manual_z_approach_foam.py:47: send("M114")
+- tools\phase9_manual_z_approach_foam.py:51: send("M114")
+- tools\phase9_manual_z_approach_foam_center.py:31: send("M114")
+- tools\phase9_manual_z_approach_foam_center.py:37: send("M114")
+- tools\phase9_manual_z_approach_foam_center.py:43: send("M114")
+- tools\phase9_manual_z_approach_foam_center.py:47: send("M114")
+- tools\phase9_retract_from_foam.py:28: send("M114")
+- tools\phase9_retract_from_foam.py:32: send("M114")
+- tools\phase9_xy_10x10_topography_skeleton.py:154: return self.send("M114", timeout_s=timeout_s)
+- tools\phase9_xy_10x10_topography_skeleton.py:343: executor.send("M114", timeout_s=45)
+- tools\phase9_xy_3x3_topography_skeleton.py:54: send("M114")
+- tools\phase9_xy_3x3_topography_skeleton.py:67: send("M114")
+- tools\phase9_xy_3x3_topography_skeleton.py:70: position_lines = send("M114")
+- tools\phase9_xy_3x3_topography_skeleton.py:82: send("M114")
+- tools\phase9_xy_3x3_topography_skeleton.py:85: send("M114")
+- tools\phase9_x_line_topography_skeleton.py:43: send("M114")
+- tools\phase9_x_line_topography_skeleton.py:57: send("M114")
+- tools\phase9_x_line_topography_skeleton.py:61: position_lines = send("M114")
+- tools\phase9_x_line_topography_skeleton.py:74: send("M114")
+- tools\phase9_x_line_topography_skeleton.py:78: send("M114")
+- tools\phase9_x_line_topography_skeleton_v2.py:47: send("M114")
+- tools\phase9_x_line_topography_skeleton_v2.py:58: send("M114")
+- tools\phase9_x_line_topography_skeleton_v2.py:62: pos = send("M114")
+- tools\phase9_x_line_topography_skeleton_v2.py:74: send("M114")
+- tools\phase9_x_line_topography_skeleton_v2.py:78: send("M114")
+- tools\prusa_ping.py:34: print("\n>> M114")
+- tools\prusa_ping.py:35: for line in backend.send_gcode("M114", timeout=4.0):
+
+## Pattern: G1 Z
+
+- core\system\hardware_test_controls.py:88: [f"G1 Z{SAFE_RETRACT_Z:.2f} F{DEFAULT_Z_FEEDRATE:.0f}", "M400", "M114"],
+- core\system\hardware_test_controls.py:97: f"G1 Z{SAFE_RETRACT_Z:.2f} F{DEFAULT_Z_FEEDRATE:.0f}",
+- core\system\mk4s_z_auto_approach.py:62: f"G1 Z{start_z:.2f} F600",
+- core\system\mk4s_z_auto_approach.py:79: commands.extend([f"G1 Z{z_value:.2f} F{feedrate:.0f}", "M400", "M114"])
+- core\system\mk4s_z_auto_approach.py:81: commands.extend([f"G1 Z{safe_retract_z:.2f} F600", "M400", "M114"])
+- core\system\mk4s_z_auto_approach.py:197: command = f"G1 Z{target_z:.2f} F300"
+- core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- tools\phase8_z_safe_visible_move.py:31: send("G1 Z120 F600", wait=6, read_time=6)
+- tools\phase8_z_safe_visible_move.py:34: send("G1 Z100 F600", wait=6, read_time=6)
+- tools\phase9_auto_step_z_approach_foam.py:31: send("G1 Z120 F600", wait=6)
+- tools\phase9_auto_step_z_approach_foam.py:42: send(f"G1 Z{z} F60", wait=3)
+- tools\phase9_auto_step_z_approach_foam.py:48: send("G1 Z120 F600", wait=8)
+- tools\phase9_auto_z_probe_foam.py:34: send("G1 Z120 F600", wait=6)
+- tools\phase9_auto_z_probe_foam.py:47: send("G1 Z120 F600", wait=8)
+- tools\phase9_center_alignment_only.py:32: send("G1 Z120 F600", wait=6)
+- tools\phase9_manual_z_approach_foam.py:35: send("G1 Z120 F600", wait=6)
+- tools\phase9_manual_z_approach_foam.py:45: send(f"G1 Z{z} F120", wait=4)
+- tools\phase9_manual_z_approach_foam.py:49: send("G1 Z120 F600", wait=6)
+- tools\phase9_manual_z_approach_foam_center.py:34: send("G1 Z120 F600", wait=6)
+- tools\phase9_manual_z_approach_foam_center.py:41: send(f"G1 Z{z} F60", wait=3)
+- tools\phase9_manual_z_approach_foam_center.py:45: send("G1 Z120 F600", wait=6)
+- tools\phase9_retract_from_foam.py:30: send("G1 Z120 F600", wait=8)
+- tools\phase9_xy_10x10_topography_skeleton.py:278: executor.move_and_wait(f"G1 Z{SAFE_RETRACT_Z:.2f} F600", move_timeout_s=90, wait_timeout_s=180)
+- tools\phase9_xy_10x10_topography_skeleton.py:346: executor.move_and_wait(f"G1 Z{SAFE_RETRACT_Z:.2f} F600", move_timeout_s=90, wait_timeout_s=180)
+- tools\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- tools\phase9_xy_10x10_topography_skeleton.py:391: executor.move_and_wait(f"G1 Z{SAFE_RETRACT_Z:.2f} F600", move_timeout_s=90, wait_timeout_s=180)
+- tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- tools\phase9_xy_3x3_topography_skeleton.py:69: move_and_wait(f"G1 Z{contact_z} F60", read_time=120)
+- tools\phase9_xy_3x3_topography_skeleton.py:81: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- tools\phase9_x_line_topography_skeleton.py:46: send("G1 Z120 F600", wait=6)
+- tools\phase9_x_line_topography_skeleton.py:59: send("G1 Z56 F60", wait=8)
+- tools\phase9_x_line_topography_skeleton.py:72: send("G1 Z120 F600", wait=8)
+- tools\phase9_x_line_topography_skeleton_v2.py:50: send(f"G1 Z{safe_z} F600", read_time=40)
+- tools\phase9_x_line_topography_skeleton_v2.py:60: send(f"G1 Z{contact_z} F60", read_time=80)
+- tools\phase9_x_line_topography_skeleton_v2.py:72: send(f"G1 Z{safe_z} F600", read_time=40)
+- tests\test_hardware_test_controls.py:36: assert plan.commands[0] == f"G1 Z{SAFE_RETRACT_Z:.2f} F300"
+- tests\test_hardware_test_controls.py:78: assert "G1 Z120.00 F300" in result.stdout
+- tests\test_hardware_test_controls.py:86: commands=["G1 Z120.00 F300", "M400"],
+- tests\test_mk4s_z_auto_approach.py:7: assert "G1 Z120.00 F600" in commands
+- tests\test_mk4s_z_auto_approach.py:9: assert "G1 Z56.00 F60" in commands
+- tests\test_mk4s_z_auto_approach.py:26: assert "G1 Z57.50 F60" in commands
+- config\spm_hardware_initialized_profile.json:70: "tested_command": "G1 Z120 followed by G1 Z100",
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:278: executor.move_and_wait(f"G1 Z{SAFE_RETRACT_Z:.2f} F600", move_timeout_s=90, wait_timeout_s=180)
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:346: executor.move_and_wait(f"G1 Z{SAFE_RETRACT_Z:.2f} F600", move_timeout_s=90, wait_timeout_s=180)
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:391: executor.move_and_wait(f"G1 Z{SAFE_RETRACT_Z:.2f} F600", move_timeout_s=90, wait_timeout_s=180)
+- docs\versions\v0.16.0_ht3_hardware_test_controls_2026-06-12\backup\hardware_test_controls.py:88: [f"G1 Z{SAFE_RETRACT_Z:.2f} F{DEFAULT_Z_FEEDRATE:.0f}", "M400", "M114"],
+- docs\versions\v0.16.0_ht3_hardware_test_controls_2026-06-12\backup\hardware_test_controls.py:97: f"G1 Z{SAFE_RETRACT_Z:.2f} F{DEFAULT_Z_FEEDRATE:.0f}",
+- docs\versions\v0.16.0_ht3_hardware_test_controls_2026-06-12\backup\test_hardware_test_controls.py:36: assert plan.commands[0] == f"G1 Z{SAFE_RETRACT_Z:.2f} F300"
+- docs\versions\v0.16.0_ht3_hardware_test_controls_2026-06-12\backup\test_hardware_test_controls.py:78: assert "G1 Z120.00 F300" in result.stdout
+- docs\versions\v0.16.0_ht3_hardware_test_controls_2026-06-12\backup\test_hardware_test_controls.py:86: commands=["G1 Z120.00 F300", "M400"],
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\mk4s_z_auto_approach.py:44: f"G1 Z{start_z:.2f} F600",
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\mk4s_z_auto_approach.py:53: commands.extend([f"G1 Z{z_value:.2f} F{feedrate:.0f}", "M400", "M114"])
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\mk4s_z_auto_approach.py:55: commands.extend([f"G1 Z{safe_retract_z:.2f} F600", "M400", "M114"])
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\test_mk4s_z_auto_approach.py:7: assert "G1 Z120.00 F600" in commands
+- docs\versions\v0.22.0_essential_initialize_and_mk4s_z_auto_approach_2026-06-12\test_mk4s_z_auto_approach.py:9: assert "G1 Z56.00 F60" in commands
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:62: f"G1 Z{start_z:.2f} F600",
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:79: commands.extend([f"G1 Z{z_value:.2f} F{feedrate:.0f}", "M400", "M114"])
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:81: commands.extend([f"G1 Z{safe_retract_z:.2f} F600", "M400", "M114"])
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:197: command = f"G1 Z{target_z:.2f} F300"
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\test_mk4s_z_auto_approach.py:7: assert "G1 Z120.00 F600" in commands
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\test_mk4s_z_auto_approach.py:9: assert "G1 Z56.00 F60" in commands
+- docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\test_mk4s_z_auto_approach.py:26: assert "G1 Z57.50 F60" in commands
+- docs\PHASE1_CODE_MAP.md:116: - tools\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- docs\PHASE1_CODE_MAP.md:120: - tools\phase9_xy_3x3_topography_skeleton.py:69: move_and_wait(f"G1 Z{contact_z} F60", read_time=120)
+- docs\PHASE1_CODE_MAP.md:129: - tools\phase9_x_line_topography_skeleton_v2.py:60: send(f"G1 Z{contact_z} F60", read_time=80)
+- docs\PHASE1_CODE_MAP.md:141: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- docs\PHASE1_CODE_MAP.md:158: - docs\PHASE1_CODE_MAP.md:82: - tools\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- docs\PHASE1_CODE_MAP.md:162: - docs\PHASE1_CODE_MAP.md:86: - tools\phase9_xy_3x3_topography_skeleton.py:69: move_and_wait(f"G1 Z{contact_z} F60", read_time=120)
+- docs\PHASE1_CODE_MAP.md:171: - docs\PHASE1_CODE_MAP.md:95: - tools\phase9_x_line_topography_skeleton_v2.py:60: send(f"G1 Z{contact_z} F60", read_time=80)
+- docs\PHASE1_CODE_MAP.md:183: - docs\PHASE1_CODE_MAP.md:107: - docs\versions\v0.14.0_phase9_6_robust_executor_2026-06-12\backup\phase9_xy_10x10_topography_skeleton.py:365: f"G1 Z{CONTACT_Z:.2f} F60",
+- docs\PHASE1_CODE_MAP.md:190: - core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:195: - tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:196: - tools\phase9_xy_3x3_topography_skeleton.py:81: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+- docs\PHASE1_CODE_MAP.md:198: - tools\phase9_x_line_topography_skeleton_v2.py:50: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:199: - tools\phase9_x_line_topography_skeleton_v2.py:72: send(f"G1 Z{safe_z} F600", read_time=40)
+- docs\PHASE1_CODE_MAP.md:202: - docs\versions\v0.24.0_connect_approach_measurement_main_page_2026-06-12\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:208: - docs\PHASE1_CODE_MAP.md:117: - core\system\mk4s_z_auto_approach.py:215: command = f"G1 Z{safe_z:.2f} F600"
+- docs\PHASE1_CODE_MAP.md:213: - docs\PHASE1_CODE_MAP.md:122: - tools\phase9_xy_3x3_topography_skeleton.py:57: move_and_wait(f"G1 Z{safe_z} F600", read_time=60)
+
+## Pattern: gui
+
+- core\application\gui_scan_launcher.py:36: from PyQt5.QtGui import QPixmap
+- core\application\gui_scan_launcher.py:61: # SPM Educational GUI
+- core\application\gui_scan_launcher.py:62: # Safe GUI wrapper around the verified CLI scan launcher
+- core\application\gui_scan_launcher.py:70: class ScanGUI(QWidget):
+- core\application\gui_scan_launcher.py:72: # GUI constructor
+- core\application\gui_scan_launcher.py:2167: # Build scan profile from GUI fields
+- core\application\gui_scan_launcher.py:2696: self.append_log("[GUI] Close blocked: power-off/safe-park required")
+- core\application\gui_scan_launcher.py:2700: self.append_log("[GUI] Close confirmed after safe power-off")
+- core\application\gui_scan_launcher.py:2728: gui = ScanGUI()
+- core\application\gui_scan_launcher.py:2729: gui.instance_guard = instance_guard
+- core\application\gui_scan_launcher.py:2730: gui.show()
+- core\application\hardware_test_console_gui.py:491: gui = HardwareTestConsole()
+- core\application\hardware_test_console_gui.py:492: gui.show()
+- core\system\hardware_information_exchange.py:3: This module is the backend for future GUI hardware-test buttons. It only
+- core\system\hardware_test_controls.py:4: This module is intended to become the backend for future GUI hardware-test
+- core\z_control\crtouch_probe_plan.py:13: guide: str = "PTFE guide tube, 2 mm OD / 1 mm ID, 10-15 mm guide length"
+- core\z_control\crtouch_probe_plan.py:14: guide_hole: str = "2.0-2.1 mm guide hole, probe axis vertical"
+- core\z_control\crtouch_probe_plan.py:26: f"Guide: {self.guide}\n"
+- core\z_control\crtouch_probe_plan.py:27: f"Mechanical alignment: {self.guide_hole}"
+- core\z_control\crtouch_probe_plan.py:41: "smooth guide motion without sticking before any software-controlled approach."
+- tools\diagnose_imports.py:17: "interface.panels.z_regulation_gui"
+- tools\generate_clean_tests.py:28: "test_z_regulation_gui.py": "interface.panels.z_regulation_gui",
+- tests\test_gui_z_dry_run_safety.py:4: def test_gui_contains_z_dry_run_limit_validation():
+- tests\test_gui_z_dry_run_safety.py:5: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:13: def test_gui_contains_z_dry_run_approach_retract_controls():
+- tests\test_gui_z_dry_run_safety.py:14: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:25: def test_gui_contains_z_dry_run_approach_retract_safety_validation():
+- tests\test_gui_z_dry_run_safety.py:26: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:39: def test_gui_contains_grouped_z_control_layout():
+- tests\test_gui_z_dry_run_safety.py:40: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:49: def test_gui_contains_z_driver_status_refresh_helper():
+- tests\test_gui_z_dry_run_safety.py:50: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:59: def test_gui_contains_consistent_z_failure_helper():
+- tests\test_gui_z_dry_run_safety.py:60: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:72: def test_gui_contains_workstation_style_z_connection_header():
+- tests\test_gui_z_dry_run_safety.py:73: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:87: def test_gui_contains_professional_z_connection_button_states_and_confirmations():
+- tests\test_gui_z_dry_run_safety.py:88: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:103: def test_gui_contains_global_critical_action_confirmation_and_close_warning():
+- tests\test_gui_z_dry_run_safety.py:104: text = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:120: def test_gui_has_scan_confirmation_message_builder():
+- tests\test_gui_z_dry_run_safety.py:121: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:133: def test_gui_confirms_before_demo_scan_command():
+- tests\test_gui_z_dry_run_safety.py:134: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:143: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:149: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:162: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:169: def test_gui_has_workstation_layout_panels():
+- tests\test_gui_z_dry_run_safety.py:170: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:181: def test_gui_separates_xy_scan_from_z_height_control():
+- tests\test_gui_z_dry_run_safety.py:182: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:190: def test_gui_has_phase_6_1_placeholders():
+- tests\test_gui_z_dry_run_safety.py:191: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:199: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:212: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:220: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:241: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:252: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:264: def test_gui_embeds_generated_raster_plot_preview():
+- tests\test_gui_z_dry_run_safety.py:265: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:267: assert "from PyQt5.QtGui import QPixmap" in source
+- tests\test_gui_z_dry_run_safety.py:274: def test_gui_has_scan_progress_indicator():
+- tests\test_gui_z_dry_run_safety.py:275: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:285: def test_gui_has_real_spm_workstation_tabs_and_style():
+- tests\test_gui_z_dry_run_safety.py:286: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:297: def test_gui_has_no_motion_mk4s_position_query_and_crtouch_plan():
+- tests\test_gui_z_dry_run_safety.py:298: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:307: def test_gui_exposes_spm_scan_mode_selector():
+- tests\test_gui_z_dry_run_safety.py:308: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:320: def test_gui_exposes_scan_timing_and_z_setup_controls():
+- tests\test_gui_z_dry_run_safety.py:321: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:334: def test_gui_presents_professional_educational_spm_operator_flow():
+- tests\test_gui_z_dry_run_safety.py:335: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:351: def test_gui_shows_axis_limits_and_resolution_tips_beside_inputs():
+- tests\test_gui_z_dry_run_safety.py:352: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:362: def test_gui_updates_line_topography_and_z_feedback_from_scan_data():
+- tests\test_gui_z_dry_run_safety.py:363: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:370: def test_gui_locks_actions_until_initialization_passes():
+- tests\test_gui_z_dry_run_safety.py:371: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+- tests\test_gui_z_dry_run_safety.py:388: source = Path("core/application/gui_scan_launcher.py").read_text(encoding="utf-8")
+
+# Next Step
+
+Phase 1.2 - Fix Z setpoint handling first, because wrong Z behavior is the highest safety priority.
