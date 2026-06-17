@@ -12,7 +12,7 @@
       <div class="brand-mark">SPM</div>
       <div>
         <h1>Educational SPM - Prusa MK4S</h1>
-        <p>Web Operator Console · Professional Main Workspace</p>
+        <p>Web Operator Console · Constant-Distance Raster Scan Model</p>
       </div>
     </div>
 
@@ -62,11 +62,11 @@
     <section class="panel z-panel" data-phase="2.2">
       <div class="panel-header">
         <span class="phase-tag">Phase 2.2</span>
-        <h2>Z Scanner</h2>
+        <h2>Z Scanner / Feedback</h2>
       </div>
 
       <div class="readout">
-        <span>Z position</span>
+        <span>Z feedback</span>
         <strong id="z-readout">--.-- mm</strong>
       </div>
 
@@ -78,11 +78,11 @@
       </div>
 
       <div class="field-stack">
-        <label>Z step size mm
-          <input type="number" value="0.10" step="0.01" />
+        <label>Z setpoint / fixed distance
+          <input id="z-setpoint-main" type="number" value="0.10" step="0.01" />
         </label>
-        <label>Safe Z min/max mm
-          <input value="5 / 50" />
+        <label>Feedback gain
+          <input id="feedback-gain-main" type="number" value="1.00" step="0.05" />
         </label>
       </div>
     </section>
@@ -90,7 +90,7 @@
     <section class="panel xy-panel" data-phase="2.3">
       <div class="panel-header">
         <span class="phase-tag">Phase 2.3</span>
-        <h2>XY Jog Control</h2>
+        <h2>XY Jog Control / Raster</h2>
       </div>
 
       <div class="xy-pad" aria-label="XY motion pad">
@@ -110,6 +110,8 @@
       <div class="control-grid">
         <button data-open-window="scan-window">Open Scan Setup</button>
         <button data-open-window="live-window">Open Live View</button>
+        <button data-open-window="line-window">Line Scan Window</button>
+        <button data-open-window="topography-window">Topography Window</button>
       </div>
     </section>
 
@@ -128,20 +130,32 @@
       <div class="mini-status-grid">
         <div class="mini-status">
           <span>MK4S</span>
-          <strong id="mk4s-status">stub</strong>
+          <strong id="mk4s-status">not_connected_stub</strong>
         </div>
         <div class="mini-status">
           <span>Z Scanner</span>
-          <strong id="z-status">stub</strong>
+          <strong id="z-status">not_connected_stub</strong>
         </div>
         <div class="mini-status">
           <span>XY Scanner</span>
-          <strong id="xy-status">stub</strong>
+          <strong id="xy-status">simulation_scan_model</strong>
+        </div>
+        <div class="mini-status">
+          <span>Current Line</span>
+          <strong id="line-status">0 / 0</strong>
+        </div>
+        <div class="mini-status">
+          <span>Scan Mode</span>
+          <strong>constant distance</strong>
+        </div>
+        <div class="mini-status">
+          <span>Topography</span>
+          <strong id="topography-status">empty</strong>
         </div>
       </div>
 
       <div class="log" id="operator-log">
-        <p>[Phase 2.1] Professional web workspace loaded.</p>
+        <p>[Phase 2.3] SPM raster model loaded: scan X line, step Y, accumulate topography.</p>
       </div>
     </section>
   </main>
@@ -156,39 +170,74 @@
         <button data-close-window>Close</button>
       </div>
 
+      <p class="window-note">
+        Raster principle: the probe keeps a fixed Z setpoint while X is scanned line by line.
+        After each X line, Y moves one step. The topography image is accumulated from all Z feedback lines.
+      </p>
+
       <div class="field-grid">
         <label>X min
-          <input type="number" value="20" />
+          <input id="scan-x-min" type="number" value="20" />
         </label>
         <label>X max
-          <input type="number" value="80" />
+          <input id="scan-x-max" type="number" value="80" />
         </label>
         <label>Y min
-          <input type="number" value="20" />
+          <input id="scan-y-min" type="number" value="20" />
         </label>
         <label>Y max
-          <input type="number" value="80" />
+          <input id="scan-y-max" type="number" value="80" />
         </label>
         <label>X points
-          <input type="number" value="25" />
+          <input id="scan-x-points" type="number" value="64" />
         </label>
-        <label>Y points
-          <input type="number" value="25" />
+        <label>Y lines
+          <input id="scan-y-points" type="number" value="32" />
         </label>
-        <label>XY feedrate
-          <input type="number" value="600" />
+        <label>Z setpoint
+          <input id="scan-z-setpoint" type="number" value="0.10" step="0.01" />
         </label>
-        <label>Output file
-          <input value="data/web_scan_output.csv" />
+        <label>Surface model
+          <select id="scan-surface">
+            <option value="sphere_on_plane">Sphere / half-ball on plane</option>
+            <option value="terrace">Terrace / step surface</option>
+            <option value="grid_atoms">Atomic grid demo</option>
+          </select>
         </label>
       </div>
 
       <div class="control-grid window-controls">
-        <button data-action="preview-scan">Preview Scan</button>
-        <button class="primary" data-action="start-scan">Start Scan</button>
-        <button data-action="stop-scan">Stop</button>
-        <button data-action="export-scan">Export</button>
+        <button data-action="scan-profile">Check Profile</button>
+        <button data-action="reset-raster">Reset Raster</button>
+        <button data-action="step-line">Step One Line</button>
+        <button class="primary" data-action="run-raster">Run Raster Simulation</button>
       </div>
+    </section>
+
+    <section class="floating-window large-window" id="line-window" hidden>
+      <div class="window-header">
+        <div>
+          <span class="phase-tag">Phase 2.3</span>
+          <h2>Line Scan Window</h2>
+        </div>
+        <button data-close-window>Close</button>
+      </div>
+      <canvas id="line-canvas" width="1000" height="260"></canvas>
+      <pre id="line-json">No line scan yet.</pre>
+    </section>
+
+    <section class="floating-window large-window" id="topography-window" hidden>
+      <div class="window-header">
+        <div>
+          <span class="phase-tag">Phase 2.3</span>
+          <h2>Accumulated Topography Window</h2>
+        </div>
+        <button data-close-window>Close</button>
+      </div>
+      <canvas id="topography-canvas" width="1000" height="500"></canvas>
+      <p class="window-note">
+        Each row is one X line scan. The image grows after each Y step.
+      </p>
     </section>
 
     <section class="floating-window large-window" id="live-window" hidden>
@@ -200,10 +249,14 @@
         <button data-close-window>Close</button>
       </div>
 
-      <div class="plot-placeholder">
+      <div class="dual-view">
         <div>
-          <strong>Live scan preview</strong>
-          <p>CSV / PNG / Gwyddion-compatible export will be connected here.</p>
+          <h3>Current line scan</h3>
+          <canvas id="live-line-canvas" width="800" height="220"></canvas>
+        </div>
+        <div>
+          <h3>Topography accumulation</h3>
+          <canvas id="live-topography-canvas" width="800" height="360"></canvas>
         </div>
       </div>
     </section>
@@ -229,8 +282,8 @@
       </div>
 
       <p class="window-note">
-        Academic AI is used as an advisory layer for approach planning, scan planning,
-        simulation support, and operator explanation. It cannot execute physical motion directly.
+        Academic AI is advisory-only. It may recommend approach, scanning, simulation,
+        and diagnosis steps. It cannot execute real MK4S motion.
       </p>
 
       <div class="field-stack">
@@ -262,12 +315,14 @@
       </div>
       <p>
         Educational SPM Prusa MK4S Web Operator Console.
-        This professional browser interface will receive proven working modules from the older PyQt and MK4S projects phase by phase.
+        Current focus: Phase 2.3 constant-distance raster scanning model.
       </p>
     </section>
   </div>
 
+  <script src="scan_raster.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
+
 

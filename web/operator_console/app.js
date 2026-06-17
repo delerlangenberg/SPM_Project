@@ -1,7 +1,6 @@
 ﻿const logEl = document.getElementById("operator-log");
 const stateEl = document.getElementById("system-state");
 const detailEl = document.getElementById("system-detail");
-const zReadoutEl = document.getElementById("z-readout");
 const statusJsonEl = document.getElementById("status-json");
 const aiStatusEl = document.getElementById("ai-status");
 const aiOutputEl = document.getElementById("ai-output");
@@ -16,17 +15,21 @@ function log(message) {
   logEl.prepend(p);
 }
 
+window.SPMConsoleLog = log;
+
 function closeWindows() {
   for (const win of document.querySelectorAll(".floating-window")) {
     win.hidden = true;
     win.setAttribute("aria-hidden", "true");
   }
+
   windowLayer.hidden = true;
   windowLayer.setAttribute("aria-hidden", "true");
 }
 
 function openWindow(id) {
   closeWindows();
+
   const win = document.getElementById(id);
   if (!win) {
     log(`Window not found: ${id}`);
@@ -41,32 +44,12 @@ function openWindow(id) {
   windowLayer.setAttribute("aria-hidden", "false");
   win.hidden = false;
   win.setAttribute("aria-hidden", "false");
+
+  if (window.SPMRaster) {
+    window.SPMRaster.redrawAll();
+  }
+
   log(`Opened ${id}.`);
-}
-
-async function loadAIStatus() {
-  try {
-    const response = await fetch("/api/ai/status");
-    const status = await response.json();
-    aiStatusEl.textContent = `${status.mode} · ${status.role}`;
-    log(`Academic AI status: ${status.mode}; role: ${status.role}.`);
-  } catch (error) {
-    aiStatusEl.textContent = "offline";
-    log(`Academic AI status unavailable: ${error.message}`);
-  }
-}
-
-async function requestAIRecommendation() {
-  const task = aiTaskEl ? aiTaskEl.value : "general";
-  try {
-    const response = await fetch(`/api/ai/recommendation?task=${encodeURIComponent(task)}`);
-    const payload = await response.json();
-    aiOutputEl.textContent = JSON.stringify(payload, null, 2);
-    log(`Academic AI advisory recommendation requested for: ${task}.`);
-  } catch (error) {
-    aiOutputEl.textContent = `AI recommendation failed: ${error.message}`;
-    log(`AI recommendation failed: ${error.message}`);
-  }
 }
 
 async function loadStatus() {
@@ -90,11 +73,36 @@ async function loadStatus() {
   }
 }
 
+async function loadAIStatus() {
+  try {
+    const response = await fetch("/api/ai/status");
+    const status = await response.json();
+    aiStatusEl.textContent = `${status.mode} · ${status.role}`;
+    log(`Academic AI status: ${status.mode}; role: ${status.role}.`);
+  } catch (error) {
+    aiStatusEl.textContent = "offline";
+    log(`Academic AI status unavailable: ${error.message}`);
+  }
+}
+
+async function requestAIRecommendation() {
+  const task = aiTaskEl ? aiTaskEl.value : "general";
+
+  try {
+    const response = await fetch(`/api/ai/recommendation?task=${encodeURIComponent(task)}`);
+    const payload = await response.json();
+    aiOutputEl.textContent = JSON.stringify(payload, null, 2);
+    log(`Academic AI advisory recommendation requested for: ${task}.`);
+  } catch (error) {
+    aiOutputEl.textContent = `AI recommendation failed: ${error.message}`;
+    log(`AI recommendation failed: ${error.message}`);
+  }
+}
+
 function handleAction(action) {
   const messages = {
     "system-on": "Phase 2.1 placeholder: system ON will connect to existing hardware command services.",
     "system-off": "Phase 2.1 placeholder: system OFF will safely disable hardware services.",
-    "system-status": "Phase 2.1 placeholder: status refresh requested.",
     "system-close": "Phase 2.1 placeholder: close/shutdown workflow requested.",
     "z-approach": "Phase 2.2 placeholder: Z approach requested.",
     "z-retract": "Phase 2.2 placeholder: Z retract requested.",
@@ -104,30 +112,23 @@ function handleAction(action) {
     "x-plus": "Phase 2.3 placeholder: jog X+ requested.",
     "y-minus": "Phase 2.3 placeholder: jog Y- requested.",
     "y-plus": "Phase 2.3 placeholder: jog Y+ requested.",
-    "xy-center": "Phase 2.3 placeholder: move to XY center requested.",
-    "preview-scan": "Phase 2.3 placeholder: preview scan requested.",
-    "start-scan": "Phase 2.3 placeholder: real/dry scan start requested.",
-    "stop-scan": "Phase 2.3 placeholder: scan stop requested.",
-    "export-scan": "Phase 2.4 placeholder: export requested."
+    "xy-center": "Phase 2.3 placeholder: move to XY center requested."
   };
 
+  if (action === "system-status") openWindow("status-window");
+  if (action === "ai-status") loadAIStatus();
+  if (action === "ai-recommend") requestAIRecommendation();
+
+  if (action === "scan-profile") window.SPMRaster.checkScanProfile();
+  if (action === "reset-raster") window.SPMRaster.resetRaster();
+  if (action === "step-line") window.SPMRaster.stepOneLine();
+  if (action === "run-raster") window.SPMRaster.runRasterSimulation();
+
   if (action === "z-read") {
-    zReadoutEl.textContent = "stub: 20.00 mm";
+    document.getElementById("z-readout").textContent = "stub: 20.00 mm";
   }
 
-  if (action === "system-status") {
-    openWindow("status-window");
-  }
-
-  if (action === "ai-status") {
-    loadAIStatus();
-  }
-
-  if (action === "ai-recommend") {
-    requestAIRecommendation();
-  }
-
-  log(messages[action] || `Action clicked: ${action}`);
+  if (messages[action]) log(messages[action]);
 }
 
 document.addEventListener("click", (event) => {
@@ -154,17 +155,16 @@ document.addEventListener("click", (event) => {
   if (!button) return;
 
   const action = button.dataset.action;
-  if (action) {
-    handleAction(action);
-  }
+  if (action) handleAction(action);
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    closeWindows();
-  }
+  if (event.key === "Escape") closeWindows();
 });
 
 loadStatus();
+loadAIStatus();
 
-
+if (window.SPMRaster) {
+  window.SPMRaster.redrawAll();
+}

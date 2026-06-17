@@ -177,3 +177,56 @@ def test_web_operator_console_window_layer_is_not_visible_by_default():
     assert 'id="scan-window" hidden' in html
     assert 'id="live-window" hidden' in html
     assert 'id="ai-window" hidden' in html
+
+def test_spm_scan_simulation_line_model():
+    from core.web.spm_scan_simulation import WebScanProfile, build_scan_line
+
+    profile = WebScanProfile(x_points=8, y_points=4, z_setpoint=0.2)
+    line = build_scan_line(profile, line_index=0)
+
+    assert line["line_index"] == 0
+    assert line["line_count"] == 4
+    assert line["x_points"] == 8
+    assert line["z_setpoint"] == 0.2
+    assert line["height_source"] == "simulated_z_feedback_minus_setpoint"
+    assert len(line["points"]) == 8
+    assert "z_feedback" in line["points"][0]
+    assert "surface_height" in line["points"][0]
+
+
+def test_spm_scan_simulation_serpentine_direction():
+    from core.web.spm_scan_simulation import WebScanProfile, build_scan_line
+
+    profile = WebScanProfile(x_min=0, x_max=10, x_points=3, y_points=3, serpentine=True)
+    forward = build_scan_line(profile, line_index=0)
+    reverse = build_scan_line(profile, line_index=1)
+
+    assert forward["direction"] == "forward"
+    assert reverse["direction"] == "reverse"
+    assert forward["points"][0]["x"] == 0
+    assert reverse["points"][0]["x"] == 10
+
+
+def test_web_operator_console_has_line_and_topography_windows():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    js = (WEB_ROOT / "app.js").read_text(encoding="utf-8") + (WEB_ROOT / "scan_raster.js").read_text(encoding="utf-8")
+
+    assert "Line Scan Window" in html
+    assert "Accumulated Topography Window" in html
+    assert "id=\"line-canvas\"" in html
+    assert "id=\"topography-canvas\"" in html
+    assert "/api/scan/line" in js
+    assert "runRasterSimulation" in js
+    assert "scan X line, step Y" in html
+
+
+def test_web_operator_console_uses_modular_raster_js():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+    raster_js = (WEB_ROOT / "scan_raster.js").read_text(encoding="utf-8")
+
+    assert "scan_raster.js" in html
+    assert "window.SPMRaster" in raster_js
+    assert "runRasterSimulation" in raster_js
+    assert "/api/scan/line" in raster_js
+    assert app_js.count("function ") < raster_js.count("function ")
