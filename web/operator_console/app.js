@@ -89,6 +89,12 @@ async function callSystemApi(endpoint, label) {
       log(`Dry-run startup plan: ${payload.dry_run_plan.join(" | ")}`);
     }
 
+    if (payload.hardware_information_status) {
+      const hw = payload.hardware_information_status;
+      const plan = hw.command_plan.map((item) => `${item.action} -> ${item.command}`).join(" | ");
+      log(`Hardware information layer: ${hw.mode}; available=${hw.available}; plan=${plan}`);
+    }
+
     return payload;
   } catch (error) {
     log(`${label} failed: ${error.message}`);
@@ -153,4 +159,5 @@ loadAIStatus();
 if (window.SPMRaster) {
   window.SPMRaster.redrawAll();
 }
+
 

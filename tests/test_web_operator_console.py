@@ -354,3 +354,40 @@ def test_web_operator_console_calls_system_control_api():
     assert 'route == "/api/system/status"' in server_py
     assert 'route == "/api/system/on"' in server_py
     assert 'route == "/api/system/dry-run"' in server_py
+
+def test_hardware_status_adapter_uses_existing_information_layer():
+    from core.web.hardware_status_adapter import hardware_information_status, validate_readonly_plan
+
+    payload = hardware_information_status()
+
+    assert payload["source_module"] == "core.system.hardware_information_exchange"
+    assert payload["mode"] == "dry_run_readonly_plan"
+    assert payload["execution_allowed"] is False
+    assert payload["gcode_sent"] is False
+    assert payload["readonly_actions"]["IDENTITY"] == "M115"
+    assert payload["readonly_actions"]["TEMPERATURE"] == "M105"
+    assert payload["readonly_actions"]["ENDSTOPS"] == "M119"
+    assert payload["readonly_actions"]["POSITION"] == "M114"
+    assert validate_readonly_plan(payload) is True
+
+
+def test_system_status_contains_simulation_and_hardware_information_paths():
+    from core.web.system_control import system_status
+
+    payload = system_status()
+
+    assert payload["simulation_status"]["available"] is True
+    assert payload["simulation_status"]["mode"] == "web_simulation_dry_run"
+    assert "hardware_information_status" in payload
+    assert payload["hardware_information_status"]["mode"] == "dry_run_readonly_plan"
+    assert payload["hardware_information_plan_valid"] is True
+    assert payload["safety"]["serial_opened"] is False
+    assert payload["safety"]["gcode_sent"] is False
+
+
+def test_web_app_logs_hardware_information_layer():
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+
+    assert "Hardware information layer" in app_js
+    assert "hardware_information_status" in app_js
+    assert "command_plan" in app_js

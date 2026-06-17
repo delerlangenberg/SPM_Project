@@ -16,6 +16,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from core.web.hardware_status_adapter import hardware_information_status, validate_readonly_plan
+
 
 @dataclass
 class SystemState:
@@ -45,16 +47,27 @@ def system_status() -> dict[str, Any]:
     """Return current safe system status."""
     STATE.real_motion_enabled = _real_motion_allowed()
 
+    hardware_info = hardware_information_status()
+
     return {
         "status": "ok",
         "powered": STATE.powered,
         "mode": STATE.mode,
         "last_action": STATE.last_action,
         "real_motion_enabled": STATE.real_motion_enabled,
+        "simulation_status": {
+            "available": True,
+            "mode": "web_simulation_dry_run",
+            "powered": STATE.powered,
+            "scan_model": "constant_distance_z_feedback_raster",
+        },
+        "hardware_information_status": hardware_info,
+        "hardware_information_plan_valid": validate_readonly_plan(hardware_info),
         "safety": {
             "default_mode": "dry_run",
             "motion_allowed_this_phase": False,
             "real_hardware_requires_later_phase": True,
+            "serial_opened": False,
             "gcode_sent": False,
         },
         "dry_run_plan": list(STATE.dry_run_plan),
@@ -129,3 +142,4 @@ def dry_run_startup_plan() -> dict[str, Any]:
         "purpose": "Show the read-only startup checks planned for later hardware integration.",
         "plan": list(READ_ONLY_STARTUP_PLAN),
     }
+
