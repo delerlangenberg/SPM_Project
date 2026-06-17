@@ -79,9 +79,10 @@
           <input value="COM5" />
         </label>
         <label>Operating Mode
-          <select>
-            <option>Simulation / Dry Run</option>
-            <option disabled>Real MK4S Motion - locked until hardware API integration</option>
+          <select id="system-mode">
+            <option value="dry_run">Simulation / Dry Run</option>
+            <option value="hardware_readonly">Hardware Read-Only - locked until explicit gate</option>
+            <option value="hardware_motion" disabled>Real MK4S Motion - disabled</option>
           </select>
         </label>
       </div>
@@ -214,7 +215,7 @@
       </div>
 
       <div class="log" id="operator-log">
-        <p>[Phase 2.3D] Clean menu logic, new-tab views, and Z-live workspace loaded.</p>
+        <p>[Phase 2.1J] Simulation and hardware-read-only paths loaded; AI postponed.</p>
       </div>
     </section>
   </main>

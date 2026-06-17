@@ -429,3 +429,55 @@ def test_view_menu_has_measurement_views_only_no_status_duplicate():
     assert "Z Feedback Live View" in view_block
     assert "System Status" not in view_block
     assert "Academic AI" not in view_block
+
+def test_system_mode_selector_exists_and_uses_dry_run_default():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+
+    assert 'id="system-mode"' in html
+    assert 'value="dry_run"' in html
+    assert 'value="hardware_readonly"' in html
+    assert "selectedSystemMode" in app_js
+    assert "encodeURIComponent(selectedSystemMode())" in app_js
+
+
+def test_hardware_readonly_mode_is_locked_by_default(monkeypatch):
+    from core.web.system_control import system_on
+
+    monkeypatch.delenv("SPM_WEB_ALLOW_READONLY_HARDWARE", raising=False)
+    payload = system_on(mode="hardware_readonly")
+
+    assert payload["status"] == "blocked"
+    assert payload["powered"] is False
+    assert payload["mode"] == "hardware_readonly_locked"
+    assert payload["safety"]["serial_opened"] is False
+    assert payload["safety"]["gcode_sent"] is False
+
+
+def test_hardware_motion_mode_remains_blocked():
+    from core.web.system_control import system_on
+
+    payload = system_on(mode="hardware_motion")
+
+    assert payload["status"] == "blocked"
+    assert payload["powered"] is False
+    assert payload["safety"]["motion_allowed_this_phase"] is False
+    assert payload["safety"]["gcode_sent"] is False
+
+
+def test_off_and_close_clear_startup_plan_noise():
+    from core.web.system_control import system_on, system_off, system_close
+
+    system_on(mode="dry_run")
+    off_payload = system_off()
+    close_payload = system_close()
+
+    assert off_payload["dry_run_plan"] == []
+    assert close_payload["dry_run_plan"] == []
+
+
+def test_app_does_not_log_startup_plan_for_off_close():
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+
+    assert 'label !== "System OFF"' in app_js
+    assert 'label !== "System CLOSE"' in app_js

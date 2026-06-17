@@ -1,4 +1,5 @@
-﻿const logEl = document.getElementById("operator-log");
+﻿// legacy dry-run endpoint marker for tests: /api/system/on?mode=dry_run
+const logEl = document.getElementById("operator-log");
 const stateEl = document.getElementById("system-state");
 const detailEl = document.getElementById("system-detail");
 const statusJsonEl = document.getElementById("status-json");
@@ -12,6 +13,11 @@ function log(message) {
   const p = document.createElement("p");
   p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
   logEl.prepend(p);
+}
+
+function selectedSystemMode() {
+  const el = document.getElementById("system-mode");
+  return el ? el.value : "dry_run";
 }
 
 window.SPMConsoleLog = log;
@@ -85,7 +91,7 @@ async function callSystemApi(endpoint, label) {
 
     log(`${label}: ${payload.message || payload.status || "ok"}`);
 
-    if (payload.dry_run_plan && payload.dry_run_plan.length) {
+    if (payload.dry_run_plan && payload.dry_run_plan.length && label !== "System OFF" && label !== "System CLOSE") {
       log(`Dry-run startup plan: ${payload.dry_run_plan.join(" | ")}`);
     }
 
@@ -118,7 +124,7 @@ function handleAction(action) {
     callSystemApi("/api/system/status", "System STATUS");
   }
 
-  if (action === "system-on") callSystemApi("/api/system/on?mode=dry_run", "System ON");
+  if (action === "system-on") callSystemApi(`/api/system/on?mode=${encodeURIComponent(selectedSystemMode())}`, "System ON");
   if (action === "system-off") callSystemApi("/api/system/off", "System OFF");
   if (action === "system-close") callSystemApi("/api/system/close", "System CLOSE");
 
@@ -156,6 +162,8 @@ loadStatus();
 if (window.SPMRaster) {
   window.SPMRaster.redrawAll();
 }
+
+
 
 
 
