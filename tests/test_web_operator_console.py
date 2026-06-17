@@ -70,3 +70,56 @@ def test_web_operator_console_launcher_help_runs():
 
     assert result.returncode == 0
     assert "Run the local SPM Prusa web operator console" in result.stdout
+
+def test_web_operator_console_main_page_is_not_roadmap_page():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    assert "phase-roadmap" not in html
+    assert "Integration Roadmap" not in html
+    assert "id=\"phase-map\"" not in html
+
+
+def test_web_operator_console_has_floating_scan_and_live_windows():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    required = [
+        "id=\"scan-window\"",
+        "Scan Setup Window",
+        "id=\"live-window\"",
+        "Live View / Measurement Window",
+        "id=\"status-window\"",
+        "System Status Window",
+        "id=\"about-window\"",
+        "data-open-window=\"scan-window\"",
+        "data-open-window=\"live-window\"",
+    ]
+
+    for marker in required:
+        assert marker in html
+
+
+def test_web_operator_console_main_page_keeps_essential_controls():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    required = [
+        "Main System",
+        "Z Scanner",
+        "XY Jog Control",
+        "Status / Live Log",
+        "ON",
+        "OFF",
+        "STATUS",
+        "CLOSE",
+        "Approach",
+        "Retract",
+        "Read Z",
+        "Park Z",
+        "X-",
+        "X+",
+        "Y-",
+        "Y+",
+        "CENTER",
+    ]
+
+    for marker in required:
+        assert marker in html

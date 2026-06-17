@@ -2,7 +2,10 @@
 const stateEl = document.getElementById("system-state");
 const detailEl = document.getElementById("system-detail");
 const zReadoutEl = document.getElementById("z-readout");
-const phaseMapEl = document.getElementById("phase-map");
+const statusJsonEl = document.getElementById("status-json");
+const windowLayer = document.getElementById("window-layer");
+
+let latestStatus = null;
 
 function log(message) {
   const p = document.createElement("p");
@@ -10,38 +13,48 @@ function log(message) {
   logEl.prepend(p);
 }
 
+function closeWindows() {
+  windowLayer.hidden = true;
+  for (const win of document.querySelectorAll(".floating-window")) {
+    win.hidden = true;
+  }
+}
+
+function openWindow(id) {
+  closeWindows();
+  const win = document.getElementById(id);
+  if (!win) {
+    log(`Window not found: ${id}`);
+    return;
+  }
+
+  if (id === "status-window" && latestStatus) {
+    statusJsonEl.textContent = JSON.stringify(latestStatus, null, 2);
+  }
+
+  windowLayer.hidden = false;
+  win.hidden = false;
+  log(`Opened ${id}.`);
+}
+
 async function loadStatus() {
   try {
     const response = await fetch("/api/status");
     const status = await response.json();
+    latestStatus = status;
+
     stateEl.textContent = `${status.project} · ${status.status}`;
     detailEl.textContent = `Mode: ${status.safety.default_mode}; real motion enabled: ${status.safety.real_motion_enabled}`;
+
+    document.getElementById("mk4s-status").textContent = status.hardware.mk4s;
+    document.getElementById("z-status").textContent = status.hardware.z_scanner;
+    document.getElementById("xy-status").textContent = status.hardware.xy_scanner;
+
     log("Status loaded from local API stub.");
   } catch (error) {
     stateEl.textContent = "Offline static view";
     detailEl.textContent = "Server API not reachable. Static layout is still visible.";
     log(`Status API unavailable: ${error.message}`);
-  }
-}
-
-async function loadPhaseMap() {
-  try {
-    const response = await fetch("/api/phase-map");
-    const phases = await response.json();
-
-    phaseMapEl.innerHTML = "";
-    for (const item of phases) {
-      const card = document.createElement("article");
-      card.className = "phase-card";
-      card.innerHTML = `
-        <h3>Phase ${item.phase}: ${item.name}</h3>
-        <p><strong>Status:</strong> ${item.status}</p>
-        <p>${item.purpose}</p>
-      `;
-      phaseMapEl.appendChild(card);
-    }
-  } catch (error) {
-    phaseMapEl.innerHTML = "<p>Phase map API unavailable.</p>";
   }
 }
 
@@ -70,18 +83,46 @@ function handleAction(action) {
     zReadoutEl.textContent = "stub: 20.00 mm";
   }
 
-  log(messages[action] || `Menu/action clicked: ${action}`);
+  if (action === "system-status") {
+    openWindow("status-window");
+  }
+
+  log(messages[action] || `Action clicked: ${action}`);
 }
 
 document.addEventListener("click", (event) => {
+  const closeButton = event.target.closest("[data-close-window]");
+  if (closeButton) {
+    closeWindows();
+    log("Closed floating window.");
+    return;
+  }
+
+  if (event.target === windowLayer) {
+    closeWindows();
+    log("Closed floating window.");
+    return;
+  }
+
+  const openButton = event.target.closest("[data-open-window]");
+  if (openButton) {
+    openWindow(openButton.dataset.openWindow);
+    return;
+  }
+
   const button = event.target.closest("button");
   if (!button) return;
 
-  const action = button.dataset.action || button.dataset.menu;
+  const action = button.dataset.action;
   if (action) {
     handleAction(action);
   }
 });
 
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeWindows();
+  }
+});
+
 loadStatus();
-loadPhaseMap();

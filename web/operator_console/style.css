@@ -8,6 +8,7 @@
   --danger: #f97373;
   --ok: #34d399;
   --border: #334155;
+  --overlay: rgba(2, 6, 23, 0.76);
 }
 
 * {
@@ -22,7 +23,7 @@ body {
 }
 
 .topbar {
-  height: 86px;
+  min-height: 86px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -92,16 +93,18 @@ button.danger {
 
 .workspace {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.25fr;
-  grid-template-areas:
-    "main z xy"
-    "view view view";
   gap: 18px;
   padding: 20px;
 }
 
-.panel,
-.phase-roadmap {
+.compact-workspace {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-areas:
+    "main z xy"
+    "log log log";
+}
+
+.panel {
   background: rgba(24, 35, 58, 0.96);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -112,18 +115,20 @@ button.danger {
 .main-panel { grid-area: main; }
 .z-panel { grid-area: z; }
 .xy-panel { grid-area: xy; }
-.view-panel { grid-area: view; }
+.log-panel { grid-area: log; }
 
-.panel-header {
+.panel-header,
+.window-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 14px;
 }
 
-.panel-header h2 {
-  margin: 0;
+.panel-header h2,
+.window-header h2 {
+  margin: 8px 0 0;
   font-size: 18px;
 }
 
@@ -177,6 +182,10 @@ button.danger {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.window-controls {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .field-stack,
 .field-grid {
   display: grid;
@@ -205,15 +214,16 @@ select {
 }
 
 .xy-pad {
-  width: min(100%, 320px);
+  width: min(100%, 330px);
   margin: 0 auto 16px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
-.xy-pad button {
-  min-height: 58px;
+.xy-square {
+  min-height: 72px;
+  aspect-ratio: 1 / 1;
   font-size: 18px;
 }
 
@@ -221,8 +231,65 @@ select {
   font-size: 12px;
 }
 
+.mini-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.mini-status {
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.mini-status span {
+  color: var(--muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.log {
+  min-height: 150px;
+  max-height: 260px;
+  overflow: auto;
+  background: #020617;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+}
+
+.window-layer {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.floating-window {
+  width: min(980px, 96vw);
+  max-height: 90vh;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+}
+
+.large-window {
+  width: min(1200px, 96vw);
+}
+
 .plot-placeholder {
-  min-height: 260px;
+  min-height: 420px;
   border: 1px dashed #64748b;
   border-radius: 16px;
   display: grid;
@@ -234,60 +301,36 @@ select {
   background-size: 24px 24px;
 }
 
-.log {
-  margin-top: 14px;
-  min-height: 90px;
+pre {
+  white-space: pre-wrap;
   background: #020617;
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 12px;
-  font-family: Consolas, monospace;
-  font-size: 13px;
-}
-
-.phase-roadmap {
-  margin: 0 20px 20px;
-}
-
-.phase-map {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.phase-card {
-  border: 1px solid var(--border);
-  background: var(--panel-soft);
-  border-radius: 14px;
-  padding: 12px;
-}
-
-.phase-card h3 {
-  margin: 0 0 8px;
-}
-
-.phase-card p {
-  margin: 0;
-  color: var(--muted);
+  padding: 14px;
+  color: #dbeafe;
 }
 
 @media (max-width: 1100px) {
-  .workspace {
+  .compact-workspace {
     grid-template-columns: 1fr;
     grid-template-areas:
       "main"
       "z"
       "xy"
-      "view";
-  }
-
-  .phase-map {
-    grid-template-columns: 1fr;
+      "log";
   }
 
   .topbar {
-    height: auto;
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .main-controls,
+  .window-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mini-status-grid {
+    grid-template-columns: 1fr;
   }
 }

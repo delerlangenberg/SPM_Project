@@ -12,19 +12,19 @@
       <div class="brand-mark">SPM</div>
       <div>
         <h1>Educational SPM - Prusa MK4S</h1>
-        <p>Web Operator Console · Phase 2.0</p>
+        <p>Web Operator Console · Professional Main Workspace</p>
       </div>
     </div>
 
     <nav class="menu" aria-label="Main menu">
-      <button data-menu="view">View</button>
-      <button data-menu="tools">Tools</button>
-      <button data-menu="open">Open</button>
-      <button data-menu="about">About</button>
+      <button data-open-window="live-window">View</button>
+      <button data-open-window="scan-window">Tools</button>
+      <button data-open-window="scan-window">Open</button>
+      <button data-open-window="about-window">About</button>
     </nav>
   </header>
 
-  <main class="workspace">
+  <main class="workspace compact-workspace">
     <section class="panel main-panel" data-phase="2.1">
       <div class="panel-header">
         <span class="phase-tag">Phase 2.1</span>
@@ -50,10 +50,10 @@
         <label>Connection Port
           <input value="COM5" />
         </label>
-        <label>Mode
+        <label>Operating Mode
           <select>
             <option>Simulation / Dry Run</option>
-            <option disabled>Real MK4S Motion - locked until Phase 2.1</option>
+            <option disabled>Real MK4S Motion - locked until hardware API integration</option>
           </select>
         </label>
       </div>
@@ -84,32 +84,70 @@
         <label>Safe Z min/max mm
           <input value="5 / 50" />
         </label>
-        <label>Approach strategy
-          <select>
-            <option>Manual step approach</option>
-            <option>Auto approach from old project - Phase 2.2</option>
-            <option>CR-Touch assisted approach - future</option>
-          </select>
-        </label>
       </div>
     </section>
 
     <section class="panel xy-panel" data-phase="2.3">
       <div class="panel-header">
         <span class="phase-tag">Phase 2.3</span>
-        <h2>XY Scanner</h2>
+        <h2>XY Jog Control</h2>
       </div>
 
       <div class="xy-pad" aria-label="XY motion pad">
         <div></div>
-        <button data-action="y-plus">Y+</button>
+        <button class="xy-square" data-action="y-plus">Y+</button>
         <div></div>
-        <button data-action="x-minus">X-</button>
-        <button class="center" data-action="xy-center">CENTER</button>
-        <button data-action="x-plus">X+</button>
+
+        <button class="xy-square" data-action="x-minus">X-</button>
+        <button class="xy-square center" data-action="xy-center">CENTER</button>
+        <button class="xy-square" data-action="x-plus">X+</button>
+
         <div></div>
-        <button data-action="y-minus">Y-</button>
+        <button class="xy-square" data-action="y-minus">Y-</button>
         <div></div>
+      </div>
+
+      <div class="control-grid">
+        <button data-open-window="scan-window">Open Scan Setup</button>
+        <button data-open-window="live-window">Open Live View</button>
+      </div>
+    </section>
+
+    <section class="panel log-panel" data-phase="2.4">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.4</span>
+        <h2>Status / Live Log</h2>
+      </div>
+
+      <div class="mini-status-grid">
+        <div class="mini-status">
+          <span>MK4S</span>
+          <strong id="mk4s-status">stub</strong>
+        </div>
+        <div class="mini-status">
+          <span>Z Scanner</span>
+          <strong id="z-status">stub</strong>
+        </div>
+        <div class="mini-status">
+          <span>XY Scanner</span>
+          <strong id="xy-status">stub</strong>
+        </div>
+      </div>
+
+      <div class="log" id="operator-log">
+        <p>[Phase 2.1] Professional web workspace loaded.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="window-layer" id="window-layer" hidden>
+    <section class="floating-window" id="scan-window" hidden>
+      <div class="window-header">
+        <div>
+          <span class="phase-tag">Phase 2.3</span>
+          <h2>Scan Setup Window</h2>
+        </div>
+        <button data-close-window>Close</button>
       </div>
 
       <div class="field-grid">
@@ -134,12 +172,12 @@
         <label>XY feedrate
           <input type="number" value="600" />
         </label>
-        <label>Output
+        <label>Output file
           <input value="data/web_scan_output.csv" />
         </label>
       </div>
 
-      <div class="control-grid">
+      <div class="control-grid window-controls">
         <button data-action="preview-scan">Preview Scan</button>
         <button class="primary" data-action="start-scan">Start Scan</button>
         <button data-action="stop-scan">Stop</button>
@@ -147,10 +185,13 @@
       </div>
     </section>
 
-    <section class="panel view-panel" data-phase="2.4">
-      <div class="panel-header">
-        <span class="phase-tag">Phase 2.4</span>
-        <h2>Live View / Measurement</h2>
+    <section class="floating-window large-window" id="live-window" hidden>
+      <div class="window-header">
+        <div>
+          <span class="phase-tag">Phase 2.4</span>
+          <h2>Live View / Measurement Window</h2>
+        </div>
+        <button data-close-window>Close</button>
       </div>
 
       <div class="plot-placeholder">
@@ -159,20 +200,33 @@
           <p>CSV / PNG / Gwyddion-compatible export will be connected here.</p>
         </div>
       </div>
-
-      <div class="log" id="operator-log">
-        <p>[Phase 2.0] Web operator console loaded.</p>
-      </div>
     </section>
-  </main>
 
-  <section class="phase-roadmap" data-phase="2.5">
-    <div class="panel-header">
-      <span class="phase-tag">Phase 2.5</span>
-      <h2>Integration Roadmap</h2>
-    </div>
-    <div id="phase-map" class="phase-map"></div>
-  </section>
+    <section class="floating-window" id="status-window" hidden>
+      <div class="window-header">
+        <div>
+          <span class="phase-tag">Phase 2.1</span>
+          <h2>System Status Window</h2>
+        </div>
+        <button data-close-window>Close</button>
+      </div>
+      <pre id="status-json">{}</pre>
+    </section>
+
+    <section class="floating-window" id="about-window" hidden>
+      <div class="window-header">
+        <div>
+          <span class="phase-tag">Phase 2.5</span>
+          <h2>About</h2>
+        </div>
+        <button data-close-window>Close</button>
+      </div>
+      <p>
+        Educational SPM Prusa MK4S Web Operator Console.
+        This professional browser interface will receive proven working modules from the older PyQt and MK4S projects phase by phase.
+      </p>
+    </section>
+  </div>
 
   <script src="app.js"></script>
 </body>
