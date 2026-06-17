@@ -14,6 +14,9 @@ import json
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
+
+from core.ai.academic_ai_client import build_ai_recommendation, get_academic_ai_status
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -79,6 +82,25 @@ class OperatorConsoleHandler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:  # noqa: N802 - required by http.server
+        if self.path == "/api/ai/status":
+            status = get_academic_ai_status()
+            self._send_json(
+                {
+                    "configured": status.configured,
+                    "mode": status.mode,
+                    "role": status.role,
+                    "safety_rule": status.safety_rule,
+                }
+            )
+            return
+
+        if self.path.startswith("/api/ai/recommendation"):
+            parsed = urlparse(self.path)
+            query = parse_qs(parsed.query)
+            task = query.get("task", ["general"])[0]
+            self._send_json(build_ai_recommendation(task=task, context={"source": "web_operator_console"}))
+            return
+
         if self.path == "/api/status":
             self._send_json(
                 {
@@ -129,3 +151,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

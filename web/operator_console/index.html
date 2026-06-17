@@ -18,7 +18,7 @@
 
     <nav class="menu" aria-label="Main menu">
       <button data-open-window="live-window">View</button>
-      <button data-open-window="scan-window">Tools</button>
+      <button data-open-window="ai-window">Tools</button>
       <button data-open-window="scan-window">Open</button>
       <button data-open-window="about-window">About</button>
     </nav>
@@ -119,6 +119,12 @@
         <h2>Status / Live Log</h2>
       </div>
 
+      <div class="ai-strip">
+        <span>Academic AI Advisory</span>
+        <strong id="ai-status">stub</strong>
+        <button data-open-window="ai-window">Open AI Assistant</button>
+      </div>
+
       <div class="mini-status-grid">
         <div class="mini-status">
           <span>MK4S</span>
@@ -213,6 +219,39 @@
       <pre id="status-json">{}</pre>
     </section>
 
+    <section class="floating-window" id="ai-window" hidden>
+      <div class="window-header">
+        <div>
+          <span class="phase-tag">Phase 2.2</span>
+          <h2>Academic AI Assistant</h2>
+        </div>
+        <button data-close-window>Close</button>
+      </div>
+
+      <p class="window-note">
+        Academic AI is used as an advisory layer for approach planning, scan planning,
+        simulation support, and operator explanation. It cannot execute physical motion directly.
+      </p>
+
+      <div class="field-stack">
+        <label>AI task
+          <select id="ai-task">
+            <option value="approach">Approach recommendation</option>
+            <option value="scan">Scan recommendation</option>
+            <option value="simulation">Simulation recommendation</option>
+            <option value="diagnosis">Diagnosis / explain current status</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="control-grid">
+        <button class="primary" data-action="ai-recommend">Get Recommendation</button>
+        <button data-action="ai-status">AI Status</button>
+      </div>
+
+      <pre id="ai-output">Academic AI advisory output will appear here.</pre>
+    </section>
+
     <section class="floating-window" id="about-window" hidden>
       <div class="window-header">
         <div>
@@ -231,3 +270,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+

@@ -334,3 +334,28 @@ pre {
     grid-template-columns: 1fr;
   }
 }
+
+.ai-strip {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  background: rgba(14, 165, 233, 0.10);
+  border: 1px solid #0ea5e9;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.ai-strip span {
+  color: var(--muted);
+}
+
+.ai-strip strong {
+  color: #bae6fd;
+}
+
+.window-note {
+  color: var(--muted);
+  line-height: 1.5;
+}

@@ -3,6 +3,9 @@ const stateEl = document.getElementById("system-state");
 const detailEl = document.getElementById("system-detail");
 const zReadoutEl = document.getElementById("z-readout");
 const statusJsonEl = document.getElementById("status-json");
+const aiStatusEl = document.getElementById("ai-status");
+const aiOutputEl = document.getElementById("ai-output");
+const aiTaskEl = document.getElementById("ai-task");
 const windowLayer = document.getElementById("window-layer");
 
 let latestStatus = null;
@@ -35,6 +38,31 @@ function openWindow(id) {
   windowLayer.hidden = false;
   win.hidden = false;
   log(`Opened ${id}.`);
+}
+
+async function loadAIStatus() {
+  try {
+    const response = await fetch("/api/ai/status");
+    const status = await response.json();
+    aiStatusEl.textContent = `${status.mode} · ${status.role}`;
+    log(`Academic AI status: ${status.mode}; role: ${status.role}.`);
+  } catch (error) {
+    aiStatusEl.textContent = "offline";
+    log(`Academic AI status unavailable: ${error.message}`);
+  }
+}
+
+async function requestAIRecommendation() {
+  const task = aiTaskEl ? aiTaskEl.value : "general";
+  try {
+    const response = await fetch(`/api/ai/recommendation?task=${encodeURIComponent(task)}`);
+    const payload = await response.json();
+    aiOutputEl.textContent = JSON.stringify(payload, null, 2);
+    log(`Academic AI advisory recommendation requested for: ${task}.`);
+  } catch (error) {
+    aiOutputEl.textContent = `AI recommendation failed: ${error.message}`;
+    log(`AI recommendation failed: ${error.message}`);
+  }
 }
 
 async function loadStatus() {
@@ -87,6 +115,14 @@ function handleAction(action) {
     openWindow("status-window");
   }
 
+  if (action === "ai-status") {
+    loadAIStatus();
+  }
+
+  if (action === "ai-recommend") {
+    requestAIRecommendation();
+  }
+
   log(messages[action] || `Action clicked: ${action}`);
 }
 
@@ -126,3 +162,4 @@ document.addEventListener("keydown", (event) => {
 });
 
 loadStatus();
+

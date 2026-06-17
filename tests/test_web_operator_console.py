@@ -123,3 +123,40 @@ def test_web_operator_console_main_page_keeps_essential_controls():
 
     for marker in required:
         assert marker in html
+
+def test_academic_ai_advisory_status_is_safe_by_default(monkeypatch):
+    from core.ai.academic_ai_client import get_academic_ai_status
+
+    monkeypatch.delenv("ACADEMIC_AI_BASE_URL", raising=False)
+    monkeypatch.delenv("ACADEMIC_AI_API_KEY", raising=False)
+    monkeypatch.delenv("ACADEMIC_AI_MODEL", raising=False)
+    monkeypatch.delenv("ACADEMIC_AI_ASSISTANT_ID", raising=False)
+
+    status = get_academic_ai_status()
+
+    assert status.configured is False
+    assert status.mode == "stub_not_configured"
+    assert status.role == "advisory_only"
+    assert "cannot execute machine motion directly" in status.safety_rule
+
+
+def test_academic_ai_recommendation_never_executes_motion():
+    from core.ai.academic_ai_client import build_ai_recommendation
+
+    payload = build_ai_recommendation("approach")
+
+    assert payload["execution_allowed"] is False
+    assert payload["risk"] == "high"
+    assert payload["target_phase"] == "2.3"
+    assert "operator confirmation" in " ".join(payload["recommendation"])
+
+
+def test_web_operator_console_has_academic_ai_window():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+
+    assert "Academic AI Assistant" in html
+    assert "id=\"ai-window\"" in html
+    assert "id=\"ai-status\"" in html
+    assert "/api/ai/status" in js
+    assert "/api/ai/recommendation" in js
