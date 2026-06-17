@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -17,6 +17,7 @@
     </div>
 
     
+
 <nav class="menu-bar" aria-label="Main menu">
       <div class="menu-group">
         <button class="menu-button" type="button">View</button>
@@ -24,14 +25,12 @@
           <a class="dropdown-link" data-open-tab="line-window" href="/?window=line-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Line Mode</a>
           <a class="dropdown-link" data-open-tab="topography-window" href="/?window=topography-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Topography</a>
           <a class="dropdown-link" data-open-tab="live-window" href="/?window=live-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Z Feedback Live View</a>
-          <a class="dropdown-link" data-open-tab="status-window" href="/?window=status-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">System Status</a>
         </div>
       </div>
 
       <div class="menu-group">
         <button class="menu-button" type="button">Tools</button>
         <div class="dropdown">
-          <a class="dropdown-link" data-open-tab="ai-window" href="/?window=ai-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Academic AI Assistant</a>
           <button data-action="scan-profile" type="button">Check Scan Profile</button>
           <button data-action="reset-raster" type="button">Reset Raster</button>
         </div>
@@ -181,10 +180,10 @@
         <h2>Status / Live Log</h2>
       </div>
 
-      <div class="ai-strip">
-        <span>Academic AI Advisory</span>
-        <strong id="ai-status">stub</strong>
-        <button data-open-window="ai-window">Open AI Assistant</button>
+      <div class="ai-strip postponed-ai">
+        <span>AI Advisory</span>
+        <strong id="ai-status">postponed</strong>
+        <span class="muted-note">Dedicated AI phase later; current focus is simulation + hardware.</span>
       </div>
 
       <div class="mini-status-grid">
@@ -393,7 +392,7 @@
     </div>
     <p>
       Educational SPM Prusa MK4S Web Operator Console.
-      Current focus: clean menu logic, new-tab measurement views, Z-live monitoring, and modular scan workflow.
+      Current focus: simulation path, hardware-information path, Z-live monitoring, and modular scan workflow. AI advisory is postponed to a later dedicated phase.
     </p>
   </section>
 

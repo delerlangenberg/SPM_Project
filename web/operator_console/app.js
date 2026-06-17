@@ -116,15 +116,14 @@ function handleAction(action) {
 
   if (action === "system-status") {
     callSystemApi("/api/system/status", "System STATUS");
-    window.SPMWindows.open("status-window");
   }
 
   if (action === "system-on") callSystemApi("/api/system/on?mode=dry_run", "System ON");
   if (action === "system-off") callSystemApi("/api/system/off", "System OFF");
   if (action === "system-close") callSystemApi("/api/system/close", "System CLOSE");
 
-  if (action === "ai-status") loadAIStatus();
-  if (action === "ai-recommend") requestAIRecommendation();
+  if (action === "ai-status") log("AI advisory is postponed to a later dedicated phase.");
+  if (action === "ai-recommend") log("AI advisory is postponed to a later dedicated phase.");
 
   if (action === "z-approach") window.SPMRaster.markApproachReady();
 
@@ -154,10 +153,9 @@ document.addEventListener("click", (event) => {
 });
 
 loadStatus();
-loadAIStatus();
-
 if (window.SPMRaster) {
   window.SPMRaster.redrawAll();
 }
+
 
 

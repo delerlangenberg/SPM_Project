@@ -470,3 +470,14 @@ body.standalone-window-mode .window-header {
   gap: 14px;
   margin-bottom: 14px;
 }
+
+/* Phase 2.1I: AI postponed while simulation + hardware paths are stabilized */
+.muted-note {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.postponed-ai {
+  border-color: var(--border);
+  background: rgba(148, 163, 184, 0.08);
+}

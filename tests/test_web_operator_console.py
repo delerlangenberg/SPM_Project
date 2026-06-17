@@ -391,3 +391,41 @@ def test_web_app_logs_hardware_information_layer():
     assert "Hardware information layer" in app_js
     assert "hardware_information_status" in app_js
     assert "command_plan" in app_js
+
+def test_system_status_does_not_open_status_window():
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+
+    status_block_start = app_js.index('if (action === "system-status")')
+    status_block_end = app_js.index('if (action === "system-on")')
+    status_block = app_js[status_block_start:status_block_end]
+
+    assert "/api/system/status" in status_block
+    assert 'SPMWindows.open("status-window")' not in status_block
+
+
+def test_visible_ai_ui_is_postponed_from_menu():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+
+    nav_start = html.index('<nav class="menu-bar"')
+    nav_end = html.index('</nav>', nav_start)
+    nav = html[nav_start:nav_end]
+
+    assert "Academic AI Assistant" not in nav
+    assert "postponed" in html
+    assert "AI advisory is postponed to a later dedicated phase" in app_js
+    assert "loadAIStatus();" not in app_js
+
+
+def test_view_menu_has_measurement_views_only_no_status_duplicate():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    view_start = html.index('<button class="menu-button" type="button">View</button>')
+    tools_start = html.index('<button class="menu-button" type="button">Tools</button>')
+    view_block = html[view_start:tools_start]
+
+    assert "Line Mode" in view_block
+    assert "Topography" in view_block
+    assert "Z Feedback Live View" in view_block
+    assert "System Status" not in view_block
+    assert "Academic AI" not in view_block
