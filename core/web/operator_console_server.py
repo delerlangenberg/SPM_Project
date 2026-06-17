@@ -1,4 +1,4 @@
-﻿"""Local web operator console server for the Prusa MK4S SPM project."""
+"""Local web operator console server for the Prusa MK4S SPM project."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlparse
 
 from core.ai.academic_ai_client import build_ai_recommendation, get_academic_ai_status
 from core.web.spm_scan_simulation import build_scan_line, profile_from_query, scan_profile_payload
+from core.web.system_control import dry_run_startup_plan, system_close, system_off, system_on, system_status
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -82,6 +83,27 @@ class OperatorConsoleHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
         route = parsed.path
+
+        if route == "/api/system/status":
+            self._send_json(system_status())
+            return
+
+        if route == "/api/system/on":
+            mode = query.get("mode", ["dry_run"])[0]
+            self._send_json(system_on(mode=mode))
+            return
+
+        if route == "/api/system/off":
+            self._send_json(system_off())
+            return
+
+        if route == "/api/system/close":
+            self._send_json(system_close())
+            return
+
+        if route == "/api/system/dry-run":
+            self._send_json(dry_run_startup_plan())
+            return
 
         if route == "/api/status":
             self._send_json(
@@ -173,3 +195,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

@@ -298,3 +298,59 @@ def test_web_operator_console_has_separate_z_live_module():
     assert "z_live.js" in html
     assert "window.SPMZLive" in z_js
     assert "Z feedback" in z_js
+
+def test_system_control_defaults_to_dry_run(monkeypatch):
+    from core.web.system_control import system_on, system_status
+
+    monkeypatch.delenv("SPM_WEB_ALLOW_REAL_MOTION", raising=False)
+
+    payload = system_on(mode="dry_run")
+    status = system_status()
+
+    assert payload["powered"] is True
+    assert payload["mode"] == "dry_run"
+    assert payload["safety"]["gcode_sent"] is False
+    assert payload["safety"]["motion_allowed_this_phase"] is False
+    assert status["real_motion_enabled"] is False
+
+
+def test_system_control_blocks_hardware_mode_without_explicit_gate(monkeypatch):
+    from core.web.system_control import system_on
+
+    monkeypatch.delenv("SPM_WEB_ALLOW_REAL_MOTION", raising=False)
+
+    payload = system_on(mode="hardware")
+
+    assert payload["status"] == "blocked"
+    assert payload["powered"] is False
+    assert payload["safety"]["gcode_sent"] is False
+    assert "blocked" in payload["message"].lower()
+
+
+def test_system_control_dry_run_plan_is_read_only():
+    from core.web.system_control import dry_run_startup_plan
+
+    payload = dry_run_startup_plan()
+    plan = " ".join(payload["plan"])
+
+    assert payload["execution_allowed"] is False
+    assert payload["gcode_sent"] is False
+    assert "M115" in plan
+    assert "M119" in plan
+    assert "M105" in plan
+    assert "M114" in plan
+    assert "G1" not in plan
+    assert "G28" not in plan
+
+
+def test_web_operator_console_calls_system_control_api():
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+    server_py = (PROJECT_ROOT / "core" / "web" / "operator_console_server.py").read_text(encoding="utf-8")
+
+    assert "/api/system/on?mode=dry_run" in app_js
+    assert "/api/system/off" in app_js
+    assert "/api/system/status" in app_js
+    assert "/api/system/close" in app_js
+    assert 'route == "/api/system/status"' in server_py
+    assert 'route == "/api/system/on"' in server_py
+    assert 'route == "/api/system/dry-run"' in server_py

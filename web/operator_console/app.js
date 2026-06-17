@@ -63,11 +63,41 @@ async function requestAIRecommendation() {
   }
 }
 
+async function callSystemApi(endpoint, label) {
+  try {
+    const response = await fetch(endpoint);
+    const payload = await response.json();
+
+    latestStatus = {
+      ...latestStatus,
+      system_control: payload
+    };
+
+    if (statusJsonEl) {
+      statusJsonEl.textContent = JSON.stringify(latestStatus, null, 2);
+    }
+
+    const mode = payload.mode || "unknown";
+    const powered = payload.powered === true ? "powered" : "not powered";
+
+    stateEl.textContent = `SPM Prusa MK4S · ${powered}`;
+    detailEl.textContent = `System control: ${mode}; real motion enabled: ${payload.real_motion_enabled}`;
+
+    log(`${label}: ${payload.message || payload.status || "ok"}`);
+
+    if (payload.dry_run_plan && payload.dry_run_plan.length) {
+      log(`Dry-run startup plan: ${payload.dry_run_plan.join(" | ")}`);
+    }
+
+    return payload;
+  } catch (error) {
+    log(`${label} failed: ${error.message}`);
+    return null;
+  }
+}
+
 function handleAction(action) {
   const messages = {
-    "system-on": "System ON requested. Hardware connection will be connected in a later phase.",
-    "system-off": "System OFF requested. Safe power-down will be connected in a later phase.",
-    "system-close": "Close workflow requested. Park/shutdown will be connected in a later phase.",
     "z-retract": "Z retract requested. Hardware Z module will be connected later.",
     "z-read": "Z readback requested. Hardware Z readback will be connected later.",
     "z-park": "Z park requested. Hardware Z park will be connected later.",
@@ -79,9 +109,13 @@ function handleAction(action) {
   };
 
   if (action === "system-status") {
-    if (latestStatus) statusJsonEl.textContent = JSON.stringify(latestStatus, null, 2);
+    callSystemApi("/api/system/status", "System STATUS");
     window.SPMWindows.open("status-window");
   }
+
+  if (action === "system-on") callSystemApi("/api/system/on?mode=dry_run", "System ON");
+  if (action === "system-off") callSystemApi("/api/system/off", "System OFF");
+  if (action === "system-close") callSystemApi("/api/system/close", "System CLOSE");
 
   if (action === "ai-status") loadAIStatus();
   if (action === "ai-recommend") requestAIRecommendation();
@@ -119,3 +153,4 @@ loadAIStatus();
 if (window.SPMRaster) {
   window.SPMRaster.redrawAll();
 }
+

@@ -1,0 +1,131 @@
+﻿"""Safe main-system control for the web operator console.
+
+Phase 2.1E provides a conservative gateway for system ON/OFF/STATUS/CLOSE.
+
+Default behavior is dry-run only.
+
+No hardware motion is executed here.
+No G-code is sent here.
+Real hardware activation must be enabled in a later phase through explicit safety gates.
+"""
+
+from __future__ import annotations
+
+import os
+import time
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class SystemState:
+    powered: bool = False
+    mode: str = "dry_run"
+    last_action: str = "not_started"
+    real_motion_enabled: bool = False
+    dry_run_plan: list[str] = field(default_factory=list)
+
+
+STATE = SystemState()
+
+
+READ_ONLY_STARTUP_PLAN = [
+    "M115 ; firmware/version read-only check",
+    "M119 ; endstop/probe state read-only check",
+    "M105 ; temperature read-only check",
+    "M114 ; position read-only check",
+]
+
+
+def _real_motion_allowed() -> bool:
+    return os.getenv("SPM_WEB_ALLOW_REAL_MOTION", "").strip() in {"1", "true", "TRUE", "yes", "YES"}
+
+
+def system_status() -> dict[str, Any]:
+    """Return current safe system status."""
+    STATE.real_motion_enabled = _real_motion_allowed()
+
+    return {
+        "status": "ok",
+        "powered": STATE.powered,
+        "mode": STATE.mode,
+        "last_action": STATE.last_action,
+        "real_motion_enabled": STATE.real_motion_enabled,
+        "safety": {
+            "default_mode": "dry_run",
+            "motion_allowed_this_phase": False,
+            "real_hardware_requires_later_phase": True,
+            "gcode_sent": False,
+        },
+        "dry_run_plan": list(STATE.dry_run_plan),
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+
+
+def system_on(mode: str = "dry_run") -> dict[str, Any]:
+    """Start the main system in dry-run or locked hardware mode."""
+    requested_mode = (mode or "dry_run").strip().lower()
+
+    if requested_mode not in {"dry_run", "hardware"}:
+        requested_mode = "dry_run"
+
+    real_motion_enabled = _real_motion_allowed()
+
+    if requested_mode == "hardware" and not real_motion_enabled:
+        STATE.powered = False
+        STATE.mode = "dry_run"
+        STATE.last_action = "hardware_start_blocked_real_motion_disabled"
+        STATE.dry_run_plan = list(READ_ONLY_STARTUP_PLAN)
+
+        return {
+            **system_status(),
+            "status": "blocked",
+            "message": "Hardware start is blocked. Phase 2.1E only allows dry-run startup.",
+        }
+
+    STATE.powered = True
+    STATE.mode = "dry_run"
+    STATE.last_action = "system_on_dry_run"
+    STATE.dry_run_plan = list(READ_ONLY_STARTUP_PLAN)
+
+    return {
+        **system_status(),
+        "message": "System ON completed in dry-run mode. No hardware command was sent.",
+    }
+
+
+def system_off() -> dict[str, Any]:
+    """Stop the main system shell safely."""
+    STATE.powered = False
+    STATE.last_action = "system_off"
+    return {
+        **system_status(),
+        "message": "System OFF completed. Dry-run gateway is no longer active.",
+    }
+
+
+def system_close() -> dict[str, Any]:
+    """Close/park shell safely.
+
+    Real park motion is not executed in this phase.
+    """
+    STATE.powered = False
+    STATE.last_action = "system_close_requested"
+    return {
+        **system_status(),
+        "message": "Close workflow completed in dry-run. Real park/shutdown will be connected later.",
+    }
+
+
+def dry_run_startup_plan() -> dict[str, Any]:
+    """Return the startup plan that will be used before real hardware is connected."""
+    STATE.dry_run_plan = list(READ_ONLY_STARTUP_PLAN)
+
+    return {
+        "status": "ok",
+        "mode": "dry_run",
+        "execution_allowed": False,
+        "gcode_sent": False,
+        "purpose": "Show the read-only startup checks planned for later hardware integration.",
+        "plan": list(READ_ONLY_STARTUP_PLAN),
+    }
