@@ -160,3 +160,20 @@ def test_web_operator_console_has_academic_ai_window():
     assert "id=\"ai-status\"" in html
     assert "/api/ai/status" in js
     assert "/api/ai/recommendation" in js
+
+def test_web_operator_console_hidden_overlay_rule_exists():
+    css = (WEB_ROOT / "style.css").read_text(encoding="utf-8")
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    assert "[hidden]" in css
+    assert "display: none !important" in css
+    assert 'id="window-layer" hidden' in html
+
+
+def test_web_operator_console_window_layer_is_not_visible_by_default():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    assert 'class="window-layer" id="window-layer" hidden' in html
+    assert 'id="scan-window" hidden' in html
+    assert 'id="live-window" hidden' in html
+    assert 'id="ai-window" hidden' in html

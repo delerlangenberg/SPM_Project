@@ -17,10 +17,12 @@ function log(message) {
 }
 
 function closeWindows() {
-  windowLayer.hidden = true;
   for (const win of document.querySelectorAll(".floating-window")) {
     win.hidden = true;
+    win.setAttribute("aria-hidden", "true");
   }
+  windowLayer.hidden = true;
+  windowLayer.setAttribute("aria-hidden", "true");
 }
 
 function openWindow(id) {
@@ -36,7 +38,9 @@ function openWindow(id) {
   }
 
   windowLayer.hidden = false;
+  windowLayer.setAttribute("aria-hidden", "false");
   win.hidden = false;
+  win.setAttribute("aria-hidden", "false");
   log(`Opened ${id}.`);
 }
 
@@ -162,4 +166,5 @@ document.addEventListener("keydown", (event) => {
 });
 
 loadStatus();
+
 

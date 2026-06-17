@@ -1,4 +1,11 @@
-﻿:root {
+﻿
+/* Critical visibility rule.
+   Without this, .window-layer { display: grid; } overrides the browser's hidden attribute
+   and leaves a dark overlay blocking the entire operator console. */
+[hidden] {
+  display: none !important;
+}
+:root {
   --bg: #0f172a;
   --panel: #18233a;
   --panel-soft: #22304d;
@@ -359,3 +366,4 @@ pre {
   color: var(--muted);
   line-height: 1.5;
 }
+
