@@ -4,7 +4,8 @@
   const state = {
     rasterLines: [],
     currentLineIndex: 0,
-    runningRaster: false
+    runningRaster: false,
+    approachReady: false
   };
 
   function byId(id) {
@@ -12,13 +13,11 @@
   }
 
   function log(message) {
-    if (window.SPMConsoleLog) {
-      window.SPMConsoleLog(message);
-    }
+    if (window.SPMConsoleLog) window.SPMConsoleLog(message);
   }
 
   function getScanParams() {
-    const params = {
+    return new URLSearchParams({
       x_min: byId("scan-x-min").value,
       x_max: byId("scan-x-max").value,
       y_min: byId("scan-y-min").value,
@@ -29,9 +28,7 @@
       feedback_gain: byId("feedback-gain-main").value,
       surface: byId("scan-surface").value,
       serpentine: "true"
-    };
-
-    return new URLSearchParams(params);
+    });
   }
 
   async function checkScanProfile() {
@@ -43,7 +40,30 @@
       return;
     }
 
-    log(`Scan profile OK: ${payload.x_points} X points × ${payload.y_points} Y lines; ${payload.scan_principle}.`);
+    log(`Scan profile OK: ${payload.x_points} X points × ${payload.y_points} Y lines; ${payload.line_sequence}.`);
+  }
+
+  function defaultCenter() {
+    byId("measurement-status").textContent = "centered";
+    log("Default Center requested: future hardware phase will move XY to the configured center.");
+  }
+
+  function markApproachReady() {
+    state.approachReady = true;
+    byId("approach-status").textContent = "ready";
+    log("Z approach marked ready in simulation. Real Z approach will be connected in a later module.");
+  }
+
+  function pauseRaster() {
+    state.runningRaster = false;
+    byId("measurement-status").textContent = "paused";
+    log("Measurement paused.");
+  }
+
+  function stopRaster() {
+    state.runningRaster = false;
+    byId("measurement-status").textContent = "stopped";
+    log("Measurement stopped.");
   }
 
   function resetRaster() {
@@ -54,6 +74,7 @@
     byId("line-status").textContent = "0 / 0";
     byId("topography-status").textContent = "empty";
     byId("line-json").textContent = "No line scan yet.";
+    byId("measurement-status").textContent = "idle";
 
     redrawAll();
     log("Raster reset.");
@@ -66,10 +87,7 @@
     const response = await fetch(`/api/scan/line?${params.toString()}`);
     const payload = await response.json();
 
-    if (payload.status === "error") {
-      throw new Error(payload.message);
-    }
-
+    if (payload.status === "error") throw new Error(payload.message);
     return payload;
   }
 
@@ -78,6 +96,7 @@
 
     if (state.currentLineIndex >= yPoints) {
       log("Raster complete; no more Y lines.");
+      byId("measurement-status").textContent = "complete";
       return;
     }
 
@@ -92,22 +111,25 @@
     byId("topography-status").textContent = `${state.rasterLines.length} lines`;
     byId("line-json").textContent = JSON.stringify(line, null, 2);
 
-    drawLine(line, "line-canvas");
-    drawLine(line, "live-line-canvas");
-    drawTopography("topography-canvas");
-    drawTopography("live-topography-canvas");
-
+    redrawAll();
     log(`Line ${line.line_index + 1}/${line.line_count} scanned at Y=${line.y}; direction=${line.direction}.`);
   }
 
   async function runRasterSimulation() {
+    if (!state.approachReady) {
+      log("Measurement blocked: perform Z Approach first.");
+      byId("measurement-status").textContent = "blocked: approach first";
+      return;
+    }
+
     if (state.runningRaster) {
-      log("Raster simulation already running.");
+      log("Measurement already running.");
       return;
     }
 
     state.runningRaster = true;
-    log("Raster simulation started: X line scan → Y step → accumulated topography.");
+    byId("measurement-status").textContent = "running";
+    log("Measurement started: fixed-distance line scan → Y step → topography accumulation.");
 
     try {
       const yPoints = Number(byId("scan-y-points").value);
@@ -117,17 +139,37 @@
         await new Promise((resolve) => setTimeout(resolve, 80));
       }
 
-      log("Raster simulation complete.");
+      if (state.currentLineIndex >= yPoints) {
+        byId("measurement-status").textContent = "complete";
+        log("Measurement complete.");
+      }
     } catch (error) {
-      log(`Raster simulation failed: ${error.message}`);
+      byId("measurement-status").textContent = "error";
+      log(`Measurement failed: ${error.message}`);
     } finally {
       state.runningRaster = false;
     }
   }
 
-  function drawLine(line, canvasId) {
+  function lineValues(line, variant) {
+    if (!line) return [];
+
+    const values = line.points.map((p) => p.z_feedback);
+
+    if (variant === "x-minus" || variant === "y-minus") {
+      return [...values].reverse();
+    }
+
+    if (variant === "y-plus" || variant === "y-minus") {
+      return values.map((value, index) => value + 0.02 * Math.sin(index / 2));
+    }
+
+    return values;
+  }
+
+  function drawLine(line, canvasId, variant, title) {
     const canvas = byId(canvasId);
-    if (!canvas || !line) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     const w = canvas.width;
@@ -137,7 +179,14 @@
     ctx.fillStyle = "#020617";
     ctx.fillRect(0, 0, w, h);
 
-    const values = line.points.map((p) => p.z_feedback);
+    if (!line) {
+      ctx.fillStyle = "#9ca3af";
+      ctx.font = "16px Segoe UI";
+      ctx.fillText("No line scan yet.", 18, 35);
+      return;
+    }
+
+    const values = lineValues(line, variant);
     const min = Math.min(...values);
     const max = Math.max(...values);
     const range = Math.max(max - min, 1e-9);
@@ -148,7 +197,7 @@
 
     values.forEach((v, i) => {
       const x = (i / Math.max(values.length - 1, 1)) * (w - 40) + 20;
-      const y = h - 24 - ((v - min) / range) * (h - 48);
+      const y = h - 24 - ((v - min) / range) * (h - 55);
 
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
@@ -157,11 +206,11 @@
     ctx.stroke();
 
     ctx.fillStyle = "#e5e7eb";
-    ctx.font = "16px Segoe UI";
-    ctx.fillText(`Line ${line.line_index + 1}/${line.line_count} · Y=${line.y} · Z feedback`, 20, 24);
+    ctx.font = "15px Segoe UI";
+    ctx.fillText(title, 18, 24);
   }
 
-  function drawTopography(canvasId) {
+  function drawTopography(canvasId, variant, title) {
     const canvas = byId(canvasId);
     if (!canvas) return;
 
@@ -175,23 +224,27 @@
 
     if (state.rasterLines.length === 0) {
       ctx.fillStyle = "#9ca3af";
-      ctx.font = "18px Segoe UI";
-      ctx.fillText("No topography lines yet.", 24, 40);
+      ctx.font = "16px Segoe UI";
+      ctx.fillText("No topography lines yet.", 18, 35);
       return;
     }
 
-    const allHeights = state.rasterLines.flatMap((line) => line.points.map((p) => p.surface_height));
+    const rows = variant.includes("y-minus") ? [...state.rasterLines].reverse() : state.rasterLines;
+    const allHeights = rows.flatMap((line) => line.points.map((p) => p.surface_height));
     const min = Math.min(...allHeights);
     const max = Math.max(...allHeights);
     const range = Math.max(max - min, 1e-9);
 
-    const xPoints = state.rasterLines[0].points.length;
+    const xPoints = rows[0].points.length;
     const yLines = Number(byId("scan-y-points").value);
     const cellW = w / xPoints;
     const cellH = h / yLines;
 
-    state.rasterLines.forEach((line, rowIndex) => {
-      line.points.forEach((point, colIndex) => {
+    rows.forEach((line, rowIndex) => {
+      let points = line.points;
+      if (variant.includes("x-minus")) points = [...points].reverse();
+
+      points.forEach((point, colIndex) => {
         const normalized = (point.surface_height - min) / range;
         const hue = 250 - normalized * 190;
         const light = 25 + normalized * 35;
@@ -201,27 +254,35 @@
     });
 
     ctx.fillStyle = "#e5e7eb";
-    ctx.font = "16px Segoe UI";
-    ctx.fillText(`Accumulated topography: ${state.rasterLines.length}/${yLines} Y lines`, 20, 24);
+    ctx.font = "15px Segoe UI";
+    ctx.fillText(`${title}: ${state.rasterLines.length}/${yLines} lines`, 18, 24);
   }
 
   function redrawAll() {
     const latestLine = state.rasterLines[state.rasterLines.length - 1];
 
-    if (latestLine) {
-      drawLine(latestLine, "line-canvas");
-      drawLine(latestLine, "live-line-canvas");
-    }
+    drawLine(latestLine, "line-x-plus-canvas", "x-plus", "X+ line scan");
+    drawLine(latestLine, "line-x-minus-canvas", "x-minus", "X- line scan");
+    drawLine(latestLine, "line-y-plus-canvas", "y-plus", "Y+ line scan");
+    drawLine(latestLine, "line-y-minus-canvas", "y-minus", "Y- line scan");
+    drawLine(latestLine, "live-line-canvas", "x-plus", "Live X+ line scan");
 
-    drawTopography("topography-canvas");
-    drawTopography("live-topography-canvas");
+    drawTopography("topography-x-plus-canvas", "x-plus", "X+ topography");
+    drawTopography("topography-x-minus-canvas", "x-minus", "X- topography");
+    drawTopography("topography-y-plus-canvas", "y-plus", "Y+ topography");
+    drawTopography("topography-y-minus-canvas", "y-minus", "Y- topography");
+    drawTopography("live-topography-canvas", "x-plus", "Live topography");
   }
 
   window.SPMRaster = {
     checkScanProfile,
+    defaultCenter,
+    markApproachReady,
     resetRaster,
     stepOneLine,
     runRasterSimulation,
+    pauseRaster,
+    stopRaster,
     redrawAll
   };
 })();

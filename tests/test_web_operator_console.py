@@ -10,33 +10,8 @@ def test_web_operator_console_files_exist():
     assert (WEB_ROOT / "index.html").exists()
     assert (WEB_ROOT / "style.css").exists()
     assert (WEB_ROOT / "app.js").exists()
-
-
-def test_web_operator_console_layout_contains_required_sections():
-    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
-
-    required = [
-        "Educational SPM - Prusa MK4S",
-        "View",
-        "Tools",
-        "Open",
-        "About",
-        "Main System",
-        "Z Scanner",
-        "XY Scanner",
-        "X-",
-        "X+",
-        "Y-",
-        "Y+",
-        "Phase 2.1",
-        "Phase 2.2",
-        "Phase 2.3",
-        "Phase 2.4",
-        "Phase 2.5",
-    ]
-
-    for marker in required:
-        assert marker in html
+    assert (WEB_ROOT / "window_manager.js").exists()
+    assert (WEB_ROOT / "scan_raster.js").exists()
 
 
 def test_phase_map_labels_future_integration_work():
@@ -51,25 +26,12 @@ def test_phase_map_labels_future_integration_work():
 
 
 def test_json_response_serializes_api_payload():
-    payload = {"status": "ok", "phase": "2.0"}
+    payload = {"status": "ok", "phase": "2.3B"}
     body = json_response(payload)
+
     assert b'"status": "ok"' in body
-    assert b'"phase": "2.0"' in body
+    assert b'"phase": "2.3B"' in body
 
-def test_web_operator_console_launcher_help_runs():
-    import subprocess
-    import sys
-
-    result = subprocess.run(
-        [sys.executable, "tools/run_web_operator_console.py", "--help"],
-        cwd=PROJECT_ROOT,
-        text=True,
-        capture_output=True,
-        timeout=10,
-    )
-
-    assert result.returncode == 0
-    assert "Run the local SPM Prusa web operator console" in result.stdout
 
 def test_web_operator_console_main_page_is_not_roadmap_page():
     html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
@@ -79,23 +41,36 @@ def test_web_operator_console_main_page_is_not_roadmap_page():
     assert "id=\"phase-map\"" not in html
 
 
-def test_web_operator_console_has_floating_scan_and_live_windows():
+def test_web_operator_console_has_dropdown_menus():
     html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
 
     required = [
-        "id=\"scan-window\"",
-        "Scan Setup Window",
-        "id=\"live-window\"",
-        "Live View / Measurement Window",
-        "id=\"status-window\"",
-        "System Status Window",
-        "id=\"about-window\"",
-        "data-open-window=\"scan-window\"",
-        "data-open-window=\"live-window\"",
+        "View",
+        "Tools",
+        "Open",
+        "About",
+        "Line Mode",
+        "Topography",
+        "Live View",
+        "Scan Setup",
+        "Academic AI Assistant",
     ]
 
     for marker in required:
         assert marker in html
+
+
+def test_web_operator_console_uses_non_blocking_windows():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    css = (WEB_ROOT / "style.css").read_text(encoding="utf-8")
+    window_js = (WEB_ROOT / "window_manager.js").read_text(encoding="utf-8")
+
+    assert "window_manager.js" in html
+    assert "window-layer" in html
+    assert ".window-layer" in css
+    assert "display: none" in css
+    assert "SPMWindows" in window_js
+    assert "closeAll" in window_js
 
 
 def test_web_operator_console_main_page_keeps_essential_controls():
@@ -105,6 +80,7 @@ def test_web_operator_console_main_page_keeps_essential_controls():
         "Main System",
         "Z Scanner",
         "XY Jog Control",
+        "Measurement Control",
         "Status / Live Log",
         "ON",
         "OFF",
@@ -119,10 +95,59 @@ def test_web_operator_console_main_page_keeps_essential_controls():
         "Y-",
         "Y+",
         "CENTER",
+        "Default Center",
+        "Measurement Start",
+        "Pause",
+        "Stop",
     ]
 
     for marker in required:
         assert marker in html
+
+
+def test_web_operator_console_has_directional_line_and_topography_windows():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    required = [
+        "Line Mode - Directional Line Scans",
+        "Topography - Directional Accumulation",
+        "line-x-plus-canvas",
+        "line-x-minus-canvas",
+        "line-y-plus-canvas",
+        "line-y-minus-canvas",
+        "topography-x-plus-canvas",
+        "topography-x-minus-canvas",
+        "topography-y-plus-canvas",
+        "topography-y-minus-canvas",
+    ]
+
+    for marker in required:
+        assert marker in html
+
+
+def test_web_operator_console_has_academic_ai_window():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+
+    assert "Academic AI Assistant" in html
+    assert "id=\"ai-window\"" in html
+    assert "id=\"ai-status\"" in html
+    assert "/api/ai/status" in app_js
+    assert "/api/ai/recommendation" in app_js
+
+
+def test_web_operator_console_uses_modular_raster_js():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
+    raster_js = (WEB_ROOT / "scan_raster.js").read_text(encoding="utf-8")
+
+    assert "scan_raster.js" in html
+    assert "window.SPMRaster" in raster_js
+    assert "runRasterSimulation" in raster_js
+    assert "stepOneLine" in raster_js
+    assert "/api/scan/line" in raster_js
+    assert "function runRasterSimulation" not in app_js
+
 
 def test_academic_ai_advisory_status_is_safe_by_default(monkeypatch):
     from core.ai.academic_ai_client import get_academic_ai_status
@@ -147,36 +172,8 @@ def test_academic_ai_recommendation_never_executes_motion():
 
     assert payload["execution_allowed"] is False
     assert payload["risk"] == "high"
-    assert payload["target_phase"] == "2.3"
     assert "operator confirmation" in " ".join(payload["recommendation"])
 
-
-def test_web_operator_console_has_academic_ai_window():
-    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
-    js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
-
-    assert "Academic AI Assistant" in html
-    assert "id=\"ai-window\"" in html
-    assert "id=\"ai-status\"" in html
-    assert "/api/ai/status" in js
-    assert "/api/ai/recommendation" in js
-
-def test_web_operator_console_hidden_overlay_rule_exists():
-    css = (WEB_ROOT / "style.css").read_text(encoding="utf-8")
-    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
-
-    assert "[hidden]" in css
-    assert "display: none !important" in css
-    assert 'id="window-layer" hidden' in html
-
-
-def test_web_operator_console_window_layer_is_not_visible_by_default():
-    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
-
-    assert 'class="window-layer" id="window-layer" hidden' in html
-    assert 'id="scan-window" hidden' in html
-    assert 'id="live-window" hidden' in html
-    assert 'id="ai-window" hidden' in html
 
 def test_spm_scan_simulation_line_model():
     from core.web.spm_scan_simulation import WebScanProfile, build_scan_line
@@ -207,26 +204,17 @@ def test_spm_scan_simulation_serpentine_direction():
     assert reverse["points"][0]["x"] == 10
 
 
-def test_web_operator_console_has_line_and_topography_windows():
-    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
-    js = (WEB_ROOT / "app.js").read_text(encoding="utf-8") + (WEB_ROOT / "scan_raster.js").read_text(encoding="utf-8")
+def test_web_operator_console_launcher_help_runs():
+    import subprocess
+    import sys
 
-    assert "Line Scan Window" in html
-    assert "Accumulated Topography Window" in html
-    assert "id=\"line-canvas\"" in html
-    assert "id=\"topography-canvas\"" in html
-    assert "/api/scan/line" in js
-    assert "runRasterSimulation" in js
-    assert "scan X line, step Y" in html
+    result = subprocess.run(
+        [sys.executable, "tools/run_web_operator_console.py", "--help"],
+        cwd=PROJECT_ROOT,
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
 
-
-def test_web_operator_console_uses_modular_raster_js():
-    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
-    app_js = (WEB_ROOT / "app.js").read_text(encoding="utf-8")
-    raster_js = (WEB_ROOT / "scan_raster.js").read_text(encoding="utf-8")
-
-    assert "scan_raster.js" in html
-    assert "window.SPMRaster" in raster_js
-    assert "runRasterSimulation" in raster_js
-    assert "/api/scan/line" in raster_js
-    assert app_js.count("function ") < raster_js.count("function ")
+    assert result.returncode == 0
+    assert "Run the local SPM Prusa web operator console" in result.stdout

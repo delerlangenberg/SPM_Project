@@ -12,15 +12,45 @@
       <div class="brand-mark">SPM</div>
       <div>
         <h1>Educational SPM - Prusa MK4S</h1>
-        <p>Web Operator Console · Constant-Distance Raster Scan Model</p>
+        <p>Web Operator Console · Non-blocking measurement workspace</p>
       </div>
     </div>
 
-    <nav class="menu" aria-label="Main menu">
-      <button data-open-window="live-window">View</button>
-      <button data-open-window="ai-window">Tools</button>
-      <button data-open-window="scan-window">Open</button>
-      <button data-open-window="about-window">About</button>
+    <nav class="menu-bar" aria-label="Main menu">
+      <div class="menu-group">
+        <button class="menu-button">View</button>
+        <div class="dropdown">
+          <button data-open-window="line-window">Line Mode</button>
+          <button data-open-window="topography-window">Topography</button>
+          <button data-open-window="live-window">Live View</button>
+          <button data-open-window="status-window">System Status</button>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <button class="menu-button">Tools</button>
+        <div class="dropdown">
+          <button data-open-window="ai-window">Academic AI Assistant</button>
+          <button data-action="scan-profile">Check Scan Profile</button>
+          <button data-action="reset-raster">Reset Raster</button>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <button class="menu-button">Open</button>
+        <div class="dropdown">
+          <button data-open-window="scan-window">Scan Setup</button>
+          <button data-open-window="line-window">Line Mode</button>
+          <button data-open-window="topography-window">Topography</button>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <button class="menu-button">About</button>
+        <div class="dropdown">
+          <button data-open-window="about-window">About Project</button>
+        </div>
+      </div>
     </nav>
   </header>
 
@@ -79,7 +109,7 @@
 
       <div class="field-stack">
         <label>Z setpoint / fixed distance
-          <input id="z-setpoint-main" type="number" value="0.10" step="0.01" />
+          <input id="scan-z-setpoint" type="number" value="0.10" step="0.01" />
         </label>
         <label>Feedback gain
           <input id="feedback-gain-main" type="number" value="1.00" step="0.05" />
@@ -97,11 +127,9 @@
         <div></div>
         <button class="xy-square" data-action="y-plus">Y+</button>
         <div></div>
-
         <button class="xy-square" data-action="x-minus">X-</button>
         <button class="xy-square center" data-action="xy-center">CENTER</button>
         <button class="xy-square" data-action="x-plus">X+</button>
-
         <div></div>
         <button class="xy-square" data-action="y-minus">Y-</button>
         <div></div>
@@ -109,9 +137,38 @@
 
       <div class="control-grid">
         <button data-open-window="scan-window">Open Scan Setup</button>
-        <button data-open-window="live-window">Open Live View</button>
-        <button data-open-window="line-window">Line Scan Window</button>
-        <button data-open-window="topography-window">Topography Window</button>
+        <button data-open-window="line-window">Line Mode</button>
+        <button data-open-window="topography-window">Topography</button>
+        <button data-open-window="live-window">Live View</button>
+      </div>
+    </section>
+
+    <section class="panel measurement-panel" data-phase="2.3">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>Measurement Control</h2>
+      </div>
+
+      <p class="window-note">
+        Logic: center XY → approach Z → start measurement → line scan → Y step → accumulate topography.
+      </p>
+
+      <div class="control-grid measurement-controls">
+        <button data-action="default-center">Default Center</button>
+        <button class="primary" data-action="measurement-start">Measurement Start</button>
+        <button data-action="measurement-pause">Pause</button>
+        <button class="danger" data-action="measurement-stop">Stop</button>
+      </div>
+
+      <div class="mini-status-grid two-col">
+        <div class="mini-status">
+          <span>Z Approach</span>
+          <strong id="approach-status">not ready</strong>
+        </div>
+        <div class="mini-status">
+          <span>Measurement</span>
+          <strong id="measurement-status">idle</strong>
+        </div>
       </div>
     </section>
 
@@ -155,174 +212,182 @@
       </div>
 
       <div class="log" id="operator-log">
-        <p>[Phase 2.3] SPM raster model loaded: scan X line, step Y, accumulate topography.</p>
+        <p>[Phase 2.3B] Non-blocking SPM measurement workspace loaded.</p>
       </div>
     </section>
   </main>
 
-  <div class="window-layer" id="window-layer" hidden>
-    <section class="floating-window" id="scan-window" hidden>
-      <div class="window-header">
-        <div>
-          <span class="phase-tag">Phase 2.3</span>
-          <h2>Scan Setup Window</h2>
-        </div>
-        <button data-close-window>Close</button>
+  <div class="window-layer" id="window-layer" hidden></div>
+
+  <section class="floating-window" id="scan-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>Scan Setup Window</h2>
       </div>
+      <button data-close-window>Close</button>
+    </div>
 
-      <p class="window-note">
-        Raster principle: the probe keeps a fixed Z setpoint while X is scanned line by line.
-        After each X line, Y moves one step. The topography image is accumulated from all Z feedback lines.
-      </p>
+    <p class="window-note">
+      Raster principle: fixed Z setpoint while X is scanned line by line. After each X line, Y moves one step.
+    </p>
 
-      <div class="field-grid">
-        <label>X min
-          <input id="scan-x-min" type="number" value="20" />
-        </label>
-        <label>X max
-          <input id="scan-x-max" type="number" value="80" />
-        </label>
-        <label>Y min
-          <input id="scan-y-min" type="number" value="20" />
-        </label>
-        <label>Y max
-          <input id="scan-y-max" type="number" value="80" />
-        </label>
-        <label>X points
-          <input id="scan-x-points" type="number" value="64" />
-        </label>
-        <label>Y lines
-          <input id="scan-y-points" type="number" value="32" />
-        </label>
-        <label>Z setpoint
-          <input id="scan-z-setpoint" type="number" value="0.10" step="0.01" />
-        </label>
-        <label>Surface model
-          <select id="scan-surface">
-            <option value="sphere_on_plane">Sphere / half-ball on plane</option>
-            <option value="terrace">Terrace / step surface</option>
-            <option value="grid_atoms">Atomic grid demo</option>
-          </select>
-        </label>
+    <div class="field-grid">
+      <label>X min
+        <input id="scan-x-min" type="number" value="20" />
+      </label>
+      <label>X max
+        <input id="scan-x-max" type="number" value="80" />
+      </label>
+      <label>Y min
+        <input id="scan-y-min" type="number" value="20" />
+      </label>
+      <label>Y max
+        <input id="scan-y-max" type="number" value="80" />
+      </label>
+      <label>X points
+        <input id="scan-x-points" type="number" value="64" />
+      </label>
+      <label>Y lines
+        <input id="scan-y-points" type="number" value="32" />
+      </label>
+      <label>Surface model
+        <select id="scan-surface">
+          <option value="sphere_on_plane">Sphere / half-ball on plane</option>
+          <option value="terrace">Terrace / step surface</option>
+          <option value="grid_atoms">Atomic grid demo</option>
+        </select>
+      </label>
+      <label>Output file
+        <input value="data/web_scan_output.csv" />
+      </label>
+    </div>
+
+    <div class="control-grid window-controls">
+      <button data-action="scan-profile">Check Profile</button>
+      <button data-action="reset-raster">Reset Raster</button>
+      <button data-action="step-line">Step One Line</button>
+      <button class="primary" data-action="run-raster">Run Raster Simulation</button>
+    </div>
+  </section>
+
+  <section class="floating-window wide-window" id="line-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>Line Mode - Directional Line Scans</h2>
       </div>
+      <button data-close-window>Close</button>
+    </div>
 
-      <div class="control-grid window-controls">
-        <button data-action="scan-profile">Check Profile</button>
-        <button data-action="reset-raster">Reset Raster</button>
-        <button data-action="step-line">Step One Line</button>
-        <button class="primary" data-action="run-raster">Run Raster Simulation</button>
+    <div class="quad-view">
+      <div><h3>X+ line scan</h3><canvas id="line-x-plus-canvas" width="520" height="220"></canvas></div>
+      <div><h3>X- line scan</h3><canvas id="line-x-minus-canvas" width="520" height="220"></canvas></div>
+      <div><h3>Y+ line scan</h3><canvas id="line-y-plus-canvas" width="520" height="220"></canvas></div>
+      <div><h3>Y- line scan</h3><canvas id="line-y-minus-canvas" width="520" height="220"></canvas></div>
+    </div>
+
+    <pre id="line-json">No line scan yet.</pre>
+  </section>
+
+  <section class="floating-window wide-window" id="topography-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>Topography - Directional Accumulation</h2>
       </div>
-    </section>
+      <button data-close-window>Close</button>
+    </div>
 
-    <section class="floating-window large-window" id="line-window" hidden>
-      <div class="window-header">
-        <div>
-          <span class="phase-tag">Phase 2.3</span>
-          <h2>Line Scan Window</h2>
-        </div>
-        <button data-close-window>Close</button>
+    <div class="quad-view">
+      <div><h3>X+ topography</h3><canvas id="topography-x-plus-canvas" width="520" height="260"></canvas></div>
+      <div><h3>X- topography</h3><canvas id="topography-x-minus-canvas" width="520" height="260"></canvas></div>
+      <div><h3>Y+ topography</h3><canvas id="topography-y-plus-canvas" width="520" height="260"></canvas></div>
+      <div><h3>Y- topography</h3><canvas id="topography-y-minus-canvas" width="520" height="260"></canvas></div>
+    </div>
+  </section>
+
+  <section class="floating-window wide-window" id="live-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.4</span>
+        <h2>Live View / Measurement Window</h2>
       </div>
-      <canvas id="line-canvas" width="1000" height="260"></canvas>
-      <pre id="line-json">No line scan yet.</pre>
-    </section>
+      <button data-close-window>Close</button>
+    </div>
 
-    <section class="floating-window large-window" id="topography-window" hidden>
-      <div class="window-header">
-        <div>
-          <span class="phase-tag">Phase 2.3</span>
-          <h2>Accumulated Topography Window</h2>
-        </div>
-        <button data-close-window>Close</button>
+    <div class="dual-view">
+      <div>
+        <h3>Current X+ line scan</h3>
+        <canvas id="live-line-canvas" width="1000" height="220"></canvas>
       </div>
-      <canvas id="topography-canvas" width="1000" height="500"></canvas>
-      <p class="window-note">
-        Each row is one X line scan. The image grows after each Y step.
-      </p>
-    </section>
-
-    <section class="floating-window large-window" id="live-window" hidden>
-      <div class="window-header">
-        <div>
-          <span class="phase-tag">Phase 2.4</span>
-          <h2>Live View / Measurement Window</h2>
-        </div>
-        <button data-close-window>Close</button>
+      <div>
+        <h3>Accumulated X+ topography</h3>
+        <canvas id="live-topography-canvas" width="1000" height="360"></canvas>
       </div>
+    </div>
+  </section>
 
-      <div class="dual-view">
-        <div>
-          <h3>Current line scan</h3>
-          <canvas id="live-line-canvas" width="800" height="220"></canvas>
-        </div>
-        <div>
-          <h3>Topography accumulation</h3>
-          <canvas id="live-topography-canvas" width="800" height="360"></canvas>
-        </div>
+  <section class="floating-window" id="status-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.1</span>
+        <h2>System Status Window</h2>
       </div>
-    </section>
+      <button data-close-window>Close</button>
+    </div>
+    <pre id="status-json">{}</pre>
+  </section>
 
-    <section class="floating-window" id="status-window" hidden>
-      <div class="window-header">
-        <div>
-          <span class="phase-tag">Phase 2.1</span>
-          <h2>System Status Window</h2>
-        </div>
-        <button data-close-window>Close</button>
+  <section class="floating-window" id="ai-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.2</span>
+        <h2>Academic AI Assistant</h2>
       </div>
-      <pre id="status-json">{}</pre>
-    </section>
+      <button data-close-window>Close</button>
+    </div>
 
-    <section class="floating-window" id="ai-window" hidden>
-      <div class="window-header">
-        <div>
-          <span class="phase-tag">Phase 2.2</span>
-          <h2>Academic AI Assistant</h2>
-        </div>
-        <button data-close-window>Close</button>
+    <p class="window-note">
+      Academic AI is advisory-only. It may recommend approach, scanning, simulation, and diagnosis steps.
+      It cannot execute real MK4S motion.
+    </p>
+
+    <div class="field-stack">
+      <label>AI task
+        <select id="ai-task">
+          <option value="approach">Approach recommendation</option>
+          <option value="scan">Scan recommendation</option>
+          <option value="simulation">Simulation recommendation</option>
+          <option value="diagnosis">Diagnosis / explain current status</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="control-grid">
+      <button class="primary" data-action="ai-recommend">Get Recommendation</button>
+      <button data-action="ai-status">AI Status</button>
+    </div>
+
+    <pre id="ai-output">Academic AI advisory output will appear here.</pre>
+  </section>
+
+  <section class="floating-window" id="about-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.5</span>
+        <h2>About</h2>
       </div>
+      <button data-close-window>Close</button>
+    </div>
+    <p>
+      Educational SPM Prusa MK4S Web Operator Console.
+      Current focus: non-blocking scan-measurement workflow and modular windows.
+    </p>
+  </section>
 
-      <p class="window-note">
-        Academic AI is advisory-only. It may recommend approach, scanning, simulation,
-        and diagnosis steps. It cannot execute real MK4S motion.
-      </p>
-
-      <div class="field-stack">
-        <label>AI task
-          <select id="ai-task">
-            <option value="approach">Approach recommendation</option>
-            <option value="scan">Scan recommendation</option>
-            <option value="simulation">Simulation recommendation</option>
-            <option value="diagnosis">Diagnosis / explain current status</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="control-grid">
-        <button class="primary" data-action="ai-recommend">Get Recommendation</button>
-        <button data-action="ai-status">AI Status</button>
-      </div>
-
-      <pre id="ai-output">Academic AI advisory output will appear here.</pre>
-    </section>
-
-    <section class="floating-window" id="about-window" hidden>
-      <div class="window-header">
-        <div>
-          <span class="phase-tag">Phase 2.5</span>
-          <h2>About</h2>
-        </div>
-        <button data-close-window>Close</button>
-      </div>
-      <p>
-        Educational SPM Prusa MK4S Web Operator Console.
-        Current focus: Phase 2.3 constant-distance raster scanning model.
-      </p>
-    </section>
-  </div>
-
+  <script src="window_manager.js"></script>
   <script src="scan_raster.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
-
-

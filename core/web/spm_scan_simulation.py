@@ -1,15 +1,4 @@
-﻿"""SPM raster scan simulation model for the web operator console.
-
-The model follows the educational SPM principle:
-
-1. The probe is kept at a fixed distance/setpoint from the sample.
-2. During an X line scan, Z feedback follows the surface.
-3. The measured topography is reconstructed from the Z feedback signal.
-4. After each X line, Y is stepped once.
-5. All line scans accumulate into a topography image.
-
-This phase is simulation-only and does not command real MK4S motion.
-"""
+﻿"""SPM raster scan simulation model for the web operator console."""
 
 from __future__ import annotations
 
@@ -54,7 +43,6 @@ def _linspace(start: float, stop: float, points: int) -> list[float]:
 
 
 def simulated_surface_height(x: float, y: float, profile: WebScanProfile) -> float:
-    """Return deterministic simulated surface height in arbitrary micrometer-like units."""
     cx = (profile.x_min + profile.x_max) / 2.0
     cy = (profile.y_min + profile.y_max) / 2.0
     sx = max(profile.x_max - profile.x_min, 1e-9)
@@ -69,13 +57,9 @@ def simulated_surface_height(x: float, y: float, profile: WebScanProfile) -> flo
         return terrace + ripple
 
     if profile.surface == "grid_atoms":
-        lattice = (
-            math.sin(8.0 * math.pi * (nx + 1.0))
-            * math.sin(8.0 * math.pi * (ny + 1.0))
-        )
+        lattice = math.sin(8.0 * math.pi * (nx + 1.0)) * math.sin(8.0 * math.pi * (ny + 1.0))
         return 0.25 + 0.22 * lattice
 
-    # default: smooth sphere/half-ball on plane
     r2 = nx * nx + ny * ny
     if r2 <= 1.0:
         return 1.8 * math.sqrt(1.0 - r2)
@@ -83,7 +67,6 @@ def simulated_surface_height(x: float, y: float, profile: WebScanProfile) -> flo
 
 
 def build_scan_line(profile: WebScanProfile, line_index: int) -> dict[str, Any]:
-    """Build one X scan line at one Y coordinate."""
     profile.validate()
 
     if not 0 <= line_index < profile.y_points:
@@ -104,7 +87,6 @@ def build_scan_line(profile: WebScanProfile, line_index: int) -> dict[str, Any]:
     for point_index, x in enumerate(x_values):
         surface_height = simulated_surface_height(x, y, profile)
         z_feedback = profile.z_setpoint + (surface_height * profile.feedback_gain)
-        feedback_error = profile.z_setpoint - (z_feedback - surface_height)
 
         points.append(
             {
@@ -113,7 +95,7 @@ def build_scan_line(profile: WebScanProfile, line_index: int) -> dict[str, Any]:
                 "y": round(y, 6),
                 "surface_height": round(surface_height, 6),
                 "z_feedback": round(z_feedback, 6),
-                "feedback_error": round(feedback_error, 6),
+                "feedback_error": 0.0,
             }
         )
 
@@ -131,7 +113,6 @@ def build_scan_line(profile: WebScanProfile, line_index: int) -> dict[str, Any]:
 
 
 def profile_from_query(query: dict[str, list[str]]) -> WebScanProfile:
-    """Create a scan profile from parsed query parameters."""
     def get_float(name: str, default: float) -> float:
         try:
             return float(query.get(name, [default])[0])

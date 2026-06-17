@@ -22,30 +22,31 @@ PHASE_MAP: list[dict[str, str]] = [
         "phase": "2.0",
         "name": "Web operator console shell",
         "status": "implemented",
-        "purpose": "Create browser-based main workspace with menu, main controls, Z scanner controls, and XY scanner controls.",
+        "purpose": "Browser-based SPM Prusa operator console foundation.",
     },
     {
         "phase": "2.1",
         "name": "System power / professional layout cleanup",
         "status": "implemented",
-        "purpose": "Move roadmap to documentation and open scan/live/status/about tools as floating windows.",
+        "purpose": "Clean main page, status area, log area, and first operator controls.",
     },
     {
         "phase": "2.2",
         "name": "Z scanner / Academic AI advisory layer",
         "status": "implemented",
-        "purpose": "Add advisory-only AI assistant endpoints and GUI window.",
+        "purpose": "Advisory-only AI assistant and Z scanner shell.",
     },
     {
         "phase": "2.3",
-        "name": "XY scanner / SPM raster scan model",
+        "name": "XY scanner / non-blocking scan measurement windows",
         "status": "implemented",
-        "purpose": "Model constant-distance Z feedback line scans and accumulated topography.",
-    },    {
+        "purpose": "Non-blocking View/Open/Tools windows, line mode, topography, and measurement workflow shell.",
+    },
+    {
         "phase": "2.4",
-        "name": "Live scan / hardware-backed Z and XY integration",
+        "name": "Live scan / hardware-backed scan integration",
         "status": "planned",
-        "purpose": "Connect proven old project Z approach and XY scan services behind local safety gates.",
+        "purpose": "Connect proven old Z approach, XY raster, CSV, PNG, and Gwyddion export services.",
     },
     {
         "phase": "2.5",
@@ -77,7 +78,7 @@ class OperatorConsoleHandler(SimpleHTTPRequestHandler):
     def _send_error_json(self, message: str, status: int = 400) -> None:
         self._send_json({"status": "error", "message": message}, status=status)
 
-    def do_GET(self) -> None:  # noqa: N802 - required by http.server
+    def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
         route = parsed.path
@@ -87,7 +88,7 @@ class OperatorConsoleHandler(SimpleHTTPRequestHandler):
                 {
                     "project": "SPM Prusa MK4S",
                     "console": "web_operator_console",
-                    "phase": "2.3",
+                    "phase": "2.3B",
                     "status": "ok",
                     "hardware": {
                         "mk4s": "not_connected_stub",
@@ -97,6 +98,11 @@ class OperatorConsoleHandler(SimpleHTTPRequestHandler):
                     "safety": {
                         "real_motion_enabled": False,
                         "default_mode": "simulation_stub",
+                    },
+                    "measurement": {
+                        "approach_required_before_scan": True,
+                        "start_pause_stop": "simulation_shell",
+                        "default_center": "simulation_shell",
                     },
                     "scan_model": "constant_distance_z_feedback_raster",
                 }
@@ -167,4 +173,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -1,10 +1,7 @@
-﻿
-/* Critical visibility rule.
-   Without this, .window-layer { display: grid; } overrides the browser's hidden attribute
-   and leaves a dark overlay blocking the entire operator console. */
-[hidden] {
+﻿[hidden] {
   display: none !important;
 }
+
 :root {
   --bg: #0f172a;
   --panel: #18233a;
@@ -15,7 +12,6 @@
   --danger: #f97373;
   --ok: #34d399;
   --border: #334155;
-  --overlay: rgba(2, 6, 23, 0.76);
 }
 
 * {
@@ -39,7 +35,7 @@ body {
   background: rgba(15, 23, 42, 0.96);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 100;
 }
 
 .brand {
@@ -69,9 +65,34 @@ body {
   color: var(--muted);
 }
 
-.menu {
+.menu-bar {
   display: flex;
   gap: 10px;
+  align-items: center;
+}
+
+.menu-group {
+  position: relative;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 44px;
+  right: 0;
+  min-width: 230px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  z-index: 200;
+}
+
+.menu-group:hover .dropdown,
+.menu-group:focus-within .dropdown {
+  display: grid;
+  gap: 6px;
 }
 
 button {
@@ -105,10 +126,10 @@ button.danger {
 }
 
 .compact-workspace {
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-areas:
-    "main z xy"
-    "log log log";
+    "main z xy measurement"
+    "log log log log";
 }
 
 .panel {
@@ -122,6 +143,7 @@ button.danger {
 .main-panel { grid-area: main; }
 .z-panel { grid-area: z; }
 .xy-panel { grid-area: xy; }
+.measurement-panel { grid-area: measurement; }
 .log-panel { grid-area: log; }
 
 .panel-header,
@@ -172,7 +194,7 @@ button.danger {
 }
 
 .status-card p,
-.plot-placeholder p,
+.window-note,
 .log p {
   color: var(--muted);
   margin: 4px 0 0;
@@ -185,12 +207,10 @@ button.danger {
   margin: 14px 0;
 }
 
-.main-controls {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
+.main-controls,
+.measurement-controls,
 .window-controls {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .field-stack,
@@ -238,11 +258,27 @@ select {
   font-size: 12px;
 }
 
+.ai-strip {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  background: rgba(14, 165, 233, 0.10);
+  border: 1px solid #0ea5e9;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
 .mini-status-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.mini-status-grid.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .mini-status {
@@ -271,41 +307,57 @@ select {
 }
 
 .window-layer {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  z-index: 30;
-  display: grid;
-  place-items: center;
-  padding: 24px;
+  display: none;
 }
 
 .floating-window {
-  width: min(980px, 96vw);
-  max-height: 90vh;
+  position: fixed;
+  top: 130px;
+  left: 90px;
+  width: min(980px, 90vw);
+  max-height: 82vh;
   overflow: auto;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: 18px;
+  padding: 18px;
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+  z-index: 300;
 }
 
-.large-window {
-  width: min(1200px, 96vw);
+.wide-window {
+  width: min(1180px, 94vw);
 }
 
-.plot-placeholder {
-  min-height: 420px;
-  border: 1px dashed #64748b;
-  border-radius: 16px;
+.window-header {
+  cursor: move;
+  user-select: none;
+}
+
+.quad-view {
   display: grid;
-  place-items: center;
-  text-align: center;
-  background:
-    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px);
-  background-size: 24px 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.dual-view {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.quad-view h3,
+.dual-view h3 {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+canvas {
+  width: 100%;
+  background: #020617;
+  border: 1px solid var(--border);
+  border-radius: 14px;
 }
 
 pre {
@@ -315,15 +367,32 @@ pre {
   border-radius: 14px;
   padding: 14px;
   color: #dbeafe;
+  max-height: 260px;
+  overflow: auto;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1300px) {
+  .compact-workspace {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "main z"
+      "xy measurement"
+      "log log";
+  }
+
+  .mini-status-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
   .compact-workspace {
     grid-template-columns: 1fr;
     grid-template-areas:
       "main"
       "z"
       "xy"
+      "measurement"
       "log";
   }
 
@@ -332,38 +401,9 @@ pre {
     flex-direction: column;
   }
 
-  .main-controls,
-  .window-controls {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
+  .quad-view,
+  .field-grid,
   .mini-status-grid {
     grid-template-columns: 1fr;
   }
 }
-
-.ai-strip {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 12px;
-  background: rgba(14, 165, 233, 0.10);
-  border: 1px solid #0ea5e9;
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 14px;
-}
-
-.ai-strip span {
-  color: var(--muted);
-}
-
-.ai-strip strong {
-  color: #bae6fd;
-}
-
-.window-note {
-  color: var(--muted);
-  line-height: 1.5;
-}
-
