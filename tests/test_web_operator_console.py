@@ -252,3 +252,49 @@ def test_web_operator_console_measurement_workflow_requires_center_and_approach(
     assert "blocked: approach first" in raster_js
     assert "runToken" in raster_js
     assert "Raster loop interrupted" in raster_js
+
+def test_web_operator_console_view_items_are_real_new_tab_links():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    window_js = (WEB_ROOT / "window_manager.js").read_text(encoding="utf-8")
+
+    assert 'href="/?window=line-window&amp;standalone=1"' in html
+    assert 'href="/?window=topography-window&amp;standalone=1"' in html
+    assert 'href="/?window=live-window&amp;standalone=1"' in html
+    assert 'target="_blank"' in html
+    assert "window.open" not in window_js
+
+
+def test_web_operator_console_open_menu_has_no_view_duplicates():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    open_start = html.index('<button class="menu-button" type="button">Open</button>')
+    about_start = html.index('<button class="menu-button" type="button">About</button>')
+    open_block = html[open_start:about_start]
+
+    assert "Scan Setup" in open_block
+    assert "Line Mode" not in open_block
+    assert "Topography" not in open_block
+    assert "Z Feedback Live View" not in open_block
+
+
+def test_web_operator_console_live_view_is_z_only():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+
+    live_start = html.index('id="live-window"')
+    status_start = html.index('id="status-window"')
+    live_block = html[live_start:status_start]
+
+    assert "Z Feedback Live View" in live_block
+    assert "z-live-canvas" in live_block
+    assert "fixed-distance monitoring" in live_block
+    assert "Current X+ line scan" not in live_block
+    assert "Accumulated X+ topography" not in live_block
+
+
+def test_web_operator_console_has_separate_z_live_module():
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    z_js = (WEB_ROOT / "z_live.js").read_text(encoding="utf-8")
+
+    assert "z_live.js" in html
+    assert "window.SPMZLive" in z_js
+    assert "Z feedback" in z_js

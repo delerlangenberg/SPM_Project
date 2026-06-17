@@ -16,44 +16,38 @@
       </div>
     </div>
 
-    <nav class="menu-bar" aria-label="Main menu">
+    
+<nav class="menu-bar" aria-label="Main menu">
       <div class="menu-group">
-        <button class="menu-button">View</button>
+        <button class="menu-button" type="button">View</button>
         <div class="dropdown">
-          <button data-open-window="line-window">Line Mode</button>
-                    <button data-open-tab="line-window">Line Mode - New Tab</button>
-<button data-open-window="topography-window">Topography</button>
-                    <button data-open-tab="topography-window">Topography - New Tab</button>
-<button data-open-window="live-window">Live View</button>
-                    <button data-open-tab="live-window">Live View - New Tab</button>
-<button data-open-window="status-window">System Status</button>
-                  <button data-open-tab="status-window">System Status - New Tab</button>
-</div>
-      </div>
-
-      <div class="menu-group">
-        <button class="menu-button">Tools</button>
-        <div class="dropdown">
-          <button data-open-window="ai-window">Academic AI Assistant</button>
-          <button data-action="scan-profile">Check Scan Profile</button>
-          <button data-action="reset-raster">Reset Raster</button>
+          <a class="dropdown-link" data-open-tab="line-window" href="/?window=line-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Line Mode</a>
+          <a class="dropdown-link" data-open-tab="topography-window" href="/?window=topography-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Topography</a>
+          <a class="dropdown-link" data-open-tab="live-window" href="/?window=live-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Z Feedback Live View</a>
+          <a class="dropdown-link" data-open-tab="status-window" href="/?window=status-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">System Status</a>
         </div>
       </div>
 
       <div class="menu-group">
-        <button class="menu-button">Open</button>
+        <button class="menu-button" type="button">Tools</button>
         <div class="dropdown">
-          <button data-open-window="scan-window">Scan Setup</button>
-                    <button data-open-tab="scan-window">Scan Setup - New Tab</button>
-<button data-open-window="line-window">Line Mode</button>
-          <button data-open-window="topography-window">Topography</button>
+          <a class="dropdown-link" data-open-tab="ai-window" href="/?window=ai-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Academic AI Assistant</a>
+          <button data-action="scan-profile" type="button">Check Scan Profile</button>
+          <button data-action="reset-raster" type="button">Reset Raster</button>
         </div>
       </div>
 
       <div class="menu-group">
-        <button class="menu-button">About</button>
+        <button class="menu-button" type="button">Open</button>
         <div class="dropdown">
-          <button data-open-window="about-window">About Project</button>
+          <a class="dropdown-link" data-open-tab="scan-window" href="/?window=scan-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Scan Setup</a>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <button class="menu-button" type="button">About</button>
+        <div class="dropdown">
+          <a class="dropdown-link" data-open-tab="about-window" href="/?window=about-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">About Project</a>
         </div>
       </div>
     </nav>
@@ -141,10 +135,10 @@
       </div>
 
       <div class="control-grid">
-        <button data-open-window="scan-window">Open Scan Setup</button>
-        <button data-open-window="line-window">Line Mode</button>
-        <button data-open-window="topography-window">Topography</button>
-        <button data-open-window="live-window">Live View</button>
+        <a class="button-link" data-open-tab="scan-window" href="/?window=scan-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Open Scan Setup</a>
+        <a class="button-link" data-open-tab="line-window" href="/?window=line-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Line Mode</a>
+        <a class="button-link" data-open-tab="topography-window" href="/?window=topography-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Topography</a>
+        <a class="button-link" data-open-tab="live-window" href="/?window=live-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Z Live</a>
       </div>
     </section>
 
@@ -316,25 +310,33 @@
     </div>
   </section>
 
-  <section class="floating-window wide-window" id="live-window" hidden>
+  
+<section class="floating-window wide-window" id="live-window" hidden>
     <div class="window-header">
       <div>
         <span class="phase-tag">Phase 2.4</span>
-        <h2>Live View / Measurement Window</h2>
+        <h2>Z Feedback Live View</h2>
       </div>
-      <button data-close-window>Close</button>
+      <button data-close-window type="button">Close</button>
     </div>
 
-    <div class="dual-view">
-      <div>
-        <h3>Current X+ line scan</h3>
-        <canvas id="live-line-canvas" width="1000" height="220"></canvas>
+    <p class="window-note">
+      This window is only for Z feedback / fixed-distance monitoring.
+      Line scan and topography are separate measurement views.
+    </p>
+
+    <div class="z-live-grid">
+      <div class="readout">
+        <span>Current Z feedback</span>
+        <strong id="z-live-readout">--.-- mm</strong>
       </div>
-      <div>
-        <h3>Accumulated X+ topography</h3>
-        <canvas id="live-topography-canvas" width="1000" height="360"></canvas>
+      <div class="readout">
+        <span>Setpoint</span>
+        <strong id="z-live-setpoint">0.10 mm</strong>
       </div>
     </div>
+
+    <canvas id="z-live-canvas" width="1000" height="320"></canvas>
   </section>
 
   <section class="floating-window" id="status-window" hidden>
@@ -397,6 +399,7 @@
 
   <script src="window_manager.js"></script>
   <script src="scan_raster.js"></script>
+  <script src="z_live.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

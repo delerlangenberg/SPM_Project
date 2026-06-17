@@ -71,15 +71,9 @@
     }
 
     if (window.SPMRaster) window.SPMRaster.redrawAll();
-    log(`Opened ${id}.`);
-  }
+    if (window.SPMZLive) window.SPMZLive.redraw();
 
-  function openTab(id) {
-    const url = new URL(window.location.href);
-    url.searchParams.set("window", id);
-    url.searchParams.set("standalone", "1");
-    window.open(url.toString(), "_blank", "noopener,noreferrer");
-    log(`Opened ${id} in a new browser tab.`);
+    log(`Opened ${id}.`);
   }
 
   function close(win) {
@@ -119,10 +113,10 @@
       return;
     }
 
-    const openTabButton = event.target.closest("[data-open-tab]");
-    if (openTabButton) {
-      openTab(openTabButton.dataset.openTab);
+    const realTabLink = event.target.closest("a[data-open-tab]");
+    if (realTabLink) {
       closeMenus();
+      log(`Opening ${realTabLink.dataset.openTab} in a browser tab.`);
       return;
     }
 
@@ -156,7 +150,6 @@
 
   window.SPMWindows = {
     open,
-    openTab,
     closeAll
   };
 
