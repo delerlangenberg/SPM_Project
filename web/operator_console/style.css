@@ -481,3 +481,35 @@ body.standalone-window-mode .window-header {
   border-color: var(--border);
   background: rgba(148, 163, 184, 0.08);
 }
+
+/* Phase 2.2D scan planner */
+#spm-scan-plan-panel {
+  margin: 18px 0;
+}
+
+.spm-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.spm-plan-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.spm-plan-field input,
+.spm-plan-field select {
+  min-height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(148,163,184,.35);
+  padding: 6px 8px;
+}
+
+.spm-plan-output {
+  white-space: pre-wrap;
+  margin-top: 12px;
+}

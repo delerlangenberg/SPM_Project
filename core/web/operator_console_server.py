@@ -143,6 +143,12 @@ class OperatorConsoleHandler(SimpleHTTPRequestHandler):
             return
         # === Phase 2.2D smart main system routes end ===
         parsed = urlparse(self.path)
+
+        if parsed.path == "/api/scan/plan":
+            from core.web.spm_scan_plan_api import build_scan_plan_from_query
+            self._send_json(build_scan_plan_from_query(parsed.query))
+            return
+
         # Phase 2.2E health-test top route
         if parsed.path == "/api/system/health-test":
             from core.web.system_control import system_health_test
