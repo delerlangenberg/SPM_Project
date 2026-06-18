@@ -109,3 +109,47 @@ def build_scan_plan_summary(inp: ScanPlanInput) -> dict:
         "image_count": image_count,
         "estimated_seconds": total_points * inp.seconds_per_point,
     }
+
+def build_axis_positions(axis_min: float, axis_max: float, n: int, counts_per_mm: float) -> list[float]:
+    if n < 2:
+        return []
+    step = (axis_max - axis_min) / (n - 1)
+    return [round_axis_mm(axis_min + i * step, counts_per_mm) for i in range(n)]
+
+
+def _xy_points_for_x_line(x_values: list[float], y: float) -> list[dict]:
+    return [{"x_mm": x, "y_mm": y} for x in x_values]
+
+
+def _xy_points_for_y_line(x: float, y_values: list[float]) -> list[dict]:
+    return [{"x_mm": x, "y_mm": y} for y in y_values]
+
+
+def build_raster_preview(inp: ScanPlanInput) -> dict:
+    summary = build_scan_plan_summary(inp)
+    if not summary.get("ok"):
+        return summary
+
+    xs = build_axis_positions(inp.x_min, inp.x_max, inp.nx, X_COUNTS_PER_MM)
+    ys = build_axis_positions(inp.y_min, inp.y_max, inp.ny, Y_COUNTS_PER_MM)
+
+    preview = {
+        "ok": True,
+        "summary": summary,
+        "x_positions_mm": xs,
+        "y_positions_mm": ys,
+        "directions": [],
+        "first_lines": {},
+    }
+
+    if inp.mode in {"x_fast", "four_image"}:
+        preview["directions"] += ["x_plus", "x_minus"]
+        preview["first_lines"]["x_plus"] = _xy_points_for_x_line(xs, ys[0])
+        preview["first_lines"]["x_minus"] = _xy_points_for_x_line(list(reversed(xs)), ys[0])
+
+    if inp.mode in {"y_fast", "four_image"}:
+        preview["directions"] += ["y_plus", "y_minus"]
+        preview["first_lines"]["y_plus"] = _xy_points_for_y_line(xs[0], ys)
+        preview["first_lines"]["y_minus"] = _xy_points_for_y_line(xs[0], list(reversed(ys)))
+
+    return preview

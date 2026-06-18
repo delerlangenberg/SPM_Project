@@ -45,3 +45,27 @@ def test_resolution_constants():
     assert X_RESOLUTION_UM == 10.0
     assert Y_RESOLUTION_UM == 10.0
     assert Z_RESOLUTION_UM == 2.5
+
+from core.web.spm_scan_planner import build_raster_preview
+
+
+def test_raster_preview_four_image_directions():
+    preview = build_raster_preview(
+        ScanPlanInput(x_min=124.0, x_max=126.0, y_min=104.0, y_max=106.0, nx=3, ny=3)
+    )
+
+    assert preview["ok"] is True
+    assert preview["directions"] == ["x_plus", "x_minus", "y_plus", "y_minus"]
+    assert preview["first_lines"]["x_plus"][0] == {"x_mm": 124.0, "y_mm": 104.0}
+    assert preview["first_lines"]["x_plus"][-1] == {"x_mm": 126.0, "y_mm": 104.0}
+    assert preview["first_lines"]["x_minus"][0] == {"x_mm": 126.0, "y_mm": 104.0}
+
+
+def test_raster_preview_rounds_to_prusa_xy_resolution():
+    preview = build_raster_preview(
+        ScanPlanInput(x_min=124.003, x_max=124.043, y_min=104.004, y_max=104.044, nx=3, ny=3)
+    )
+
+    assert preview["ok"] is True
+    assert preview["x_positions_mm"] == [124.0, 124.02, 124.04]
+    assert preview["y_positions_mm"] == [104.0, 104.02, 104.04]
