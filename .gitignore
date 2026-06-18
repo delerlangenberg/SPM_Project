@@ -49,3 +49,5 @@ docs/hardware_logs/*.txt
 # Local hardware development logs and generated phase backups
 *.phase_2_2d_*backup
 *.phase_2_2d_*_backup
+# Generated hardware session logs
+/docs/hardware_logs/
