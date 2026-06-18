@@ -49,3 +49,13 @@ Phase 2.2A finding:
 - M119 did not report contact before the Z floor.
 - Therefore M119 must not be used as the STM contact detector.
 - Real auto-approach is blocked until a verified sensor/contact channel exists.
+
+Phase 2.2B model correction:
+- The scan is point-based, not image-based.
+- Each pixel requires Z approach, feedback/readout, recording, and movement.
+- X-fast scan produces X+ and X- directional topography images.
+- Y-fast scan produces Y+ and Y- directional topography images.
+- Full four-image mode requires both X-fast and Y-fast passes.
+- Live UI must show the current line and accumulating image after each line.
+- M119 is not a valid contact detector from Phase 2.2A.
+- Until a feedback channel is verified, approach is software-position only.
