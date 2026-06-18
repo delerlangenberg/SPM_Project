@@ -1,61 +1,59 @@
-﻿# Phase 2.2 Roadmap - Controlled Real Scan Path
+﻿# Phase 2.2 Roadmap - Z Scanner Control and Live Feedback
 
-Created: 2026-06-18 17:09:09
+Updated: 2026-06-18 19:06:52
 
-Starting baseline:
-- Phase 2.1 is closed.
-- Web console is clean.
-- Real hardware read-only connection works.
-- Short Health Test works.
-- 50% Health Test works.
-- Real Safe Retract works.
-- Hardware logs are ignored by git.
-- Git status was clean before Phase 2.2.
+Corrected scope:
+Phase 2.2 is only about the Z scanner.
 
 Phase 2.2 goal:
-Build a safe real scan pathway from scan parameters to verified hardware motion.
+Build a safe, visible, and configurable Z-scanner control layer before
+any real XY scan measurement is allowed.
 
 Phase 2.2A:
-- Inspect current scan/raster code.
-- Identify existing scan profile, scan launch, simulation, and web API paths.
-- Decide exact files for the scan executor patch.
+- Controlled Z auto-approach test.
+- Result: Z movement and retract worked.
+- M119 did not detect contact.
+- M119 must not be used as contact feedback.
 
 Phase 2.2B:
-- Add scan safety envelope validation.
-- Require safe Z before XY scan movement.
-- Block scan if outside configured safe range.
+- Software-position Z approach model.
+- User defines expected surface Z.
+- User defines clearance above surface in micrometers.
+- System computes target Z.
+- System rounds target Z to Prusa Z resolution.
 
 Phase 2.2C:
-- Add hardware scan skeleton.
-- Move XY raster only at safe Z.
-- Do not lower into contact.
-- Do not deploy probe.
-- Do not heat, home, or write printer settings.
+- Z scanner parameter UI:
+  - surface Z
+  - clearance µm
+  - fast guard distance
+  - fine step µm
+  - retract Z
+  - feedrates
 
 Phase 2.2D:
-- Stream scan progress into SPM LIVE LOG.
-- Save scan skeleton CSV.
-- Save scan path PNG/preview.
+- Live Z feedback window:
+  - current Z mm
+  - Count Z
+  - Prusa Z resolution
+  - µm above declared surface
+  - target clearance
+  - rounded executable Z
 
 Phase 2.2E:
-- Add optional sensor placeholder channel.
-- Prepare for later CR-Touch/probe/sensor integration.
+- Safe software Z approach button in the web UI.
+- No X/Y raster scan.
+- No contact claim unless a verified sensor channel exists.
 
-Rule:
-No uncontrolled movement, no homing, no heating, no probing deploy/stow.
+Blocked until later:
+- Real contact detection.
+- STM feedback.
+- XY raster scan.
+- Topography image generation.
 
-Phase 2.2A finding:
-- Controlled Z approach to the coin/foam test completed safely.
-- M119 did not report contact before the Z floor.
-- Therefore M119 must not be used as the STM contact detector.
-- Real auto-approach is blocked until a verified sensor/contact channel exists.
-
-Phase 2.2B model correction:
-- The scan is point-based, not image-based.
-- Each pixel requires Z approach, feedback/readout, recording, and movement.
-- X-fast scan produces X+ and X- directional topography images.
-- Y-fast scan produces Y+ and Y- directional topography images.
-- Full four-image mode requires both X-fast and Y-fast passes.
-- Live UI must show the current line and accumulating image after each line.
-- M119 is not a valid contact detector from Phase 2.2A.
-- Until a feedback channel is verified, approach is software-position only.
+Moved to Phase 2.3:
+- scan planner
+- raster preview
+- X+ / X- / Y+ / Y- images
+- scan-time estimate
+- line accumulation

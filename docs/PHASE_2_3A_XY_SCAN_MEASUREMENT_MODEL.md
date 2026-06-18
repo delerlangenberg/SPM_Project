@@ -1,4 +1,4 @@
-﻿# Phase 2.2B - SPM Scan Method Model
+﻿# Phase 2.3A - XY Scan Measurement Model
 
 Created: 2026-06-18 17:55:39
 
@@ -11,7 +11,7 @@ point-by-point. At each XY pixel, the Z scanner approaches the surface,
 a feedback/contact/signal value is evaluated, the point is recorded, and
 the scanner moves to the next point.
 
-Important safety conclusion from Phase 2.2A:
+Important safety conclusion from Phase 2.3A:
 - M119 did not detect contact during the coin/foam approach test.
 - Therefore M119 is not a valid contact detector for this setup.
 - Current approach can only be software-position approach.
@@ -174,16 +174,16 @@ The UI should display:
 - estimated time
 - expected output CSV and image files
 
-## Phase 2.2 Implementation Order
+## Phase 2.3 Implementation Order
 
-Phase 2.2B:
+Phase 2.3B:
 - Implement scan-parameter model.
 - Compute pixel pitch and Prusa-rounded coordinates.
 - Compute estimated scan time.
 - Generate raster preview.
 - No hardware movement.
 
-Phase 2.2C:
+Phase 2.3C:
 - Implement software Z approach as a reusable module.
 - Add Z feedback display:
   - real Z position
@@ -192,7 +192,7 @@ Phase 2.2C:
   - target clearance
   - rounded executable Z
 
-Phase 2.2D:
+Phase 2.3D:
 - Implement hardware scan skeleton:
   - XY raster movement at safe height
   - software Z approach per point
@@ -200,7 +200,14 @@ Phase 2.2D:
   - live line update
   - no real contact claim
 
-Phase 2.2E:
+Phase 2.3E:
 - Add verified sensor feedback channel.
 - Convert software-position approach into real feedback approach.
 - Enable real contact/setpoint point measurement only after validation.
+
+
+## Reclassification Note
+
+This document was created during early Phase 2.2 work, but it belongs to
+Phase 2.3 because it describes XY raster scan measurement. Phase 2.2 is now
+reserved for Z-scanner settings and live Z feedback only.
