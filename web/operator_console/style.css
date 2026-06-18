@@ -513,3 +513,44 @@ body.standalone-window-mode .window-header {
   white-space: pre-wrap;
   margin-top: 12px;
 }
+
+/* Phase 2.2E raster preview */
+#spm-raster-preview-panel {
+  margin: 18px 0;
+}
+
+.spm-raster-preview-output {
+  margin-top: 12px;
+}
+
+.spm-preview-summary,
+.spm-preview-direction {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.spm-preview-svg {
+  width: 100%;
+  max-width: 520px;
+  height: 170px;
+  border: 1px solid rgba(148,163,184,.35);
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.spm-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.spm-image-placeholder {
+  min-height: 90px;
+  border: 1px dashed rgba(148,163,184,.55);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
