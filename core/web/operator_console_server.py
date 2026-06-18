@@ -9,6 +9,14 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+# Phase 2.2E: script-launch import path fix
+from pathlib import Path as _SPM_Path
+import sys as _SPM_sys
+
+_SPM_PROJECT_ROOT = _SPM_Path(__file__).resolve().parents[2]
+if str(_SPM_PROJECT_ROOT) not in _SPM_sys.path:
+    _SPM_sys.path.insert(0, str(_SPM_PROJECT_ROOT))
+
 from core.ai.academic_ai_client import build_ai_recommendation, get_academic_ai_status
 from core.web.spm_scan_simulation import build_scan_line, profile_from_query, scan_profile_payload
 from core.web.system_control import dry_run_startup_plan, system_close, system_off, system_on, system_status
@@ -135,6 +143,15 @@ class OperatorConsoleHandler(SimpleHTTPRequestHandler):
             return
         # === Phase 2.2D smart main system routes end ===
         parsed = urlparse(self.path)
+        # Phase 2.2E health-test top route
+        if parsed.path == "/api/system/health-test":
+            from core.web.system_control import system_health_test
+            confirmed = "1" if "confirmed=1" in parsed.query else "0"
+            motion = "1" if "motion=1" in parsed.query else "0"
+            profile = "long" if "profile=long" in parsed.query else "short"
+            self._send_json(system_health_test(confirmed=confirmed, motion=motion, profile=profile))
+            return
+
         query = parse_qs(parsed.query)
         route = parsed.path
 

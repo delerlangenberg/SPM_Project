@@ -6,7 +6,7 @@
     connected: false,
     safeRetracted: true,
     appliedPort: localStorage.getItem("spmAppliedPort") || "",
-    appliedMode: localStorage.getItem("spmAppliedMode") || "hardware_readonly"
+    appliedMode: "hardware_readonly"
   };
 
   function log(level, event, details) {
@@ -14,6 +14,49 @@
       window.spmHardwareDevLog(level, event, details || {});
     } else {
       console.log("[SPM]", level, event, details || {});
+    }
+  }
+
+  // Phase 2.2E visible live-log repair
+  function visibleLogLine(line) {
+    const candidates = ["log", "live-log", "hardware-log", "hardware-dev-log"];
+    let el = null;
+
+    for (const id of candidates) {
+      el = document.getElementById(id);
+      if (el) break;
+    }
+
+    if (!el) {
+      el = Array.from(document.querySelectorAll("pre, textarea, code"))
+        .find((x) => String(x.textContent || x.value || "").includes("["));
+    }
+
+    const msg = String(line || "").trim();
+    if (!el || !msg) return;
+
+    if ("value" in el) {
+      el.value += msg + "\n";
+      el.scrollTop = el.scrollHeight;
+    } else {
+      el.textContent += msg + "\n";
+      el.scrollTop = el.scrollHeight;
+    }
+  }
+
+  function visibleLogPayload(json) {
+    const lines = [];
+    if (json && Array.isArray(json.log_lines)) lines.push(...json.log_lines);
+    if (json && json.hardware && Array.isArray(json.hardware.log_lines)) {
+      lines.push(...json.hardware.log_lines);
+    }
+
+    const seen = new Set();
+    for (const line of lines) {
+      const msg = String(line || "").trim();
+      if (!msg || seen.has(msg)) continue;
+      seen.add(msg);
+      visibleLogLine(msg);
     }
   }
 
@@ -32,7 +75,15 @@
           position: json.position,
           safe_retracted: json.safe_retracted
         });
+        
+        resetActionButtons();
         return json;
+      })
+      .catch((err) => {
+        resetActionButtons();
+        setConnectionState();
+        log("ERROR", "api_failed", { path, error: String(err) });
+        throw err;
       });
   }
 
@@ -92,9 +143,15 @@
 
     const base = {
       width: "100%",
+      height: "42px",
       minHeight: "42px",
+      maxHeight: "42px",
       borderRadius: "10px",
       color: "#e5f2ff",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      fontSize: "12px",
       fontWeight: "850",
       letterSpacing: "0.04em",
       cursor: "pointer",
@@ -170,16 +227,34 @@
     box.appendChild(row);
   }
 
+  // Phase 2.2E stable action-button reset
+  function resetActionButtons() {
+    const retract = document.getElementById("spm-main-safe-retract-button");
+    const health = document.getElementById("spm-main-health-test-button");
+
+    if (retract) {
+      retract.textContent = "SAFE RETRACT";
+      retract.disabled = false;
+    }
+
+    if (health) {
+      health.textContent = "HEALTH TEST";
+      health.disabled = false;
+    }
+  }
+
   function setConnectionState() {
     const connectBtn = document.getElementById("spm-main-connect-button");
     const disconnectBtn = document.getElementById("spm-main-disconnect-button");
 
     if (connectBtn) {
+      connectBtn.textContent = state.connected ? "CONNECTED" : "CONNECT";
       connectBtn.disabled = state.connected;
       connectBtn.style.opacity = state.connected ? "0.45" : "1.0";
     }
 
     if (disconnectBtn) {
+      disconnectBtn.textContent = "DISCONNECT";
       disconnectBtn.disabled = !state.connected;
       disconnectBtn.style.opacity = state.connected ? "1.0" : "0.45";
     }
@@ -225,6 +300,31 @@
     state.connected = false;
     state.safeRetracted = true;
     setConnectionState();
+    return json;
+  }
+
+  async function healthTest(profile = "short") {
+    const msg = [
+      "Health Test starts now.",
+      "",
+      "Clear the entire scan range.",
+      "The scanner dry-run will check X, Y, Z, printer head, and CR-Touch paths.",
+      "Real hardware tiny jogs will be sent: X +/-1 mm, Y +/-1 mm, Z +/-1 mm.",
+      "",
+      "Click OK to start."
+    ].join("\n");
+
+    if (!window.confirm(msg)) {
+      log("CANCEL", "health_test_cancelled_by_operator", {});
+      resetActionButtons();
+      setConnectionState();
+      return;
+    }
+
+    const json = await api("/api/system/health-test?confirmed=1&motion=1&profile=" + encodeURIComponent(profile));
+    for (const line of (json.log_lines || [])) {
+      log("HEALTH", "health_test_line", { line });
+    }
     return json;
   }
 
@@ -290,10 +390,19 @@
     const modeApply = makeApplyButton("Operating Mode");
     modeApply.onclick = async function () {
       state.appliedMode = modeSelect.value;
-      localStorage.setItem("spmAppliedMode", state.appliedMode);
+      /* mode is not persisted; prevents stale dry-run lock */
       await api("/api/system/config/mode?mode=" + encodeURIComponent(state.appliedMode));
     };
     addSelectRow(box, modeSelect, modeApply);
+
+    const healthBtn = makeButton("spm-main-health-test-button", "HEALTH TEST", "blue");
+    healthBtn.onclick = function(){ healthTest("short"); };
+    box.appendChild(healthBtn);
+
+    const longBtn = makeButton("spm-main-long-health-test-button", "50% TEST", "blue");
+    longBtn.onclick = function(){ healthTest("long"); };
+    box.appendChild(longBtn);
+
 
     const actionRow = document.createElement("div");
     css(actionRow, {
@@ -333,6 +442,33 @@
       return msg;
     }
   });
+
+
+  // Phase 2.2E responsive button feedback
+  document.addEventListener("click", function (ev) {
+    const btn = ev.target;
+    if (!btn || !btn.id) return;
+
+    if (btn.id === "spm-main-connect-button") {
+      btn.textContent = "CONNECTING";
+      btn.disabled = true;
+    }
+
+    if (btn.id === "spm-main-safe-retract-button") {
+      btn.textContent = "CHECKING";
+      btn.disabled = true;
+    }
+
+    if (btn.id === "spm-main-disconnect-button") {
+      btn.textContent = "DISCONNECT";
+      btn.disabled = true;
+    }
+
+    if (btn.id === "spm-main-health-test-button") {
+      btn.textContent = "RUNNING";
+      btn.disabled = true;
+    }
+  }, true);
 
   document.addEventListener("DOMContentLoaded", function () {
     setTimeout(installFinalMainSystem, 250);

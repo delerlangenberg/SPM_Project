@@ -443,6 +443,25 @@ def system_on(mode: str = "dry_run", port: str | None = None):
 
 
 def system_safe_retract():
+
+    # Phase 2.2E real safe retract motion
+    if _SPM_SYSTEM_STATE.get("mode") == "real_hardware_readonly":
+        if _spm_os.environ.get("SPM_WEB_ALLOW_HEALTH_MOTION") != "1":
+            return {"ok": False, "status": "blocked", "mode": "safe_retract_locked",
+                    "message": "Safe retract motion is locked by environment gate.",
+                    "log_lines": ["BLOCKED: motion gate is not enabled."]}
+
+        from core.web.mk4s_health_motion import run_mk4s_safe_retract
+        result = run_mk4s_safe_retract(port=_SPM_SYSTEM_STATE.get("port") or None)
+        ok = bool(result.get("ok"))
+        if ok:
+            _SPM_SYSTEM_STATE["safe_retracted"] = True
+        return {"ok": ok, "status": "safe_retracted" if ok else "blocked",
+                "mode": "real_hardware_readonly",
+                "message": "Real safe retract completed." if ok else "Real safe retract blocked.",
+                "port": result.get("port", ""),
+                "log_lines": result.get("log_lines", [])}
+
     if not _SPM_SYSTEM_STATE.get("connected"):
         payload = {
             **_base_payload(),
@@ -724,4 +743,65 @@ def system_disconnect(*args, **kwargs):
 if _spm_original_system_safe_retract is not None:
     def system_safe_retract(*args, **kwargs):
         return _spm_payload_compat(_spm_original_system_safe_retract(*args, **kwargs))
+
+
+# === Phase 2.2E health test dry-run backend ===
+
+def system_health_test(confirmed: str = "0", motion: str = "0", profile: str = "short"):
+    confirmed_text = str(confirmed).strip().lower()
+    if confirmed_text not in {"1", "true", "yes", "ok"}:
+        return {
+            "ok": False,
+            "status": "confirmation_required",
+            "mode": "health_test_dry_run",
+            "message": "Health Test requires operator confirmation first.",
+            "log_lines": ["Health Test blocked: operator confirmation missing."],
+        }
+
+
+    if str(motion).strip() == "1":
+        if _spm_os.environ.get("SPM_WEB_ALLOW_HEALTH_MOTION") != "1":
+            return {"ok": False, "status": "blocked", "mode": "health_motion_locked",
+                    "message": "Health motion is locked by environment gate.",
+                    "log_lines": ["BLOCKED: SPM_WEB_ALLOW_HEALTH_MOTION is not enabled."]}
+
+        if _SPM_SYSTEM_STATE.get("mode") != "real_hardware_readonly":
+            current = _SPM_SYSTEM_STATE.get("mode", "unknown")
+            return {"ok": False, "status": "blocked", "mode": current,
+                    "message": "Connect in READ-ONLY hardware mode before real Health Test.",
+                    "log_lines": [f"BLOCKED: current mode is {current}, not real_hardware_readonly."]}
+
+        from core.web.mk4s_health_motion import run_mk4s_health_motion
+        result = run_mk4s_health_motion(port=_SPM_SYSTEM_STATE.get("port") or None, profile=profile)
+        ok = bool(result.get("ok"))
+        return {"ok": ok, "status": "complete" if ok else "blocked",
+                "mode": "health_test_real_motion",
+                "message": "Real hardware Health Test completed." if ok else "Real hardware Health Test blocked.",
+                "port": result.get("port", ""),
+                "log_lines": result.get("log_lines", [])}
+
+    lines = [
+        "HEALTH TEST STARTED: dry-run / read-only mode only.",
+        "Operator confirmed: scan range must be clear before test.",
+        "No movement G-code is sent in this phase.",
+        "Planned scanner check: X negative direction.",
+        "Planned scanner check: X positive direction.",
+        "Planned scanner check: Y negative direction.",
+        "Planned scanner check: Y positive direction.",
+        "Planned scanner check: Z safe retract direction.",
+        "Printer head check: firmware, temperature, and position path.",
+        "CR-Touch check: read-only endstop/probe status path via M119.",
+        "Blocked until later phase: probe deploy/stow and real motion.",
+        "HEALTH TEST COMPLETE: dry-run plan logged successfully.",
+    ]
+
+    return {
+        "ok": True,
+        "status": "complete",
+        "mode": "health_test_dry_run",
+        "message": "Health Test dry-run completed. Review live log.",
+        "motion_allowed_this_phase": False,
+        "real_motion_enabled": False,
+        "log_lines": lines,
+    }
 
