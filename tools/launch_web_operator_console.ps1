@@ -1,68 +1,91 @@
-﻿param(
-    [int]$Port = 8787,
-    [switch]$NoBrowser
+param(
+    [int]$Port = 8787
 )
 
 $ErrorActionPreference = "Stop"
 
-$project = "D:\SPM_Prusa_Project"
-$python = Join-Path $project ".venv\Scripts\python.exe"
-$url = "http://127.0.0.1:$Port"
+# Phase 2.2D: allow safe real-hardware read-only handshake from browser Connect.
+# This does NOT allow motion, homing, heating, or printer writes.
+$env:SPM_WEB_ALLOW_READONLY_HARDWARE = "1"
 
-Set-Location $project
+$ProjectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Set-Location $ProjectRoot
+
+$PythonExe = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
+$ServerScript = Join-Path $ProjectRoot "core\web\operator_console_server.py"
+$Url = "http://127.0.0.1:$Port"
 
 Write-Host "=== SPM PRUSA WEB CONSOLE LAUNCHER ==="
 
-$connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-if ($connections) {
-    foreach ($c in $connections) {
-        Write-Host "Stopping existing server process: $($c.OwningProcess)"
-        Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue
+if (-not (Test-Path $PythonExe)) {
+    throw "Python virtual environment not found: $PythonExe"
+}
+
+if (-not (Test-Path $ServerScript)) {
+    throw "Web console server not found: $ServerScript"
+}
+
+# Stop any process already listening on the requested port.
+try {
+    $connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+} catch {
+    $connections = @()
+}
+
+$processIds = @($connections | Select-Object -ExpandProperty OwningProcess -Unique)
+
+foreach ($pidToStop in $processIds) {
+    if ($pidToStop -and $pidToStop -ne $PID) {
+        Write-Host "Stopping existing server process: $pidToStop"
+        Stop-Process -Id $pidToStop -Force -ErrorAction SilentlyContinue
     }
 }
 
-$stdout = Join-Path $env:TEMP "spm_web_console_stdout.txt"
-$stderr = Join-Path $env:TEMP "spm_web_console_stderr.txt"
+Start-Sleep -Milliseconds 500
 
-Remove-Item $stdout -Force -ErrorAction SilentlyContinue
-Remove-Item $stderr -Force -ErrorAction SilentlyContinue
+# Start web operator console.
+$argumentList = @(
+    $ServerScript,
+    "--port",
+    "$Port"
+)
 
-$server = Start-Process -FilePath $python `
-    -ArgumentList "tools\run_web_operator_console.py --host 127.0.0.1 --port $Port" `
-    -WorkingDirectory $project `
-    -RedirectStandardOutput $stdout `
-    -RedirectStandardError $stderr `
-    -WindowStyle Hidden `
-    -PassThru
+$process = Start-Process `
+    -FilePath $PythonExe `
+    -ArgumentList $argumentList `
+    -WorkingDirectory $ProjectRoot `
+    -PassThru `
+    -WindowStyle Hidden
 
-Write-Host "Server process id: $($server.Id)"
-Write-Host "URL: $url"
+Write-Host "Server process id: $($process.Id)"
+Write-Host "URL: $Url"
 
-$ok = $false
-for ($i = 1; $i -le 20; $i++) {
-    Start-Sleep -Milliseconds 500
+$serverReady = $false
+
+for ($attempt = 1; $attempt -le 20; $attempt++) {
+    Start-Sleep -Milliseconds 300
+
     try {
-        $response = Invoke-WebRequest -Uri "$url/api/status" -UseBasicParsing -TimeoutSec 2
-        if ($response.StatusCode -eq 200) {
-            Write-Host "Server OK after attempt: $i"
-            $ok = $true
+        $response = Invoke-WebRequest -Uri "$Url/api/status" -UseBasicParsing -TimeoutSec 2
+        if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) {
+            Write-Host "Server OK after attempt: $attempt"
+            $serverReady = $true
             break
         }
     } catch {
-        Write-Host "waiting_attempt_$i"
+        # Continue waiting.
+    }
+
+    if ($process.HasExited) {
+        throw "Server process exited early with code $($process.ExitCode)."
     }
 }
 
-if (-not $ok) {
-    Write-Host "SERVER FAILED"
-    Write-Host "=== STDERR ==="
-    if (Test-Path $stderr) { Get-Content $stderr -Raw }
-    exit 1
-}
-
-if (-not $NoBrowser) {
-    Start-Process $url
+if (-not $serverReady) {
+    throw "Server did not become ready at $Url"
 }
 
 Write-Host "To stop later:"
-Write-Host "Stop-Process -Id $($server.Id)"
+Write-Host "Stop-Process -Id $($process.Id)"
+
+Start-Process $Url

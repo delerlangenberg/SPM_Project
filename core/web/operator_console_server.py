@@ -80,6 +80,60 @@ class OperatorConsoleHandler(SimpleHTTPRequestHandler):
         self._send_json({"status": "error", "message": message}, status=status)
 
     def do_GET(self) -> None:  # noqa: N802
+        # === Phase 2.2D smart main system routes start ===
+        from urllib.parse import urlparse as _spm_urlparse, parse_qs as _spm_parse_qs
+        _spm_parsed = _spm_urlparse(self.path)
+        _spm_path = _spm_parsed.path
+        _spm_qs = _spm_parse_qs(_spm_parsed.query)
+        
+        def _spm_first(name, default=""):
+            values = _spm_qs.get(name, [])
+            return values[0] if values else default
+        
+        def _spm_send_json(payload, status_code=200):
+            import json as _spm_json
+            data = _spm_json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            self.send_response(status_code)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+        
+        if _spm_path == "/api/system/on":
+            from core.web.system_control import system_on
+            _spm_send_json(system_on(mode=_spm_first("mode", "dry_run"), port=_spm_first("port", "")))
+            return
+        
+        if _spm_path in {"/api/system/off", "/api/system/disconnect"}:
+            from core.web.system_control import system_disconnect
+            _spm_send_json(system_disconnect())
+            return
+        
+        if _spm_path in {"/api/system/safe-retract", "/api/system/safe_retract"}:
+            from core.web.system_control import system_safe_retract
+            _spm_send_json(system_safe_retract())
+            return
+        
+        if _spm_path == "/api/system/close":
+            from core.web.system_control import system_close
+            _spm_send_json(system_close())
+            return
+        
+        if _spm_path == "/api/system/status":
+            from core.web.system_control import system_status
+            _spm_send_json(system_status())
+            return
+        
+        if _spm_path == "/api/system/config/port":
+            from core.web.system_control import system_apply_port
+            _spm_send_json(system_apply_port(_spm_first("port", "")))
+            return
+        
+        if _spm_path == "/api/system/config/mode":
+            from core.web.system_control import system_apply_mode
+            _spm_send_json(system_apply_mode(_spm_first("mode", "hardware_readonly")))
+            return
+        # === Phase 2.2D smart main system routes end ===
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
         route = parsed.path

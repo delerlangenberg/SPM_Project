@@ -1,0 +1,364 @@
+=== PHASE 2.1H COMPACT READ-ONLY API INSPECTION ===
+
+SAFETY: report-only; no serial connection; no G-code; no motion.
+
+=== A: CANDIDATE SOURCE SYMBOLS AND READ-ONLY HITS ===
+
+--- core/system/hardware_information_exchange.py ---
+SYMBOLS:
+class HardwareInformationResult
+def assert_readonly_command(command)
+def action_commands(action)
+def run_with_transport(action, send_command)
+def run_real_information_exchange(action)
+def append_information_exchange_log(results, log_path)
+KEYWORD HITS:
+L4: allows information/status commands and rejects motion by construction.
+L14: import serial
+L16: from core.system.hardware_initialized_profile import get_motion_controller_settings
+L20: "IDENTITY": "M115",
+L21: "TEMPERATURE": "M105",
+L22: "ENDSTOPS": "M119",
+L23: "POSITION": "M114",
+L37: def assert_readonly_command(command: str) -> None:
+L41: raise ValueError(f"Forbidden motion/safety command in read-only layer: {command_clean}")
+L56: send_command: Callable[[str], list[str]],
+L60: assert_readonly_command(command)
+L61: lines = send_command(command)
+L87: def send(command: str) -> list[str]:
+L91: with serial.Serial(selected_port, selected_baudrate, timeout=timeout) as ser:
+L96: line = ser.readline().decode(errors="replace").strip()
+L103: return run_with_transport(action, send)
+
+--- core/system/hardware_startup_initializer.py ---
+SYMBOLS:
+class StartupCommandResult
+class HardwareStartupResult
+def run_readonly_hardware_startup(port, baudrate, timeout, settle_seconds)
+KEYWORD HITS:
+L1: """Read-only SPM hardware startup initializer.
+L5: - Opens confirmed serial port
+L6: - Sends only read-only commands
+L18: import serial
+L20: from core.system.hardware_initialized_profile import get_motion_controller_settings
+L23: READONLY_STARTUP_COMMANDS = ("M115", "M105", "M119")
+L42: def run_readonly_hardware_startup(
+L54: with serial.Serial(selected_port, selected_baudrate, timeout=timeout) as ser:
+L57: for command in READONLY_STARTUP_COMMANDS:
+L65: line = ser.readline().decode(errors="replace").strip()
+
+--- core/system/hardware_diagnostics.py ---
+SYMBOLS:
+class HardwareCheck
+  def ok(self)
+class HardwareDiagnosticReport
+  def passed(self)
+  def summary_lines(self)
+  def summary_text(self)
+def list_serial_ports()
+def check_serial_inventory(ignored_ports)
+def check_prusa_communication(config)
+def check_z_controller_status()
+def check_motion_envelope(config)
+def run_hardware_communication_report(config)
+KEYWORD HITS:
+L5: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+L11: status: str
+L17: return self.status == "PASS"
+L26: blocking_statuses = {"FAIL"}
+L27: return not any(check.status in blocking_statuses for check in self.checks)
+L32: lines.append(f"- {check.status}: {check.name} - {check.message}")
+L41: def list_serial_ports() -> list[str]:
+L43: from serial.tools import list_ports  # type: ignore
+L53: def check_serial_inventory(ignored_ports: tuple[str, ...] = ("COM4",)) -> HardwareCheck:
+L54: ports = list_serial_ports()
+L58: status="WARN",
+L59: message="No serial ports detected by pyserial.",
+L71: status="PASS" if active else "WARN",
+L72: message=f"{len(active)} active serial candidate(s), {len(ignored)} ignored.",
+L81: backend = PrusaGcodeBackend(
+L89: backend.connect()
+L90: firmware_lines = backend.send_gcode("M115", timeout=4.0)
+L91: position_lines = backend.send_gcode("M114", timeout=4.0)
+L95: name="Prusa MK4S XY motion controller",
+L96: status="FAIL",
+L100: backend.disconnect()
+L105: f"M115: {' | '.join(firmware_lines) if firmware_lines else 'no response text'}",
+L106: f"M114: {' | '.join(position_lines) if position_lines else 'no response text'}",
+L110: name="Prusa MK4S XY motion controller",
+L111: status="PASS",
+L117: def check_z_controller_status() -> HardwareCheck:
+L120: status="WARN",
+L121: message="Fine Z scanner communication is not part of the current MK4S-original hardware test.",
+L123: "Current hardware test uses the original Prusa MK4S X/Y/Z motion system.",
+L124: "Approach/feedback controls are dry-run training until the later Z subsystem is mounted and assigned a confirmed port.",
+
+--- core/application/hardware_test_console_gui.py ---
+SYMBOLS:
+class HardwareTestConsole
+  def __init__(self)
+  def build_header(self)
+  def build_smart_operator_panel(self)
+  def build_information_panel(self)
+  def build_motion_panel(self)
+  def wrap_group(self, title, widget)
+  def append_log(self, message)
+  def toggle_expert_controls(self)
+  def preview_information_action(self)
+  def run_information_action(self)
+  def run_smart_system_check(self)
+  def apply_smart_assessment(self, results)
+  def prepare_motion_test(self)
+  def run_real_position_read(self)
+  def update_position_status(self, response_lines)
+  def real_motion_unlocked(self)
+  def preview_motion_action(self)
+  def run_motion_action(self, action)
+  def show_about(self)
+def main()
+KEYWORD HITS:
+L63: self.expert_toggle.stateChanged.connect(self.toggle_expert_controls)
+L91: about_btn.clicked.connect(self.show_about)
+L95: "Smart hardware-test interface. Start with one autonomous read-only system check. The software assesses "
+L96: "connection, endstops, temperature/status, and XYZ position before suggesting the next action."
+L109: status_row = QHBoxLayout()
+L114: status_row.addWidget(self.smart_state, 2)
+L115: status_row.addWidget(self.smart_score, 1)
+L120: self.smart_details = QLabel("Self-assessment: waiting for real read-only data.")
+L127: smart_check_btn.clicked.connect(self.run_smart_system_check)
+L129: position_btn.clicked.connect(self.run_real_position_read)
+L131: prepare_btn.clicked.connect(self.prepare_motion_test)
+L136: layout.addLayout(status_row)
+L149: self.real_readonly_checkbox = QCheckBox("Run real read-only exchange on COM5")
+L150: self.real_readonly_checkbox.setToolTip("Sends only M115/M105/M119/M114. No motion commands.")
+L151: self.real_readonly_checkbox.setChecked(True)
+L152: self.connection_status = QLabel("Connection: not checked")
+L153: self.connection_status.setStyleSheet("font-weight: bold; border: 1px solid #b0bec5; padding: 8px;")
+L154: self.position_status = QLabel("XYZ position: not checked")
+L155: self.position_status.setStyleSheet("border: 1px solid #b0bec5; background: #ffffff; padding: 8px;")
+L161: preview_btn.clicked.connect(self.preview_information_action)
+L163: run_btn.clicked.connect(self.run_information_action)
+L164: read_xyz_btn = QPushButton("Read Current XYZ - Real Safe")
+L165: read_xyz_btn.clicked.connect(self.run_real_position_read)
+L169: layout.addWidget(self.real_readonly_checkbox)
+L170: layout.addWidget(self.connection_status)
+L171: layout.addWidget(self.position_status)
+L174: layout.addWidget(read_xyz_btn)
+L178: self.info_action.currentTextChanged.connect(self.preview_information_action)
+L188: self.motion_action.currentTextChanged.connect(self.preview_motion_action)
+L193: self.step_mm.valueChanged.connect(self.preview_motion_action)
+
+--- tools/phase7_readonly_hardware_probe.py ---
+SYMBOLS:
+def send_readonly(command)
+KEYWORD HITS:
+L2: import serial
+L4: PORT = "COM5"
+L8: ser = serial.Serial(PORT, BAUD, timeout=2)
+L11: def send_readonly(command: str):
+L19: line = ser.readline().decode(errors="replace").strip()
+L23: send_readonly("M115")   # firmware/info only
+L24: send_readonly("M105")   # temperature/status only
+L25: send_readonly("M119")   # endstop/status only
+L29: print("Closed serial port safely.")
+
+--- tools/phase8_xyz_readonly_status.py ---
+SYMBOLS:
+def send(command)
+KEYWORD HITS:
+L5: import serial
+L10: from core.system.hardware_initialized_profile import get_motion_controller_settings
+L17: ser = serial.Serial(port, baudrate, timeout=2)
+L20: def send(command):
+L28: line = ser.readline().decode(errors="replace").strip()
+L34: send("M114")
+L35: send("M119")
+L36: send("M105")
+L40: print("Closed serial port safely.")
+
+--- tools/prusa_ping.py ---
+SYMBOLS:
+def main()
+KEYWORD HITS:
+L3: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+L7: ap = argparse.ArgumentParser(description="Prusa MK4S safe ping (no motion).")
+L8: ap.add_argument("--port", default=None, help="Serial port, e.g. /dev/ttyACM0 or COM5")
+L13: help="Disable serial auto-detection and require --port.",
+L17: backend = PrusaGcodeBackend(
+L25: backend.connect()
+L27: print(f"Connected: {state.get('connected')} on {state.get('port')}")
+L30: print(">> M115")
+L31: for line in backend.send_gcode("M115", timeout=4.0):
+L34: print("\n>> M114")
+L35: for line in backend.send_gcode("M114", timeout=4.0):
+L45: backend.disconnect()
+
+--- tools/query_mk4s_machine_limits.py ---
+SYMBOLS:
+def main()
+KEYWORD HITS:
+L11: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+L17: backend = PrusaGcodeBackend(
+L25: ("Firmware", "M115"),
+L26: ("Current position", "M114"),
+L27: ("Endstop status", "M119"),
+L33: backend.connect()
+L34: print("MK4S no-motion machine information query")
+L40: lines = backend.send_gcode(command, timeout=5.0)
+L54: backend.disconnect()
+
+--- tools/phase8_read_machine_limits.py ---
+SYMBOLS:
+def send(command, wait)
+KEYWORD HITS:
+L4: import serial
+L9: from core.system.hardware_initialized_profile import get_motion_controller_settings
+L12: ser = serial.Serial(settings["port"], int(settings["baudrate"]), timeout=2)
+L15: def send(command, wait=1.0):
+L22: line = ser.readline().decode(errors="replace").strip()
+L28: send("M115")
+L29: send("M503")   # report stored firmware settings, read-only
+L30: send("M211")   # report software endstops if supported, read-only
+L31: send("M114")
+L35: print("Closed serial port safely.")
+
+=== B: RELATED TEST EXPECTATIONS ===
+
+--- tests/test_hardware_information_exchange.py ---
+L1: import subprocess
+L2: import sys
+L4: import pytest
+L6: from core.system.hardware_information_exchange import (
+L14: def test_readonly_hardware_actions_are_information_only():
+L15: assert READONLY_HARDWARE_ACTIONS == {
+L16: "IDENTITY": "M115",
+L17: "TEMPERATURE": "M105",
+L18: "ENDSTOPS": "M119",
+L19: "POSITION": "M114",
+L25: def test_motion_commands_are_rejected_from_information_layer():
+L31: def test_action_commands_expands_all_in_safe_order():
+L32: assert action_commands("ALL") == [
+L33: ("IDENTITY", "M115"),
+L34: ("TEMPERATURE", "M105"),
+L35: ("ENDSTOPS", "M119"),
+L36: ("POSITION", "M114"),
+L40: def test_run_with_transport_returns_structured_results():
+L49: assert sent == ["M114"]
+L50: assert len(results) == 1
+L51: assert results[0].action == "POSITION"
+L52: assert results[0].command == "M114"
+L53: assert results[0].success is True
+L56: def test_hardware_information_cli_defaults_to_no_serial_dry_run():
+L65: assert result.returncode == 0
+L66: assert "DRY RUN ONLY" in result.stdout
+L67: assert "plan: IDENTITY -> M115" in result.stdout
+L68: assert "plan: POSITION -> M114" in result.stdout
+
+--- tests/test_hardware_startup_initializer.py ---
+L1: from core.system.hardware_startup_initializer import (
+L8: def test_readonly_startup_commands_are_safe():
+L9: assert READONLY_STARTUP_COMMANDS == ("M115", "M105", "M119")
+L10: assert "G28" not in READONLY_STARTUP_COMMANDS
+L11: assert "G1" not in READONLY_STARTUP_COMMANDS
+L12: assert "M17" not in READONLY_STARTUP_COMMANDS
+L15: def test_startup_result_success_is_structured():
+L23: command="M115",
+L25: response_lines=["FIRMWARE_NAME:Prusa-Firmware-Buddy", "ok"],
+L30: assert result.success is True
+L31: assert result.port == "COM5"
+L32: assert result.baudrate == 115200
+L33: assert result.command_results[0].command == "M115"
+
+--- tests/test_hardware_diagnostics.py ---
+L1: from core.system.hardware_diagnostics import (
+L6: from core.education.config_loader import load_config
+L9: def test_hardware_report_fails_on_failed_check():
+L17: assert report.passed is False
+L18: assert "FAIL: B - bad" in report.summary_text()
+L21: def test_hardware_report_allows_warning_for_known_missing_z_controller():
+L29: assert report.passed is True
+L30: assert "Overall: PASS" in report.summary_text()
+L33: def test_motion_envelope_check_reports_configured_limits():
+L36: assert check.status == "PASS"
+L37: assert "Original MK4S machine limits" in check.message
+L38: assert any("Machine limits" in detail for detail in check.details)
+L39: assert any("SPM-safe" in detail for detail in check.details)
+
+--- tests/test_hardware_startup_cli_real.py ---
+L1: import subprocess
+L2: import sys
+L5: def test_hardware_startup_cli_module_exists_and_help_is_not_required():
+L14: assert result.returncode == 0
+L15: assert "success=True" in result.stdout
+L16: assert "port=COM5" in result.stdout
+L17: assert ">>> M115" in result.stdout
+L18: assert ">>> M105" in result.stdout
+L19: assert ">>> M119" in result.stdout
+
+--- tests/test_workstation_initializer.py ---
+L1: from core.system.hardware_diagnostics import HardwareCheck, HardwareDiagnosticReport
+L2: from core.system.hardware_information_exchange import HardwareInformationResult
+L3: from core.system.workstation_initializer import run_workstation_initialization
+L27: info_result("IDENTITY", "M115", ["FIRMWARE_NAME: Prusa-Firmware-Buddy", "ok"]),
+L28: info_result("TEMPERATURE", "M105", ["ok T:24.0 /0.0 B:23.0 /0.0"]),
+L29: info_result("ENDSTOPS", "M119", ["x_min: open", "y_min: open", "z_min: open", "ok"]),
+L30: info_result("POSITION", "M114", ["X:125.00 Y:105.00 Z:120.00 E:0.00", "ok"]),
+L34: def test_workstation_initialization_passes_with_diagnostics_assessment_and_z_ready():
+L35: report = HardwareDiagnosticReport((HardwareCheck("MK4S", "PASS", "ok"),))
+L44: assert result.passed is True
+L45: assert result.ready_state == "SYSTEM READY"
+L46: assert result.z_ready is True
+L47: assert result.assessment.score == 100
+L48: assert any("Z scanner layer: READY" in line for line in result.summary_lines)
+L51: def test_workstation_initialization_fails_when_diagnostic_fails():
+L52: report = HardwareDiagnosticReport((HardwareCheck("MK4S", "FAIL", "no response"),))
+L61: assert result.passed is False
+L62: assert result.ready_state == "INITIALIZATION FAILED"
+L63: assert result.assessment.readiness == "READY_FOR_SUPERVISED_MOTION"
+
+--- tests/test_hardware_command_bus.py ---
+L1: from core.hardware.hardware_command_bus import SimulatedHardwareCommandBus
+L4: def test_power_on_off_info_exchange():
+L8: assert info_before.success is True
+L9: assert "POWER=OFF" in info_before.response
+L12: assert power_on.success is True
+L13: assert power_on.response == "OK: POWER ON"
+L16: assert "POWER=ON" in info_after.response
+L19: assert power_off.success is True
+L20: assert power_off.response == "OK: POWER OFF"
+L23: def test_safe_stop_forces_power_off():
+L29: assert result.success is True
+L30: assert bus.powered_on is False
+L31: assert "SAFE STOP" in result.response
+L34: def test_unknown_command_fails_safely():
+L39: assert result.success is False
+L40: assert "UNKNOWN COMMAND" in result.response
+L41: assert bus.powered_on is False
+
+--- tests/motion/test_prusa_backend.py ---
+L1: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+L2: import pytest
+L5: def test_parse_m114_extracts_xyz():
+L6: b = PrusaGcodeBackend(port="/dev/null", auto_detect_port=False)
+L8: assert parsed["x"] == 10.5
+L9: assert parsed["y"] == 20.25
+L10: assert parsed["z"] == -0.3
+L13: def test_move_to_rejects_out_of_limits(monkeypatch):
+L14: b = PrusaGcodeBackend(
+L31: def test_move_to_updates_cached_position(monkeypatch):
+L32: b = PrusaGcodeBackend(port="/dev/null", auto_detect_port=False)
+L39: assert state["position"]["x"] == 12.0
+L40: assert state["position"]["y"] == 5.5
+
+--- tests/motion/test_prusa_connect.py ---
+L1: import pytest
+L3: from core.motion.prusa_gcode_backend import PrusaGcodeBackend
+L6: def test_prusa_connect_missing_port_raises():
+L7: b = PrusaGcodeBackend(port="COM_DOES_NOT_EXIST_9999")
+
+=== C: LIKELY SAFE INTEGRATION DECISION ===
+Use only a read-only/status wrapper first.
+Do not call any function that sends serial commands from the web server until an explicit real-hardware gate is added.
+Preferred first target is whichever module exposes pure data/status functions and has tests.
+
+=== PHASE 2.1H COMPACT INSPECTION COMPLETE ===

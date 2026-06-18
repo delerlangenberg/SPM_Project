@@ -1,4 +1,4 @@
-﻿// legacy dry-run endpoint marker for tests: /api/system/on?mode=dry_run
+// legacy dry-run endpoint marker for tests: /api/system/on?mode=dry_run
 const logEl = document.getElementById("operator-log");
 const stateEl = document.getElementById("system-state");
 const detailEl = document.getElementById("system-detail");
@@ -92,7 +92,7 @@ async function callSystemApi(endpoint, label) {
     log(`${label}: ${payload.message || payload.status || "ok"}`);
 
     if (payload.dry_run_plan && payload.dry_run_plan.length && label !== "System OFF" && label !== "System CLOSE") {
-      log(`Dry-run startup plan: ${payload.dry_run_plan.join(" | ")}`);
+      log(`Real hardware startup handshake: ${payload.dry_run_plan.join(" | ")}`);
     }
 
     if (payload.hardware_information_status) {

@@ -40,3 +40,12 @@ htmlcov/
 *.swp
 *.swo
 # --- Virtual environments ---
+
+# Local hardware transcripts may contain device identifiers.
+docs/hardware_logs/*.txt
+
+*.phase_2_2b_backup
+*.phase_2_2c_backup
+# Local hardware development logs and generated phase backups
+*.phase_2_2d_*backup
+*.phase_2_2d_*_backup
