@@ -78,3 +78,10 @@ Thumbs.db
 # Backups
 backups/
 *.zip
+
+# API keys
+config/deepseek_key.txt
+*.key
+
+# Calibration data
+config/spm_calibration.json
