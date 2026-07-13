@@ -13,3 +13,7 @@ def test_crtouch_probe_plan_defaults_to_disabled_real_hardware():
     assert "slow Z movement" in plan.safety_summary()
     assert "manual" in plan.test_sequence_summary()
     assert "magnet position" in plan.test_sequence_summary()
+    assert "CRTouch_SPM_FINAL_Project.docx" in plan.readiness_summary()
+    assert "steel needle" in plan.integration_checklist()
+    assert "M119" in plan.integration_checklist()
+    assert "full retract" in plan.integration_checklist()

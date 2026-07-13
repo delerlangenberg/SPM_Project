@@ -1,5 +1,6 @@
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -77,6 +78,15 @@ def test_hardware_test_control_cli_defaults_to_no_motion_dry_run():
     assert "DRY RUN ONLY" in result.stdout
     assert "G1 Z120.00 F300" in result.stdout
     assert "G1 X125.00 Y105.00 F600" in result.stdout
+
+
+def test_web_safe_standby_targets_default_center_and_z():
+    source = Path("core/web/mk4s_health_motion.py").read_text(encoding="utf-8")
+
+    assert "SAFE_STANDBY_X = 125.0" in source
+    assert "SAFE_STANDBY_Y = 105.0" in source
+    assert "SAFE_STANDBY_Z = 120.0" in source
+    assert "SAFE STANDBY COMPLETE" in source
 
 
 def test_hardware_test_log_flattens_newlines(tmp_path):

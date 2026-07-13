@@ -96,7 +96,7 @@ def test_web_operator_console_main_page_keeps_essential_controls():
         "Y+",
         "CENTER",
         "Default Center",
-        "Measurement Start",
+        "Start Scanning",
         "Pause",
         "Stop",
     ]
@@ -156,6 +156,7 @@ def test_academic_ai_advisory_status_is_safe_by_default(monkeypatch):
     monkeypatch.delenv("ACADEMIC_AI_API_KEY", raising=False)
     monkeypatch.delenv("ACADEMIC_AI_MODEL", raising=False)
     monkeypatch.delenv("ACADEMIC_AI_ASSISTANT_ID", raising=False)
+    monkeypatch.setenv("ACADEMIC_AI_DISABLE_LOCAL_FILE", "1")
 
     status = get_academic_ai_status()
 
@@ -165,9 +166,10 @@ def test_academic_ai_advisory_status_is_safe_by_default(monkeypatch):
     assert "cannot execute machine motion directly" in status.safety_rule
 
 
-def test_academic_ai_recommendation_never_executes_motion():
+def test_academic_ai_recommendation_never_executes_motion(monkeypatch):
     from core.ai.academic_ai_client import build_ai_recommendation
 
+    monkeypatch.setenv("ACADEMIC_AI_DISABLE_LOCAL_FILE", "1")
     payload = build_ai_recommendation("approach")
 
     assert payload["execution_allowed"] is False
@@ -198,10 +200,30 @@ def test_spm_scan_simulation_serpentine_direction():
     forward = build_scan_line(profile, line_index=0)
     reverse = build_scan_line(profile, line_index=1)
 
-    assert forward["direction"] == "forward"
-    assert reverse["direction"] == "reverse"
+    assert forward["direction"] == "X+"
+    assert reverse["direction"] == "X-"
     assert forward["points"][0]["x"] == 0
     assert reverse["points"][0]["x"] == 10
+
+
+def test_spm_scan_simulation_supports_bravais_lattice_surface():
+    from core.web.spm_scan_simulation import WebScanProfile, build_scan_line
+
+    profile = WebScanProfile(
+        x_min=0,
+        x_max=20,
+        y_min=0,
+        y_max=20,
+        x_points=12,
+        y_points=3,
+        surface="bravais_lattice",
+    )
+    line = build_scan_line(profile, line_index=1)
+    heights = [point["surface_height"] for point in line["points"]]
+
+    assert line["x_points"] == 12
+    assert max(heights) > min(heights)
+    assert all(point["z_feedback"] >= profile.z_setpoint for point in line["points"])
 
 
 def test_web_operator_console_launcher_help_runs():
@@ -481,3 +503,163 @@ def test_app_does_not_log_startup_plan_for_off_close():
 
     assert 'label !== "System OFF"' in app_js
     assert 'label !== "System CLOSE"' in app_js
+
+
+def test_web_z_scanner_control_routes_are_exposed():
+    server_py = (PROJECT_ROOT / "core" / "web" / "operator_console_server.py").read_text(encoding="utf-8")
+    z_js = (WEB_ROOT / "phase_2_2c4_safe_layout.js").read_text(encoding="utf-8")
+
+    assert '"/api/z/read"' in server_py
+    assert '"/api/z/auto-approach"' in server_py
+    assert '"/api/z/move-to-setpoint"' in server_py
+    assert "setpoint_distance_mm" in server_py
+    assert '"/api/z/manual-step"' in server_py
+    assert '"/api/z/retract"' in server_py
+    assert '"/api/z/stop"' in server_py
+    assert '"/api/measurement/limits"' in server_py
+    assert "z-mini-live-canvas" in z_js
+    assert "Apply Target Z" in z_js
+    assert 'ev.key === "Enter"' in z_js
+    assert "spm-apply-row" in z_js
+    assert "spm-z-scale-bar" in z_js
+    assert "spmZViewMode" in z_js
+    assert "Retract target mm" not in z_js
+    assert "Auto Approach" in z_js
+    assert "data-z-stop" in z_js
+    assert "STOP" in z_js
+
+
+def test_main_workspace_has_inline_signal_windows_and_log_drawer():
+    z_js = (WEB_ROOT / "phase_2_2c4_safe_layout.js").read_text(encoding="utf-8")
+    css = (WEB_ROOT / "phase_2_2c4_safe_layout.css").read_text(encoding="utf-8")
+    raster_js = (WEB_ROOT / "scan_raster.js").read_text(encoding="utf-8")
+    html = (WEB_ROOT / "index.html").read_text(encoding="utf-8")
+    log_js = (WEB_ROOT / "reliable_live_log.js").read_text(encoding="utf-8")
+
+    assert "spm-inline-signal-panel" in z_js
+    assert "Line Signal / Z Feedback" in z_js
+    assert "spm-topography-x-plus-panel" in z_js
+    assert "spm-topography-x-minus-panel" in z_js
+    assert "live-line-canvas" in z_js
+    assert "live-topography-x-plus-canvas" in z_js
+    assert "live-topography-x-minus-canvas" in z_js
+    assert "spm-log-drawer" in z_js
+    assert "spmReliableLogOpenTab" in z_js
+    assert "grid-area: signal" in css
+    assert "grid-area: topo-plus" in css
+    assert "grid-area: topo-minus" in css
+    assert "spm-log-expanded" in css
+    assert "live-topography-x-plus-canvas" in raster_js
+    assert "live-topography-x-minus-canvas" in raster_js
+    assert "/?window=log-window&standalone=1" in log_js
+    assert "spmLiveLogSnapshot" in log_js
+    assert 'id="log-window"' in html
+    assert "resizable-layout-20260619" in html
+
+
+def test_main_workspace_cards_are_movable_and_persistent():
+    z_js = (WEB_ROOT / "phase_2_2c4_safe_layout.js").read_text(encoding="utf-8")
+    css = (WEB_ROOT / "phase_2_2c4_safe_layout.css").read_text(encoding="utf-8")
+
+    assert "installMovableCards" in z_js
+    assert "spmOperatorCardLayoutV1" in z_js
+    assert "Reset Card Layout" in z_js
+    assert "pointerdown" in z_js
+    assert "wireGlobalCardMoveHandlers" in z_js
+    assert "finishCardMove" in z_js
+    assert "spm-movable-card" in css
+    assert "spm-drop-target" in css
+    assert "spm-card-moving" in css
+
+
+def test_main_workspace_cards_are_equal_height_and_resizable():
+    z_js = (WEB_ROOT / "phase_2_2c4_safe_layout.js").read_text(encoding="utf-8")
+    css = (WEB_ROOT / "phase_2_2c4_safe_layout.css").read_text(encoding="utf-8")
+
+    assert "installResizableCards" in z_js
+    assert "spmOperatorCardHeightsV1" in z_js
+    assert "Reset Card Heights" in z_js
+    assert "Start Scanning" in z_js
+    assert ".main-panel" in css
+    assert ".z-panel" in css
+    assert ".measurement-panel" in css
+    assert "height: 740px" in css
+    assert "resize: vertical" in css
+
+
+def test_z_auto_approach_web_facade_is_motion_locked_by_default(monkeypatch):
+    from core.web.z_scanner_control import z_auto_approach
+
+    monkeypatch.delenv("SPM_WEB_ALLOW_Z_MOTION", raising=False)
+
+    payload = z_auto_approach(setpoint_distance_mm=1.0, retract_after=False, confirmed=True)
+
+    assert payload["ok"] is False
+    assert payload["status"] == "motion_locked"
+    assert payload["commands"]
+
+
+def test_z_move_to_setpoint_web_facade_is_motion_locked_by_default(monkeypatch):
+    from core.web.z_scanner_control import z_move_to_setpoint
+
+    monkeypatch.delenv("SPM_WEB_ALLOW_Z_MOTION", raising=False)
+
+    payload = z_move_to_setpoint(target_z_mm=57.0, confirmed=True)
+
+    assert payload["ok"] is False
+    assert payload["status"] == "motion_locked"
+    assert payload["target_z"] == 57.0
+
+
+def test_z_stop_sets_software_stop_without_firmware_quick_stop(monkeypatch):
+    from core.web.z_scanner_control import z_stop_now
+
+    monkeypatch.delenv("SPM_WEB_ALLOW_Z_MOTION", raising=False)
+
+    payload = z_stop_now()
+
+    assert payload["ok"] is True
+    assert payload["status"] == "stop_requested"
+    assert "Software stop flag set" in payload["log_lines"][0]
+
+
+def test_measurement_limits_payload_exposes_axis_limits_and_steps():
+    from core.web.z_scanner_control import measurement_limits_payload
+
+    payload = measurement_limits_payload()
+
+    assert payload["ok"] is True
+    assert payload["limits"]["x_min"] == -1.0
+    assert payload["limits"]["x_max"] == 251.0
+    assert payload["scanner"]["z_step_mm"] == 0.0025
+
+
+def test_phase_2_1_visible_health_test_is_10_mm():
+    health_py = (PROJECT_ROOT / "core" / "web" / "mk4s_health_motion.py").read_text(encoding="utf-8")
+    main_js = (WEB_ROOT / "main_system_upgrade.js").read_text(encoding="utf-8")
+    server_py = (PROJECT_ROOT / "core" / "web" / "operator_console_server.py").read_text(encoding="utf-8")
+
+    assert "else 10.0" in health_py
+    assert "X +/-10 mm" in main_js
+    assert "spm-main-health-test-button" not in main_js
+    assert "spm-main-long-health-test-button" not in main_js
+    assert "diagnoseAndHealthTest" in main_js
+    assert "XYZ axes" in main_js
+    assert '"/api/system/diagnostics"' in server_py
+    assert '"/api/system/sync-position"' in server_py
+    assert "SYNC POSITION" in main_js
+    assert "spm-main-hardware-state" in main_js
+    assert '"/api/system/safe-standby"' in server_py
+    assert "SAFE STANDBY" in main_js
+    assert "X125 Y105 Z120" in main_js
+
+
+def test_phase_2_1_position_diagnostic_detects_logical_count_mismatch():
+    from core.web.system_control import _position_diagnostic
+
+    diagnostic = _position_diagnostic("X:227.50 Y:105.00 Z:120.00 E:0 Count X:12500 Y:10500 Z:48000")
+
+    assert diagnostic["ok"] is False
+    assert diagnostic["status"] == "needs_sync"
+    assert diagnostic["values"]["physical_x"] == 125.0
+    assert diagnostic["mismatches"]

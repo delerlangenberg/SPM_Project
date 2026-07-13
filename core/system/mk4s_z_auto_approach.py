@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import time
+from threading import Event
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 import serial
 
@@ -28,6 +30,21 @@ class ZManualMoveResult:
     responses: list[str]
     target_z: float
     message: str
+
+
+_Z_STOP_REQUESTED = Event()
+
+
+def clear_z_motion_stop() -> None:
+    _Z_STOP_REQUESTED.clear()
+
+
+def request_z_motion_stop() -> None:
+    _Z_STOP_REQUESTED.set()
+
+
+def z_motion_stop_requested() -> bool:
+    return _Z_STOP_REQUESTED.is_set()
 
 
 def confirmed_approach_reference() -> dict:
@@ -134,6 +151,7 @@ def run_mk4s_z_auto_approach(
             message="Preview only. No MK4S movement was sent.",
         )
 
+    clear_z_motion_stop()
     settings = get_motion_controller_settings()
     raw_path = Path(raw_log_path)
     raw_path.parent.mkdir(parents=True, exist_ok=True)
@@ -142,7 +160,17 @@ def run_mk4s_z_auto_approach(
         time.sleep(2)
         with raw_path.open("a", encoding="utf-8") as log:
             log.write(f"\n=== MK4S Z AUTO APPROACH {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
+            expected_z_after_m114: float | None = None
             for command in commands:
+                if z_motion_stop_requested():
+                    return ZAutoApproachResult(
+                        success=False,
+                        dry_run=False,
+                        commands=commands,
+                        responses=responses,
+                        final_z=final_z,
+                        message="MK4S Z auto approach stopped by operator request.",
+                    )
                 log.write(f">>> {command}\n")
                 ser.write((command + "\n").encode("ascii", errors="replace"))
                 ser.flush()
@@ -151,6 +179,25 @@ def run_mk4s_z_auto_approach(
                 responses.extend(f"{command}: {line}" for line in lines)
                 for line in lines:
                     log.write(f"{line}\n")
+                if command.startswith("G1 Z"):
+                    expected_z_after_m114 = float(command.split()[1][1:])
+                elif command == "M114" and expected_z_after_m114 is not None:
+                    if not _z_count_matches_position(lines, expected_z_after_m114):
+                        count_z = _parse_z_count_from_lines(lines)
+                        message = (
+                            f"Z motion verification failed. Target Z={expected_z_after_m114:.2f}, "
+                            f"reported count Z={count_z}."
+                        )
+                        log.write(message + "\n")
+                        return ZAutoApproachResult(
+                            success=False,
+                            dry_run=False,
+                            commands=commands,
+                            responses=[*responses, message],
+                            final_z=expected_z_after_m114,
+                            message=message,
+                        )
+                    expected_z_after_m114 = None
 
     return ZAutoApproachResult(
         success=True,
@@ -168,6 +215,136 @@ def _parse_z_from_lines(lines: list[str]) -> float | None:
     joined = " ".join(lines)
     match = re.search(r"\bZ:\s*(-?\d+(?:\.\d+)?)", joined)
     return float(match.group(1)) if match else None
+
+
+def _parse_z_count_from_lines(lines: list[str]) -> int | None:
+    import re
+
+    joined = " ".join(lines)
+    match = re.search(r"Count\s+X:[+-]?\d+\s+Y:[+-]?\d+\s+Z:([+-]?\d+)", joined)
+    return int(match.group(1)) if match else None
+
+
+def _z_count_matches_position(lines: list[str], target_z: float, *, tolerance_mm: float = 0.01) -> bool:
+    count_z = _parse_z_count_from_lines(lines)
+    if count_z is None:
+        return False
+    count_z_mm = count_z / 400.0
+    return abs(count_z_mm - target_z) <= tolerance_mm
+
+
+def _planned_z_path(
+    current_z: float,
+    target_z: float,
+    *,
+    fine_step_mm: float = 1.0,
+    fast_fraction: float = 0.90,
+) -> list[float]:
+    if fine_step_mm <= 0 or not 0.0 <= fast_fraction < 1.0:
+        raise ValueError("Z path step sizes must be positive")
+
+    distance = target_z - current_z
+    if abs(distance) <= 0.0001:
+        return [target_z]
+
+    direction = 1.0 if distance > 0 else -1.0
+    values: list[float] = []
+    transition_z = current_z + distance * fast_fraction
+    if abs(transition_z - current_z) > 0.0001 and abs(target_z - transition_z) > 0.0001:
+        values.append(round(transition_z, 4))
+
+    z = values[-1] if values else current_z
+    while abs(target_z - z) > fine_step_mm:
+        z += direction * fine_step_mm
+        values.append(round(z, 4))
+
+    if not values or abs(values[-1] - target_z) > 0.0001:
+        values.append(target_z)
+    return values
+
+
+def run_mk4s_z_move_to_setpoint(
+    *,
+    target_z_mm: float,
+    execute: bool = False,
+    on_sample: Callable[[dict[str, float | str]], None] | None = None,
+) -> ZManualMoveResult:
+    reference = confirmed_approach_reference()
+    profile = load_hardware_initialized_profile()
+    motion_limits = profile["hardware_initialized_profile"]["motion_limits"]
+    safe_min = float(reference["do_not_go_below_without_contact_detection"])
+    safe_max = float(motion_limits["z_max"])
+    feedrate = float(reference["auto_step_approach_confirmed"]["feedrate"])
+    command = f"G1 Z{target_z_mm:.2f} F{feedrate:.0f}"
+
+    if target_z_mm < safe_min or target_z_mm > safe_max:
+        raise ValueError(f"Target Z {target_z_mm:.2f} outside allowed Z range {safe_min:.2f}..{safe_max:.2f}")
+
+    if not execute:
+        return ZManualMoveResult(
+            success=True,
+            command=command,
+            responses=[],
+            target_z=target_z_mm,
+            message=f"Preview only. Target Z={target_z_mm:.2f}; no MK4S movement was sent.",
+        )
+
+    clear_z_motion_stop()
+    settings = get_motion_controller_settings()
+    responses: list[str] = []
+    with serial.Serial(settings["port"], int(settings["baudrate"]), timeout=2) as ser:
+        time.sleep(0.4)
+        for gcode in ("M114",):
+            ser.write((gcode + "\n").encode("ascii", errors="replace"))
+            lines = _read_until_ok(ser, timeout_s=8.0)
+            responses.extend(f"{gcode}: {line}" for line in lines)
+        current_z = _parse_z_from_lines(responses)
+        if current_z is None:
+            raise RuntimeError("Could not read current Z before setpoint move")
+        if on_sample is not None:
+            on_sample({"phase": "initial", "z": current_z, "target_z": target_z_mm})
+
+        path = _planned_z_path(current_z, target_z_mm)
+        ser.write(b"G90\n")
+        responses.extend(f"G90: {line}" for line in _read_until_ok(ser, timeout_s=8.0))
+
+        for z_value in path:
+            if z_motion_stop_requested():
+                return ZManualMoveResult(
+                    success=False,
+                    command=command,
+                    responses=responses,
+                    target_z=z_value,
+                    message="Z setpoint move stopped by operator request.",
+                )
+            near_target = z_value != path[0] or len(path) == 1
+            step_feedrate = feedrate if near_target and z_value <= current_z else 300.0
+            step_command = f"G1 Z{z_value:.2f} F{step_feedrate:.0f}"
+            for gcode in (step_command, "M400", "M114"):
+                ser.write((gcode + "\n").encode("ascii", errors="replace"))
+                lines = _read_until_ok(ser, timeout_s=60.0 if gcode in {step_command, "M400"} else 8.0)
+                responses.extend(f"{gcode}: {line}" for line in lines)
+                if gcode == "M114" and not _z_count_matches_position(lines, z_value):
+                    count_z = _parse_z_count_from_lines(lines)
+                    return ZManualMoveResult(
+                        success=False,
+                        command=command,
+                        responses=[*responses, f"Z setpoint verification failed. Target Z={z_value:.2f}, reported count Z={count_z}."],
+                        target_z=z_value,
+                        message=f"Z setpoint move failed verification. Target Z={z_value:.2f}, count Z={count_z}.",
+                    )
+                if gcode == "M114" and on_sample is not None:
+                    measured_z = _parse_z_from_lines(lines)
+                    if measured_z is not None:
+                        on_sample({"phase": "verified", "z": measured_z, "target_z": target_z_mm})
+
+    return ZManualMoveResult(
+        success=True,
+        command=command,
+        responses=responses,
+        target_z=target_z_mm,
+        message=f"Z setpoint move complete. Target Z={target_z_mm:.2f}",
+    )
 
 
 def run_mk4s_z_manual_step(
@@ -192,10 +369,13 @@ def run_mk4s_z_manual_step(
             message="Preview only. No MK4S movement was sent.",
         )
 
+    clear_z_motion_stop()
     settings = get_motion_controller_settings()
     reference = confirmed_approach_reference()
+    profile = load_hardware_initialized_profile()
+    motion_limits = profile["hardware_initialized_profile"]["motion_limits"]
     safe_min = float(reference["do_not_go_below_without_contact_detection"])
-    safe_max = float(reference["safe_retract_z"])
+    safe_max = float(motion_limits["z_max"])
     responses: list[str] = []
     with serial.Serial(settings["port"], int(settings["baudrate"]), timeout=2) as ser:
         time.sleep(2)
@@ -208,12 +388,29 @@ def run_mk4s_z_manual_step(
         delta = step_mm if direction_clean == "up" else -step_mm
         target_z = current_z + delta
         if target_z < safe_min or target_z > safe_max:
-            raise ValueError(f"Manual Z target {target_z:.2f} outside safe approach range {safe_min:.2f}..{safe_max:.2f}")
+            raise ValueError(f"Manual Z target {target_z:.2f} outside allowed Z range {safe_min:.2f}..{safe_max:.2f}")
         command = f"G1 Z{target_z:.2f} F300"
         for gcode in ("G90", command, "M400", "M114"):
+            if z_motion_stop_requested():
+                return ZManualMoveResult(
+                    success=False,
+                    command=command,
+                    responses=responses,
+                    target_z=target_z,
+                    message="Manual Z move stopped by operator request.",
+                )
             ser.write((gcode + "\n").encode("ascii", errors="replace"))
             lines = _read_until_ok(ser, timeout_s=60.0 if gcode in {command, "M400"} else 8.0)
             responses.extend(f"{gcode}: {line}" for line in lines)
+            if gcode == "M114" and not _z_count_matches_position(lines, target_z):
+                count_z = _parse_z_count_from_lines(lines)
+                return ZManualMoveResult(
+                    success=False,
+                    command=command,
+                    responses=[*responses, f"Z motion verification failed. Target Z={target_z:.2f}, reported count Z={count_z}."],
+                    target_z=target_z,
+                    message=f"Manual Z move failed verification. Target Z={target_z:.2f}, count Z={count_z}.",
+                )
 
     return ZManualMoveResult(
         success=True,
@@ -237,14 +434,32 @@ def run_mk4s_z_safe_retract(*, execute: bool = False) -> ZManualMoveResult:
             message="Preview only. No MK4S movement was sent.",
         )
 
+    clear_z_motion_stop()
     settings = get_motion_controller_settings()
     responses: list[str] = []
     with serial.Serial(settings["port"], int(settings["baudrate"]), timeout=2) as ser:
         time.sleep(2)
         for gcode in ("G90", command, "M400", "M114"):
+            if z_motion_stop_requested():
+                return ZManualMoveResult(
+                    success=False,
+                    command=command,
+                    responses=responses,
+                    target_z=safe_z,
+                    message="Z safe retract stopped by operator request.",
+                )
             ser.write((gcode + "\n").encode("ascii", errors="replace"))
             lines = _read_until_ok(ser, timeout_s=60.0 if gcode in {command, "M400"} else 8.0)
             responses.extend(f"{gcode}: {line}" for line in lines)
+            if gcode == "M114" and not _z_count_matches_position(lines, safe_z):
+                count_z = _parse_z_count_from_lines(lines)
+                return ZManualMoveResult(
+                    success=False,
+                    command=command,
+                    responses=[*responses, f"Z retract verification failed. Target Z={safe_z:.2f}, reported count Z={count_z}."],
+                    target_z=safe_z,
+                    message=f"Z safe retract failed verification. Target Z={safe_z:.2f}, count Z={count_z}.",
+                )
     return ZManualMoveResult(
         success=True,
         command=command,

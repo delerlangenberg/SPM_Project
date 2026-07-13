@@ -60,3 +60,18 @@ def test_auto_approach_still_allows_z60_when_requested_stop_is_60_or_lower(monke
     assert 60.0 in moves
     assert min(moves) == 60.0
     assert moves[-1] == 60.0
+
+
+def test_setpoint_move_uses_fast_coarse_steps_then_fine_final_steps():
+    path = approach._planned_z_path(120.0, 57.0)
+
+    assert path[0] == 63.3
+    assert path[-1] == 57.0
+    assert path == [63.3, 62.3, 61.3, 60.3, 59.3, 58.3, 57.3, 57.0]
+
+
+def test_setpoint_move_fast_phase_is_ninety_percent_of_travel():
+    path = approach._planned_z_path(150.0, 100.0)
+
+    assert path[0] == 105.0
+    assert path[-1] == 100.0

@@ -15,7 +15,7 @@ def test_readonly_startup_commands_are_safe():
 def test_startup_result_success_is_structured():
     result = HardwareStartupResult(
         success=True,
-        port="COM5",
+        port="COM6",
         baudrate=115200,
         timestamp="2026-06-11T17:50:00",
         command_results=[
@@ -28,6 +28,6 @@ def test_startup_result_success_is_structured():
     )
 
     assert result.success is True
-    assert result.port == "COM5"
+    assert result.port == "COM6"
     assert result.baudrate == 115200
     assert result.command_results[0].command == "M115"

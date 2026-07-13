@@ -51,3 +51,30 @@ docs/hardware_logs/*.txt
 *.phase_2_2d_*_backup
 # Generated hardware session logs
 /docs/hardware_logs/
+
+# Temp files
+_gen*.py
+_tmp*
+_test_*.py
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Logs
+logs/
+*.log
+
+# Config (keep template, ignore local)
+config/spm_calibration.json
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE.vscode/
+
+# Backups
+backups/
+*.zip

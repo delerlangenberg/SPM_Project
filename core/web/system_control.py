@@ -254,6 +254,7 @@ def _set_state(payload):
         "position": payload.get("position", _SPM_SYSTEM_STATE.get("position", "")),
         "temperature": payload.get("temperature", _SPM_SYSTEM_STATE.get("temperature", "")),
         "dev_log_file": payload.get("dev_log_file", _SPM_SYSTEM_STATE.get("dev_log_file", "")),
+        "motion_verified": bool(payload.get("motion_verified", _SPM_SYSTEM_STATE.get("motion_verified", False))),
     })
 
 
@@ -282,6 +283,76 @@ def _parse_z(position):
     if not match:
         return None
     return float(match.group(1))
+
+
+def _parse_position_and_counts(position):
+    text = str(position or "")
+    values = {}
+    for axis in ("X", "Y", "Z"):
+        match = _spm_re.search(rf"\b{axis}:([+-]?\d+(?:\.\d+)?)", text)
+        values[axis.lower()] = float(match.group(1)) if match else None
+
+    count_match = _spm_re.search(r"Count\s+X:([+-]?\d+)\s+Y:([+-]?\d+)\s+Z:([+-]?\d+)", text)
+    if count_match:
+        values["count_x"] = int(count_match.group(1))
+        values["count_y"] = int(count_match.group(2))
+        values["count_z"] = int(count_match.group(3))
+        values["physical_x"] = values["count_x"] / 100.0
+        values["physical_y"] = values["count_y"] / 100.0
+        values["physical_z"] = values["count_z"] / 400.0
+    else:
+        values["count_x"] = values["count_y"] = values["count_z"] = None
+        values["physical_x"] = values["physical_y"] = values["physical_z"] = None
+    return values
+
+
+def _position_diagnostic(position, tolerance_mm=0.02):
+    values = _parse_position_and_counts(position)
+    mismatches = []
+    for axis in ("x", "y", "z"):
+        logical = values.get(axis)
+        physical = values.get(f"physical_{axis}")
+        if logical is None or physical is None:
+            mismatches.append(f"{axis.upper()}: missing logical/count data")
+            continue
+        delta = logical - physical
+        if abs(delta) > tolerance_mm:
+            mismatches.append(f"{axis.upper()}: logical {logical:.2f} mm, count-derived {physical:.2f} mm, delta {delta:+.2f} mm")
+
+    ok = not mismatches
+    return {
+        "ok": ok,
+        "status": "verified" if ok else "needs_sync",
+        "values": values,
+        "mismatches": mismatches,
+        "message": "Logical position matches stepper counts." if ok else "Logical position does not match stepper counts. Motion is blocked until sync/restart.",
+    }
+
+
+def _send_serial_commands(commands, *, port=None, baudrate=115200, settle_seconds=0.4):
+    import serial
+
+    selected_port = port or _SPM_SYSTEM_STATE.get("manual_port") or _SPM_SYSTEM_STATE.get("port") or "COM5"
+    log_lines = [f"PHASE 2.1 SERIAL: opening {selected_port}."]
+    with serial.Serial(selected_port, int(baudrate), timeout=0.25, write_timeout=1.0) as ser:
+        time.sleep(settle_seconds)
+        ser.reset_input_buffer()
+        for command in commands:
+            log_lines.append(f">>> {command}")
+            ser.write((command + "\n").encode("ascii", errors="replace"))
+            ser.flush()
+            end = time.time() + (90.0 if command == "M400" else 8.0)
+            while time.time() < end:
+                raw = ser.readline()
+                if not raw:
+                    continue
+                line = raw.decode(errors="replace").strip()
+                if not line:
+                    continue
+                log_lines.append(line)
+                if line == "ok" or line.startswith("ok "):
+                    break
+    return {"port": selected_port, "log_lines": log_lines}
 
 
 def system_apply_port(port: str = ""):
@@ -348,6 +419,83 @@ def system_apply_mode(mode: str = "hardware_readonly"):
     return _blocked_payload(selected, f"Unknown operation mode rejected: {selected}")
 
 
+def system_diagnostics():
+    from core.web.mk4s_readonly_connection import connect_real_hardware_readonly
+
+    selected_port = _SPM_SYSTEM_STATE.get("manual_port") or _SPM_SYSTEM_STATE.get("port") or None
+    result = connect_real_hardware_readonly(port=selected_port, settle_seconds=0.20)
+    diagnostic = _position_diagnostic(result.get("position", ""))
+    payload = {
+        **_base_payload(),
+        "ok": bool(result.get("ready")) and diagnostic["ok"],
+        "connected": bool(result.get("ready")),
+        "ready": bool(result.get("ready")) and diagnostic["ok"],
+        "status": diagnostic["status"] if result.get("ready") else "not_ready",
+        "mode": _SPM_SYSTEM_STATE.get("mode", "real_hardware_readonly"),
+        "port": result.get("port", _SPM_SYSTEM_STATE.get("port", "")),
+        "position": result.get("position", ""),
+        "position_diagnostic": diagnostic,
+        "motion_verified": diagnostic["ok"],
+        "message": diagnostic["message"] if result.get("ready") else result.get("message", "Hardware diagnostic failed."),
+        "hardware": result,
+        "log_lines": list(result.get("log_lines") or []) + [
+            f"PHASE 2.1 POSITION DIAGNOSTIC: {diagnostic['message']}",
+            *[f"PHASE 2.1 POSITION MISMATCH: {line}" for line in diagnostic["mismatches"]],
+        ],
+    }
+    _set_state(payload)
+    return payload
+
+
+def system_sync_logical_position():
+    diagnostic = system_diagnostics()
+    if not diagnostic.get("connected"):
+        return diagnostic
+
+    values = diagnostic["position_diagnostic"]["values"]
+    physical_x = values.get("physical_x")
+    physical_y = values.get("physical_y")
+    physical_z = values.get("physical_z")
+    if physical_x is None or physical_y is None or physical_z is None:
+        return {
+            **diagnostic,
+            "ok": False,
+            "status": "blocked",
+            "message": "Cannot sync logical position because stepper counts are missing.",
+            "log_lines": list(diagnostic.get("log_lines") or []) + ["SYNC BLOCKED: missing Count X/Y/Z from M114."],
+        }
+
+    command = f"G92 X{physical_x:.2f} Y{physical_y:.2f} Z{physical_z:.2f}"
+    serial_result = _send_serial_commands([command, "M114"], port=diagnostic.get("port") or None)
+    verify_position = ""
+    for line in serial_result["log_lines"]:
+        if line.startswith("X:") and "Count" in line:
+            verify_position = line
+    verify = _position_diagnostic(verify_position)
+    payload = {
+        **_base_payload(),
+        "ok": verify["ok"],
+        "connected": True,
+        "powered": True,
+        "system_powered": True,
+        "ready": verify["ok"],
+        "safe_retracted": verify["ok"] and (verify["values"].get("physical_z") or 0) >= _SPM_SAFE_Z_MM,
+        "status": "synced" if verify["ok"] else "needs_sync",
+        "mode": "real_hardware_readonly",
+        "port": serial_result["port"],
+        "position": verify_position,
+        "position_diagnostic": verify,
+        "motion_verified": verify["ok"],
+        "message": "Logical position synced to stepper counts. No physical movement was commanded." if verify["ok"] else "Logical position sync did not verify.",
+        "log_lines": list(diagnostic.get("log_lines") or []) + serial_result["log_lines"] + [
+            f"SYNC RESULT: {verify['message']}",
+            *[f"SYNC MISMATCH: {line}" for line in verify["mismatches"]],
+        ],
+    }
+    _set_state(payload)
+    return payload
+
+
 def system_on(mode: str = "dry_run", port: str | None = None):
     selected_mode = (mode or "dry_run").strip().lower()
 
@@ -409,17 +557,24 @@ def system_on(mode: str = "dry_run", port: str | None = None):
         log_lines = list(result.get("log_lines") or [])
         if message not in "\n".join(log_lines):
             log_lines.append(message)
+        diagnostic = _position_diagnostic(result.get("position", ""))
+        log_lines.append(f"PHASE 2.1 POSITION DIAGNOSTIC: {diagnostic['message']}")
+        for mismatch in diagnostic["mismatches"]:
+            log_lines.append(f"PHASE 2.1 POSITION MISMATCH: {mismatch}")
+        system_ready = bool(ready and diagnostic["ok"])
+        if ready and not diagnostic["ok"]:
+            message = "Connected, but hardware motion is blocked: logical position does not match stepper counts. Use SYNC POSITION or power-cycle/reset the printer."
 
         payload = {
             **_base_payload(),
             "ok": ready,
             "available": ready,
-            "ready": ready,
+            "ready": system_ready,
             "connected": ready,
             "powered": ready,
             "system_powered": ready,
             "safe_retracted": False,
-            "status": "connected" if ready else "not_ready",
+            "status": "connected" if system_ready else ("needs_sync" if ready else "not_ready"),
             "mode": "real_hardware_readonly",
             "operation_mode": "hardware_readonly",
             "message": message,
@@ -434,6 +589,8 @@ def system_on(mode: str = "dry_run", port: str | None = None):
             "dev_log_file": result.get("dev_log_path_txt", ""),
             "dev_log_jsonl": result.get("dev_log_path_jsonl", ""),
             "hardware": result,
+            "position_diagnostic": diagnostic,
+            "motion_verified": diagnostic["ok"],
             "log_lines": log_lines,
         }
         _set_state(payload)
@@ -444,13 +601,9 @@ def system_on(mode: str = "dry_run", port: str | None = None):
 
 def system_safe_retract():
 
-    # Phase 2.2E real safe retract motion
-    if _SPM_SYSTEM_STATE.get("mode") == "real_hardware_readonly":
-        if _spm_os.environ.get("SPM_WEB_ALLOW_HEALTH_MOTION") != "1":
-            return {"ok": False, "status": "blocked", "mode": "safe_retract_locked",
-                    "message": "Safe retract motion is locked by environment gate.",
-                    "log_lines": ["BLOCKED: motion gate is not enabled."]}
-
+    # Phase 2.2E real safe retract motion. If the motion gate is closed,
+    # fall through to the read-only M114 confirmation path below.
+    if _SPM_SYSTEM_STATE.get("mode") == "real_hardware_readonly" and _spm_os.environ.get("SPM_WEB_ALLOW_HEALTH_MOTION") == "1":
         from core.web.mk4s_health_motion import run_mk4s_safe_retract
         result = run_mk4s_safe_retract(port=_SPM_SYSTEM_STATE.get("port") or None)
         ok = bool(result.get("ok"))
@@ -559,6 +712,133 @@ def system_safe_retract():
     return _blocked_payload(_SPM_SYSTEM_STATE.get("mode", "unknown"), "Safe retract blocked because the current system mode is unknown.")
 
 
+def system_safe_standby():
+    if _SPM_SYSTEM_STATE.get("mode") == "dry_run":
+        payload = {
+            **_base_payload(),
+            "ok": True,
+            "status": "safe_standby",
+            "connected": True,
+            "powered": True,
+            "system_powered": True,
+            "safe_retracted": True,
+            "mode": "dry_run",
+            "message": "Safe Standby dry-run: would park at X125 Y105 Z120.",
+            "dry_run_plan": ["G90", "G1 Z120.00 F300 if Z is below 120", "G1 X125.00 Y105.00 F600", "G1 Z120.00 F300", "M114"],
+            "log_lines": ["Safe Standby dry-run: no hardware command was sent."],
+        }
+        _set_state(payload)
+        return payload
+
+    if _SPM_SYSTEM_STATE.get("mode") != "real_hardware_readonly":
+        return _blocked_payload(
+            _SPM_SYSTEM_STATE.get("mode", "unknown"),
+            "Safe Standby blocked: connect in READ-ONLY hardware mode first.",
+        )
+
+    if _spm_os.environ.get("SPM_WEB_ALLOW_HEALTH_MOTION") != "1":
+        return {
+            **_base_payload(),
+            "ok": False,
+            "status": "blocked",
+            "mode": "safe_standby_motion_locked",
+            "message": "Safe Standby motion is locked by environment gate.",
+            "log_lines": ["BLOCKED: SPM_WEB_ALLOW_HEALTH_MOTION is not enabled."],
+        }
+
+    diagnostic = system_diagnostics()
+    if not diagnostic.get("motion_verified"):
+        return {
+            **diagnostic,
+            "ok": False,
+            "status": "blocked",
+            "message": "Safe Standby blocked: logical position does not match stepper counts. Run SYNC POSITION or power-cycle/reset the printer.",
+            "log_lines": list(diagnostic.get("log_lines") or []) + [
+                "SAFE STANDBY BLOCKED: Phase 2.1 position diagnostic is not verified."
+            ],
+        }
+
+    from core.web.mk4s_health_motion import run_mk4s_safe_standby
+
+    result = run_mk4s_safe_standby(port=_SPM_SYSTEM_STATE.get("port") or None)
+    ok = bool(result.get("ok"))
+    payload = {
+        **_base_payload(),
+        "ok": ok,
+        "connected": True,
+        "powered": True,
+        "system_powered": True,
+        "ready": ok,
+        "safe_retracted": ok,
+        "status": "safe_standby" if ok else "blocked",
+        "mode": "real_hardware_readonly",
+        "message": "Safe Standby complete: X125 Y105 Z120 verified." if ok else "Safe Standby blocked or failed.",
+        "port": result.get("port", _SPM_SYSTEM_STATE.get("port", "")),
+        "position_z": result.get("position_z"),
+        "safe_standby": result.get("safe_standby"),
+        "log_lines": result.get("log_lines", []),
+    }
+    if ok:
+        pos = result.get("position") or {}
+        payload["position"] = f"X:{pos.get('x', 0):.2f} Y:{pos.get('y', 0):.2f} Z:{pos.get('z', 0):.2f}"
+        _SPM_SYSTEM_STATE["last_safe_z"] = f"{pos.get('z', 0):.2f}"
+    _set_state(payload)
+    return payload
+
+
+def system_safe_standby_for_close():
+    if _SPM_SYSTEM_STATE.get("mode") == "dry_run":
+        payload = system_safe_standby()
+        payload["message"] = "Safe close dry-run: would park at X125 Y105 Z120, then disconnect."
+        payload["log_lines"] = list(payload.get("log_lines") or []) + [
+            "SAFE CLOSE: dry-run standby complete; no hardware command was sent."
+        ]
+        return payload
+
+    if _SPM_SYSTEM_STATE.get("mode") != "real_hardware_readonly":
+        return _blocked_payload(
+            _SPM_SYSTEM_STATE.get("mode", "unknown"),
+            "Safe close blocked: connect in READ-ONLY hardware mode first, or disconnect if already safe.",
+        )
+
+    if _spm_os.environ.get("SPM_WEB_ALLOW_HEALTH_MOTION") != "1":
+        return {
+            **_base_payload(),
+            "ok": False,
+            "status": "blocked",
+            "mode": "safe_close_motion_locked",
+            "message": "Safe close standby motion is locked by environment gate.",
+            "log_lines": ["BLOCKED: SPM_WEB_ALLOW_HEALTH_MOTION is not enabled."],
+        }
+
+    from core.web.mk4s_health_motion import run_mk4s_safe_standby
+
+    result = run_mk4s_safe_standby(port=_SPM_SYSTEM_STATE.get("port") or None)
+    ok = bool(result.get("ok"))
+    payload = {
+        **_base_payload(),
+        "ok": ok,
+        "connected": True,
+        "powered": True,
+        "system_powered": True,
+        "ready": ok,
+        "safe_retracted": ok,
+        "status": "safe_standby" if ok else "blocked",
+        "mode": "real_hardware_readonly",
+        "message": "Safe close standby complete: X125 Y105 Z120 verified." if ok else "Safe close standby blocked or failed.",
+        "port": result.get("port", _SPM_SYSTEM_STATE.get("port", "")),
+        "position_z": result.get("position_z"),
+        "safe_standby": result.get("safe_standby"),
+        "log_lines": ["SAFE CLOSE: attempting default standby X125 Y105 Z120."] + list(result.get("log_lines", [])),
+    }
+    if ok:
+        pos = result.get("position") or {}
+        payload["position"] = f"X:{pos.get('x', 0):.2f} Y:{pos.get('y', 0):.2f} Z:{pos.get('z', 0):.2f}"
+        _SPM_SYSTEM_STATE["last_safe_z"] = f"{pos.get('z', 0):.2f}"
+    _set_state(payload)
+    return payload
+
+
 def system_disconnect():
     if _SPM_SYSTEM_STATE.get("connected") and not _SPM_SYSTEM_STATE.get("safe_retracted"):
         retract = system_safe_retract()
@@ -663,6 +943,11 @@ try:
 except NameError:
     _spm_original_system_safe_retract = None
 
+try:
+    _spm_original_system_safe_standby = system_safe_standby
+except NameError:
+    _spm_original_system_safe_standby = None
+
 
 def _spm_payload_compat(payload):
     if not isinstance(payload, dict):
@@ -745,6 +1030,25 @@ if _spm_original_system_safe_retract is not None:
         return _spm_payload_compat(_spm_original_system_safe_retract(*args, **kwargs))
 
 
+if _spm_original_system_safe_standby is not None:
+    def system_safe_standby(*args, **kwargs):
+        return _spm_payload_compat(_spm_original_system_safe_standby(*args, **kwargs))
+
+
+# === Calibration runner ===
+
+def system_calibration(port: str | None = None) -> dict:
+    from core.hardware.mk4s_endstop_calibration import run_home_and_verify
+    result = run_home_and_verify(port=port)
+    return result
+
+
+def system_calibration_repeatability(port: str | None = None, iterations: int = 3) -> dict:
+    from core.hardware.mk4s_endstop_calibration import run_repeatability_test
+    result = run_repeatability_test(port=port, iterations=iterations)
+    return result
+
+
 # === Phase 2.2E health test dry-run backend ===
 
 def system_health_test(confirmed: str = "0", motion: str = "0", profile: str = "short"):
@@ -770,6 +1074,21 @@ def system_health_test(confirmed: str = "0", motion: str = "0", profile: str = "
             return {"ok": False, "status": "blocked", "mode": current,
                     "message": "Connect in READ-ONLY hardware mode before real Health Test.",
                     "log_lines": [f"BLOCKED: current mode is {current}, not real_hardware_readonly."]}
+
+        diagnostic = system_diagnostics()
+        if not diagnostic.get("motion_verified"):
+            return {
+                "ok": False,
+                "status": "blocked",
+                "mode": "health_test_real_motion",
+                "message": "Health Test blocked: logical position does not match stepper counts. Run SYNC POSITION or power-cycle/reset the printer.",
+                "port": diagnostic.get("port", ""),
+                "position": diagnostic.get("position", ""),
+                "position_diagnostic": diagnostic.get("position_diagnostic"),
+                "log_lines": list(diagnostic.get("log_lines") or []) + [
+                    "HEALTH TEST BLOCKED: Phase 2.1 position diagnostic is not verified."
+                ],
+            }
 
         from core.web.mk4s_health_motion import run_mk4s_health_motion
         result = run_mk4s_health_motion(port=_SPM_SYSTEM_STATE.get("port") or None, profile=profile)

@@ -5,7 +5,7 @@ from core.education.config_loader import load_config
 def test_workstation_status_starts_safe_from_config():
     status = WorkstationStatus.from_config(load_config())
 
-    assert status.machine_port == "COM5"
+    assert status.machine_port == "COM6"
     assert status.system_check_passed is False
     assert status.real_motion_enabled is False
     assert "real motion disabled" in status.safety_summary().lower()

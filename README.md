@@ -1,54 +1,70 @@
-# SPM_Project
+# SPM Prusa Project
 
-Educational SPM prototype using a Prusa MK4S as a safe motion platform.
+Active Scanning Probe Microscopy prototype and operator software using a Prusa MK4S as the motion platform.
+
+## Source Of Truth
+
+The authoritative project root is:
+
+`D:\SPM_Prusa_Project`
+
+Older `C:\SPM_Project` references in historical notes are no longer the active working location.
 
 ## Current Status
 
-- Prusa MK4S connection works on COM5
-- Safe educational envelope is configured
-- Config-based safe raster scan works
-- Simulated Z driver works
-- CSV output works
-- Plot output works
-- Active pytest suite passes: 18 passed, 0 failed
+- Prusa MK4S is the active motion backend
+- Operator software, hardware gating, and scan workflows live in this repository
+- Hardware, roadmap, and AI advisory documents are consolidated under `docs`
+- Hardware planning material is kept under `Hardware`
+- Tests, legacy tests, and backups are preserved in this tree
 
-## Safe Educational Envelope
+## Main Areas
 
-- X: 20 to 80
-- Y: 20 to 80
-- Z: 5 to 50
+- `core` - application logic, scan flow, hardware abstraction, AI, web, and Z control
+- `web` - operator console frontend
+- `docs` - roadmap, handoff, logs, hardware bring-up, and operator guidance
+- `Hardware` - physical build and sourcing documentation
+- `tests` - active test suite
+- `tests_legacy` - preserved older tests and fixtures
 
-## Setup
+## Launch
 
 Use PowerShell:
 
-cd C:\SPM_Project
-$env:PYTHONPATH="C:\SPM_Project"
+```powershell
+cd D:\SPM_Prusa_Project
+.\spm.bat
+```
 
-## Safe Software Check
+For local AI launch:
 
-powershell -ExecutionPolicy Bypass -File tools\run_safe_software_check.ps1
+```powershell
+cd D:\SPM_Prusa_Project
+.\spm_local_ai.bat
+```
 
-## Safe Hardware Demo
+## Setup
 
-Only run when the printer bed/nozzle area is clear:
+```powershell
+cd D:\SPM_Prusa_Project
+$env:PYTHONPATH = 'D:\SPM_Prusa_Project'
+```
 
-powershell -ExecutionPolicy Bypass -File tools\run_safe_hardware_demo.ps1
+## Main Documents
 
-## Main Config
-
-config\spm_mk4s_config.json
+- `docs\PROJECT_OVERVIEW.md`
+- `docs\SPM_OPERATOR_SOFTWARE_USER_GUIDE.md`
+- `ROADMAP_SPM_PRUSA.md`
+- `docs\SPM_PROFESSIONAL_PHASE_ROADMAP.md`
 
 ## Important Notes
 
-- COM5 is the confirmed Prusa MK4S port.
-- COM4 is a phantom FTDI device and should be ignored.
-- Arduino/Z-control hardware is not detected yet.
-- Legacy tests are preserved in tests_legacy.
-- Active tests are controlled by pytest.ini.
+- Treat this D-drive project as the only active edit target.
+- Some related PDFs, DOCX files, and live logs still exist in `C:\Users\SPM\Downloads` and should be reviewed before import.
+- Historical zip bundles in the project root are preserved as local recovery checkpoints.
 
-## Best Current Backup
+## Consolidation Note
 
-C:\SPM_Project_BACKUP_SYNTHETIC_SIGNAL_HARDWARE_VERIFIED_2026-06-09.zip
+See `docs\PROJECT_CONSOLIDATION_2026-07-13.md` for the latest inventory and recommendations.
 
 

@@ -1,0 +1,414 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Educational SPM - Prusa MK4S Web Operator Console</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mk4s_motion_limits_ui.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">SPM</div>
+      <div>
+        <h1>Educational SPM - Prusa MK4S</h1>
+        <p>Web Operator Console Ã‚Â· Non-blocking measurement workspace</p>
+      </div>
+    </div>
+
+    
+
+<nav class="menu-bar" aria-label="Main menu">
+      <div class="menu-group">
+        <button class="menu-button" type="button">View</button>
+        <div class="dropdown">
+          <a class="dropdown-link" data-open-tab="line-window" href="/?window=line-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Line Mode</a>
+          <a class="dropdown-link" data-open-tab="topography-window" href="/?window=topography-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Topography</a>
+          <a class="dropdown-link" data-open-tab="live-window" href="/?window=live-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Z Feedback Live View</a>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <button class="menu-button" type="button">Tools</button>
+        <div class="dropdown">
+          <button data-action="scan-profile" type="button">Check Scan Profile</button>
+          <button data-action="reset-raster" type="button">Reset Raster</button>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <button class="menu-button" type="button">Open</button>
+        <div class="dropdown">
+          <a class="dropdown-link" data-open-tab="scan-window" href="/?window=scan-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Scan Setup</a>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <button class="menu-button" type="button">About</button>
+        <div class="dropdown">
+          <a class="dropdown-link" data-open-tab="about-window" href="/?window=about-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">About Project</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="workspace compact-workspace">
+    <section class="panel main-panel" data-phase="2.1">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.1</span>
+        <h2>Main System</h2>
+      </div>
+
+      <div class="status-card">
+        <span class="status-dot" id="status-dot"></span>
+        <div>
+          <strong id="system-state">Simulation Stub</strong>
+          <p id="system-detail">Hardware is not connected from the web console yet.</p>
+        </div>
+      </div>
+
+      <div class="control-grid main-controls">
+        <button class="primary" data-action="system-on">ON</button>
+        <button class="danger" data-action="system-off">OFF</button>
+        <button data-action="system-status">STATUS</button>
+        <button data-action="system-close">CLOSE</button>
+      </div>
+
+      <div class="field-stack">
+        <label>Connection Port
+          <input value="COM5" />
+        </label>
+        <label>Operating Mode
+          <select id="system-mode">
+            <option value="dry_run">Simulation / Dry Run</option>
+            <option value="hardware_readonly">Hardware Read-Only - locked until explicit gate</option>
+            <option value="hardware_motion" disabled>Real MK4S Motion - disabled</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel z-panel" data-phase="2.2">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.2</span>
+        <h2>Z Scanner / Feedback</h2>
+      </div>
+
+      <div class="readout">
+        <span>Z feedback</span>
+        <strong id="z-readout">--.-- mm</strong>
+      </div>
+
+      <div class="control-grid">
+        <button data-action="z-approach">Approach</button>
+        <button data-action="z-retract">Retract</button>
+        <button data-action="z-read">Read Z</button>
+        <button data-action="z-park">Park Z</button>
+      </div>
+
+      <div class="field-stack">
+        <label>Z setpoint / fixed distance
+          <input id="scan-z-setpoint" type="number" value="0.10" step="0.01" />
+        </label>
+        <label>Feedback gain
+          <input id="feedback-gain-main" type="number" value="1.00" step="0.05" />
+        </label>
+      </div>
+    </section>
+
+    <section class="panel xy-panel" data-phase="2.3">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>XY Jog Control / Raster</h2>
+      </div>
+
+      <div class="xy-pad" aria-label="XY motion pad">
+        <div></div>
+        <button class="xy-square" data-action="y-plus">Y+</button>
+        <div></div>
+        <button class="xy-square" data-action="x-minus">X-</button>
+        <button class="xy-square center" data-action="xy-center">CENTER</button>
+        <button class="xy-square" data-action="x-plus">X+</button>
+        <div></div>
+        <button class="xy-square" data-action="y-minus">Y-</button>
+        <div></div>
+      </div>
+
+      <div class="control-grid">
+        <a class="button-link" data-open-tab="scan-window" href="/?window=scan-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Open Scan Setup</a>
+        <a class="button-link" data-open-tab="line-window" href="/?window=line-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Line Mode</a>
+        <a class="button-link" data-open-tab="topography-window" href="/?window=topography-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Topography</a>
+        <a class="button-link" data-open-tab="live-window" href="/?window=live-window&amp;standalone=1" target="_blank" rel="noopener noreferrer">Z Live</a>
+      </div>
+    </section>
+
+    <section class="panel measurement-panel" data-phase="2.3">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>Measurement Control</h2>
+      </div>
+
+      <p class="window-note">
+        Logic: center XY Ã¢â€ â€™ approach Z Ã¢â€ â€™ start measurement Ã¢â€ â€™ line scan Ã¢â€ â€™ Y step Ã¢â€ â€™ accumulate topography.
+      </p>
+
+      <div class="control-grid measurement-controls">
+        <button data-action="default-center">Default Center</button>
+        <button class="primary" data-action="measurement-start">Measurement Start</button>
+        <button data-action="measurement-pause">Pause</button>
+        <button class="danger" data-action="measurement-stop">Stop</button>
+      </div>
+
+      <div class="mini-status-grid two-col">
+        <div class="mini-status">
+          <span>XY Center</span>
+          <strong id="center-status">not centered</strong>
+        </div>
+        <div class="mini-status">
+          <span>Z Approach</span>
+          <strong id="approach-status">not ready</strong>
+        </div>
+        <div class="mini-status">
+          <span>Measurement</span>
+          <strong id="measurement-status">idle</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel log-panel" data-phase="2.4">
+      <div class="panel-header">
+        <span class="phase-tag">Phase 2.4</span>
+        <h2>Status / Live Log</h2>
+      </div>
+
+      <div class="ai-strip postponed-ai">
+        <span>AI Advisory</span>
+        <strong id="ai-status">postponed</strong>
+        <span class="muted-note">Dedicated AI phase later; current focus is simulation + hardware.</span>
+      </div>
+
+      <div class="mini-status-grid">
+        <div class="mini-status">
+          <span>MK4S</span>
+          <strong id="mk4s-status">not_connected_stub</strong>
+        </div>
+        <div class="mini-status">
+          <span>Z Scanner</span>
+          <strong id="z-status">not_connected_stub</strong>
+        </div>
+        <div class="mini-status">
+          <span>XY Scanner</span>
+          <strong id="xy-status">simulation_scan_model</strong>
+        </div>
+        <div class="mini-status">
+          <span>Current Line</span>
+          <strong id="line-status">0 / 0</strong>
+        </div>
+        <div class="mini-status">
+          <span>Scan Mode</span>
+          <strong>constant distance</strong>
+        </div>
+        <div class="mini-status">
+          <span>Topography</span>
+          <strong id="topography-status">empty</strong>
+        </div>
+      </div>
+
+      <div class="log" id="operator-log">
+        <p>[Phase 2.1J] Simulation and hardware-read-only paths loaded; AI postponed.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="window-layer" id="window-layer" hidden></div>
+
+  <section class="floating-window" id="scan-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>Scan Setup Window</h2>
+      </div>
+      <button data-close-window>Close</button>
+    </div>
+
+    <p class="window-note">
+      Raster principle: fixed Z setpoint while X is scanned line by line. After each X line, Y moves one step.
+    </p>
+
+    <div class="field-grid">
+      <label>X min
+        <input id="scan-x-min" type="number" value="20" />
+      </label>
+      <label>X max
+        <input id="scan-x-max" type="number" value="80" />
+      </label>
+      <label>Y min
+        <input id="scan-y-min" type="number" value="20" />
+      </label>
+      <label>Y max
+        <input id="scan-y-max" type="number" value="80" />
+      </label>
+      <label>X points
+        <input id="scan-x-points" type="number" value="64" />
+      </label>
+      <label>Y lines
+        <input id="scan-y-points" type="number" value="32" />
+      </label>
+      <label>Surface model
+        <select id="scan-surface">
+          <option value="sphere_on_plane">Sphere / half-ball on plane</option>
+          <option value="terrace">Terrace / step surface</option>
+          <option value="grid_atoms">Atomic grid demo</option>
+        </select>
+      </label>
+      <label>Output file
+        <input value="data/web_scan_output.csv" />
+      </label>
+    </div>
+
+    <div class="control-grid window-controls">
+      <button data-action="scan-profile">Check Profile</button>
+      <button data-action="reset-raster">Reset Raster</button>
+      <button data-action="step-line">Step One Line</button>
+      <button class="primary" data-action="run-raster">Run Raster Simulation</button>
+    </div>
+  </section>
+
+  <section class="floating-window wide-window" id="line-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>Line Mode - Directional Line Scans</h2>
+      </div>
+      <button data-close-window>Close</button>
+    </div>
+
+    <div class="quad-view">
+      <div><h3>X+ line scan</h3><canvas id="line-x-plus-canvas" width="520" height="220"></canvas></div>
+      <div><h3>X- line scan</h3><canvas id="line-x-minus-canvas" width="520" height="220"></canvas></div>
+      <div><h3>Y+ line scan</h3><canvas id="line-y-plus-canvas" width="520" height="220"></canvas></div>
+      <div><h3>Y- line scan</h3><canvas id="line-y-minus-canvas" width="520" height="220"></canvas></div>
+    </div>
+
+    <pre id="line-json">No line scan yet.</pre>
+  </section>
+
+  <section class="floating-window wide-window" id="topography-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.3</span>
+        <h2>Topography - Directional Accumulation</h2>
+      </div>
+      <button data-close-window>Close</button>
+    </div>
+
+    <div class="quad-view">
+      <div><h3>X+ topography</h3><canvas id="topography-x-plus-canvas" width="520" height="260"></canvas></div>
+      <div><h3>X- topography</h3><canvas id="topography-x-minus-canvas" width="520" height="260"></canvas></div>
+      <div><h3>Y+ topography</h3><canvas id="topography-y-plus-canvas" width="520" height="260"></canvas></div>
+      <div><h3>Y- topography</h3><canvas id="topography-y-minus-canvas" width="520" height="260"></canvas></div>
+    </div>
+  </section>
+
+  
+<section class="floating-window wide-window" id="live-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.4</span>
+        <h2>Z Feedback Live View</h2>
+      </div>
+      <button data-close-window type="button">Close</button>
+    </div>
+
+    <p class="window-note">
+      This window is only for Z feedback / fixed-distance monitoring.
+      Line scan and topography are separate measurement views.
+    </p>
+
+    <div class="z-live-grid">
+      <div class="readout">
+        <span>Current Z feedback</span>
+        <strong id="z-live-readout">--.-- mm</strong>
+      </div>
+      <div class="readout">
+        <span>Setpoint</span>
+        <strong id="z-live-setpoint">0.10 mm</strong>
+      </div>
+    </div>
+
+    <canvas id="z-live-canvas" width="1000" height="320"></canvas>
+  </section>
+
+  <section class="floating-window" id="status-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.1</span>
+        <h2>System Status Window</h2>
+      </div>
+      <button data-close-window>Close</button>
+    </div>
+    <pre id="status-json">{}</pre>
+  </section>
+
+  <section class="floating-window" id="ai-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.2</span>
+        <h2>Academic AI Assistant</h2>
+      </div>
+      <button data-close-window>Close</button>
+    </div>
+
+    <p class="window-note">
+      Academic AI is advisory-only. It may recommend approach, scanning, simulation, and diagnosis steps.
+      It cannot execute real MK4S motion.
+    </p>
+
+    <div class="field-stack">
+      <label>AI task
+        <select id="ai-task">
+          <option value="approach">Approach recommendation</option>
+          <option value="scan">Scan recommendation</option>
+          <option value="simulation">Simulation recommendation</option>
+          <option value="diagnosis">Diagnosis / explain current status</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="control-grid">
+      <button class="primary" data-action="ai-recommend">Get Recommendation</button>
+      <button data-action="ai-status">AI Status</button>
+    </div>
+
+    <pre id="ai-output">Academic AI advisory output will appear here.</pre>
+  </section>
+
+  <section class="floating-window" id="about-window" hidden>
+    <div class="window-header">
+      <div>
+        <span class="phase-tag">Phase 2.5</span>
+        <h2>About</h2>
+      </div>
+      <button data-close-window>Close</button>
+    </div>
+    <p>
+      Educational SPM Prusa MK4S Web Operator Console.
+      Current focus: simulation path, hardware-information path, Z-live monitoring, and modular scan workflow. AI advisory is postponed to a later dedicated phase.
+    </p>
+  </section>
+
+  <script src="window_manager.js"></script>
+  <script src="scan_raster.js"></script>
+  <script src="z_live.js"></script>
+  <script src="app.js"></script>
+  
+  <script src="reliable_live_log.js"></script>
+  <script src="main_system_upgrade.js"></script>
+  <script src="mk4s_motion_limits_ui.js"></script>
+  
+  
+</body>
+</html>
+
+

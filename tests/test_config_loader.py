@@ -3,14 +3,14 @@ from core.education.config_loader import load_config, get_prusa_backend_kwargs
 
 def test_load_config_reads_mk4s_config():
     config = load_config("config/spm_mk4s_config.json")
-    assert config["printer"]["port"] == "COM5"
+    assert config["printer"]["port"] == "COM6"
     assert config["printer"]["baudrate"] == 115200
 
 
 def test_get_prusa_backend_kwargs_extracts_limits():
     config = {
         "printer": {
-            "port": "COM5",
+            "port": "COM6",
             "baudrate": 115200,
         },
         "motion_limits": {
@@ -22,7 +22,7 @@ def test_get_prusa_backend_kwargs_extracts_limits():
 
     kwargs = get_prusa_backend_kwargs(config)
 
-    assert kwargs["port"] == "COM5"
+    assert kwargs["port"] == "COM6"
     assert kwargs["baudrate"] == 115200
     assert kwargs["x_limits"] == (0, 250)
     assert kwargs["y_limits"] == (0, 210)

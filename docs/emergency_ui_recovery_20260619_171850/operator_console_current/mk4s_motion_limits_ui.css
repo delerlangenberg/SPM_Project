@@ -1,0 +1,48 @@
+﻿.mk4s-limits-card {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.mk4s-limits-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+}
+
+.mk4s-limits-note {
+  margin: 0 0 10px 0;
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.mk4s-limits-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 8px;
+}
+.mk4s-limit-item {
+  padding: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.38);
+}
+
+.mk4s-limit-item span {
+  display: block;
+  color: #93c5fd;
+  font-size: 11px;
+}
+
+.mk4s-limit-item strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+@media (max-width: 1000px) {
+  .mk4s-limits-grid {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+}
