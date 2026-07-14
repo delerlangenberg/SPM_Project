@@ -82,6 +82,26 @@ backups/
 # API keys
 config/deepseek_key.txt
 *.key
+docs/API_SPM.txt
+docs/DSKey.txt
+*.secret
+*.env
+.env
+
+# Local one-off generation and patch scratch files
+_b*.py
+_build*.py
+_new_main.py
+_patch*.py
+_rebuild.py
+_remain*.py
+_sc_content.py
+_scan_setup.py
+_write*.py
+a.txt
+p.py
+test123.py
+/x
 
 # Calibration data
 config/spm_calibration.json

@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 # Phase 2.2D: allow safe real-hardware read-only handshake from browser Connect.
 # This does NOT allow motion, homing, heating, or printer writes.
 $env:SPM_WEB_ALLOW_READONLY_HARDWARE = "1"
-$env:SPM_WEB_ALLOW_HEALTH_MOTION = "1"
+$env:SPM_WEB_ALLOW_HEALTH_MOTION = "0"
 
 $ProjectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $ProjectRoot

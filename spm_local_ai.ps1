@@ -3,9 +3,10 @@ $ErrorActionPreference = "Stop"
 Set-Location -LiteralPath $PSScriptRoot
 
 $env:SPM_WEB_ALLOW_READONLY_HARDWARE = "1"
-$env:SPM_WEB_ALLOW_HEALTH_MOTION = "1"
-$env:SPM_WEB_ALLOW_REAL_SCAN = "1"
-$env:SPM_WEB_ALLOW_FOIL_TAP = "1"
+$env:SPM_WEB_ALLOW_HEALTH_MOTION = "0"
+$env:SPM_WEB_ALLOW_REAL_SCAN = "0"
+$env:SPM_WEB_ALLOW_FOIL_TAP = "0"
+$env:SPM_WEB_ALLOW_Z_MOTION = "0"
 
 $env:SPM_AI_PROVIDER = "local"
 $env:SPM_LOCAL_AI_BASE_URL = "http://127.0.0.1:11434/v1"

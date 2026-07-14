@@ -24,3 +24,18 @@ def test_motion_controller_identity_is_prusa_mk4():
 
 def test_initialization_is_readonly_safe():
     assert initialization_allows_only_readonly_checks() is True
+
+
+def test_rejects_conflicting_confirmed_z_calibration(tmp_path):
+    import copy
+    import json
+
+    import pytest
+
+    profile = copy.deepcopy(load_hardware_initialized_profile())
+    profile["hardware_initialized_profile"]["z_approach_reference"]["manual_near_contact_z"] = 0.0
+    path = tmp_path / "unsafe-profile.json"
+    path.write_text(json.dumps(profile), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Unsafe Z calibration"):
+        load_hardware_initialized_profile(path)

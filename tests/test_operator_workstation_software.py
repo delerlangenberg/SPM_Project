@@ -9,7 +9,7 @@ APP_SOURCE = APP_PATH.read_text(encoding="utf-8")
 
 def test_operator_workstation_software_entrypoint_exists():
     assert APP_PATH.exists()
-    assert "APP_VERSION = \"v0.2.23\"" in APP_SOURCE
+    assert "APP_VERSION = \"v0.2.24\"" in APP_SOURCE
     assert "APP_TITLE = f\"SPM Prusa Operator Software {APP_VERSION} - Phase 2.1/2.4\"" in APP_SOURCE
     assert "def main() -> int:" in APP_SOURCE
     assert "OperatorWorkstation()" in APP_SOURCE

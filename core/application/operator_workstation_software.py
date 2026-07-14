@@ -65,7 +65,7 @@ from core.web.real_scan_control import (
 from core.web.mk4s_motion_limits import motion_limits_payload
 
 
-APP_VERSION = "v0.2.23"
+APP_VERSION = "v0.2.24"
 APP_TITLE = f"SPM Prusa Operator Software {APP_VERSION} - Phase 2.1/2.4"
 Z_VIEW_FULL_RANGE = (0.0, 220.0)
 SYSTEM_CONTROL_WINDOW_WIDTH = 430

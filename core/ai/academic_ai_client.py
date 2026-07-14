@@ -25,7 +25,6 @@ DEFAULT_LOCAL_AI_BASE_URL = "http://127.0.0.1:11434/v1"
 DEFAULT_LOCAL_AI_MODEL = "qwen3-coder-next"
 DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1"
 DEFAULT_DEEPSEEK_MODEL = "deepseek-chat"
-LOCAL_CREDENTIAL_FILE = PROJECT_ROOT / "docs" / "API_SPM.txt"
 
 
 @dataclass(frozen=True)
@@ -66,33 +65,16 @@ class DeepSeekConfig:
     timeout_s: float
 
 
-def _read_local_credentials() -> tuple[str, str]:
-    if os.getenv("ACADEMIC_AI_DISABLE_LOCAL_FILE", "").strip() == "1":
-        return "", ""
-    if not LOCAL_CREDENTIAL_FILE.exists():
-        return "", ""
-    text = LOCAL_CREDENTIAL_FILE.read_text(encoding="utf-8")
-    client_id = re.search(r"Client ID:\s*([^\s]+)", text, flags=re.IGNORECASE)
-    client_secret = re.search(r"Client Secret:\s*([^\s]+)", text, flags=re.IGNORECASE)
-    return (
-        client_id.group(1).strip() if client_id else "",
-        client_secret.group(1).strip() if client_secret else "",
-    )
-
-
 def _academic_ai_config() -> AcademicAIConfig:
-    file_client_id, file_client_secret = _read_local_credentials()
     client_id = (
         os.getenv("ACADEMIC_AI_CLIENT_ID", "").strip()
         or os.getenv("CLIENT_ID", "").strip()
         or os.getenv("ACADEMIC_AI_API_KEY", "").strip()
-        or file_client_id
     )
     client_secret = (
         os.getenv("ACADEMIC_AI_CLIENT_SECRET", "").strip()
         or os.getenv("CLIENT_SECRET", "").strip()
         or os.getenv("ACADEMIC_AI_API_SECRET", "").strip()
-        or file_client_secret
     )
     base_url = os.getenv("ACADEMIC_AI_BASE_URL", DEFAULT_ACADEMIC_AI_BASE_URL).strip().rstrip("/")
     endpoint = os.getenv("ACADEMIC_AI_CHAT_ENDPOINT", "/api/v1/llm/chat").strip()
@@ -105,7 +87,7 @@ def _academic_ai_config() -> AcademicAIConfig:
         timeout_s = 30.0
     source = "not_configured"
     if client_id and client_secret:
-        source = "docs/API_SPM.txt" if client_id == file_client_id and client_secret == file_client_secret else "environment"
+        source = "environment"
     return AcademicAIConfig(
         base_url=base_url,
         endpoint=endpoint,
