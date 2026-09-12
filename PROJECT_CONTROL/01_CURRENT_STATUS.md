@@ -1,35 +1,35 @@
 # Current Status
 
-Updated: 2026-09-12
-
 ## CURRENT STAGE
 
-**Stage 3 — Freeze Spark baseline — IN PROGRESS**
+**Stage 4 — USB migration to Spark — NOT STARTED**
 
-Authority: `02_ROADMAP.md`.
-Project: `/srv/doro_lab_projects/apps/spm-prusa`.
+Activation requires `/home/deler/SPM_Recovery/STAGE_3_COMPLETE_20260912_131956/VERIFIED`.
+If that marker is absent, finish Stage 3 recovery verification first.
 
-## Verified evidence
+## Completed-stage log
 
-- Latest supplied results: 6 advisor tests and 42 full-suite tests passed.
-- Advisor compilation passed; source scan found no hardware command path.
-- Advisor history uses ordinary JSONL, without hash-chain protection.
-- Safety and simulation phase results are recorded in files 10–12.
-- Software checks do not establish physical commissioning readiness.
+- Stages 0–2: completed as recorded in the roadmap.
+- Stage 3: source baseline `53f3b91`; offline environment rebuilt;
+  42 canonical tests passed; documentation reconciled.
+  Completion takes effect only when the checkpoint marker exists.
 
-## Historical hardware observations
+## Recovery checkpoint
 
-Previous records report USB communication, probe actuation, and parked
-coordinates on 2026-09-11. These are historical observations, not current
-position or safety guarantees. They do not close roadmap Stages 4–7.
+`/home/deler/SPM_Recovery/STAGE_3_COMPLETE_20260912_131956`
 
-## Remaining baseline work
+Contains project archive, Git bundle, offline Python packages,
+validation evidence, and restoration instructions.
 
-- Review initial-commit file selection and obsolete migration files.
-- Verify dependency coverage and environment reconstruction.
-- Commit the reviewed baseline.
-- Create and verify one Stage 3 COMPLETE recovery checkpoint.
-- Advance only after all Stage 3 criteria pass.
+## Next authorized scope
 
-Hardware operations remain blocked by `04_SAFETY_AND_USB_GATE.md`.
-The previous approach-testing plan is superseded.
+After checkpoint verification: OS-level USB enumeration and comparison
+with historical identities only. Stage 4 has not been executed.
+No serial sessions, G-code, probe actuation, or physical motion.
+
+## Limitations
+
+Historical positions and calibration are not live evidence.
+The advisor uses plain JSONL history and remains advisory-only.
+Python rebuild verification does not establish hardware readiness
+or verify the handbook's separate JavaScript build.

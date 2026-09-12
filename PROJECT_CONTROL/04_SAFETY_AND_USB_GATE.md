@@ -1,35 +1,19 @@
 # Hardware Safety and USB Gate
 
-Updated: 2026-09-12
-
 ## Authorization
 
-**BLOCKED — baseline closeout only.**
+Physical operations and serial communication remain BLOCKED.
 
-Do not open serial sessions, issue G-code, actuate the probe, home,
-calibrate, or start physical scans during this stage.
-This documentation update does not change runtime interlocks.
+After the recovery marker specified in 01_CURRENT_STATUS.md exists,
+Stage 4 permits OS-level USB enumeration only: lsusb, device listings,
+and udevadm identity/permission inspection.
 
-## Historical connections
+Do not issue G-code, actuate the probe, home, calibrate, or scan.
+Do not infer current position or readiness from historical records.
+This documentation does not modify runtime interlocks.
 
-Earlier records report MK4S and Arduino USB connections on Spark.
-The previous instruction saying they had not yet connected was stale.
-Current connection, position, calibration, and probe state are unverified.
-This procedure does not require changing cables or hardware state.
+## Subsequent gates
 
-## Baseline prerequisites
-
-- Latest supplied software suite: 42 passed.
-- Prior simulation/startup checks: recorded as passed.
-- Reviewed clean baseline commit: pending.
-- Verified Stage 3 recovery checkpoint: pending.
-
-Baseline completion does not authorize physical motion.
-Stage 4 begins with OS-level enumeration under the roadmap.
-Serial communication requires the subsequent applicable stage gate.
-
-## Commissioning requirement
-
-Remaining non-web hardware entry points require inventory, central
-authorization enforcement, and verification, as recorded in the phase
-conclusions. Physical commissioning awaits the deterministic safety gate.
+Serial communication requires Stage 5 authorization.
+Physical commissioning requires the deterministic safety gate and
+verification of remaining non-web hardware entry points.

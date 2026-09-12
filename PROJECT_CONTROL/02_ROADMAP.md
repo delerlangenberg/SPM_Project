@@ -30,17 +30,17 @@ Completion criteria:
 - default state is simulation/hardware locked: PASS.
 
 ## Stage 3 — Freeze Spark baseline
-**CURRENT STAGE — IN PROGRESS**
+**COMPLETE — subject to verified recovery checkpoint**
 
-- create reproducible dependency file: COMPLETE (`pyproject.toml`);
-- restrict pytest discovery to `tests/`: COMPLETE;
-- remove obsolete migration clutter: PENDING REVIEW;
-- commit clean baseline: PENDING;
-- create one labeled stage recovery backup: PENDING;
-- update documentation: IN PROGRESS.
+- Exact Python package snapshot and offline rebuild: PASS.
+- Rebuilt environment: 42 canonical tests passed.
+- Temporary source backups retired; legacy tools retained as source.
+- Handbook files included directly in the parent repository.
+- Clean source baseline committed: `53f3b91`.
+- Recovery location and activation condition: see current status.
 
 ## Stage 4 — USB migration to Spark
-**PENDING**
+**CURRENT STAGE — NOT STARTED; checkpoint activation required**
 
 Only after Stage 3.
 
