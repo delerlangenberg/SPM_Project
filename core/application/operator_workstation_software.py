@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import math
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
@@ -14,6 +15,10 @@ from typing import Any, Callable
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+if "MPLCONFIGDIR" not in os.environ:
+    os.environ["MPLCONFIGDIR"] = os.path.join(tempfile.gettempdir(), "matplotlib_spm")
+os.environ.setdefault("SPM_WEB_ALLOW_READONLY_HARDWARE", "1")
 
 from PyQt6.QtCore import QSettings, QThread, QTimer, Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QColor, QPainter, QPen
@@ -99,11 +104,36 @@ APP_TITLE = f"SPM Operator — {FULL_VERSION} ({BUILD_DATE_DISPLAY}) | Phase 2.1
 Z_VIEW_FULL_RANGE = (0.0, 220.0)
 SYSTEM_CONTROL_WINDOW_WIDTH = 1180
 SYSTEM_CONTROL_WINDOW_HEIGHT = 820
-GREEN_BUTTON_STYLE = "QPushButton { background: #167a3a; color: white; font-weight: 700; padding: 8px; }"
-RED_BUTTON_STYLE = "QPushButton { background: #a71919; color: white; font-weight: 700; padding: 8px; }"
-YELLOW_BUTTON_STYLE = "QPushButton { background: #c58a00; color: #101827; font-weight: 800; padding: 8px; }"
-DISABLED_BUTTON_STYLE = "QPushButton { background: #4b5563; color: #d1d5db; font-weight: 700; padding: 8px; }"
-GRAY_BUTTON_STYLE = "QPushButton { background: #d9dee7; color: #111827; font-weight: 700; padding: 8px; }"
+# Professional scientific instrument palette — Bruker/Park/Oxford style
+# Primary action (connect, start scan)
+GREEN_BUTTON_STYLE = (
+    "QPushButton { background: #16A34A; color: white; font-weight: 700; padding: 8px; border-radius: 4px; }"
+    "QPushButton:hover { background: #15803D; }"
+    "QPushButton:disabled { background: #D1D5DB; color: #9CA3AF; }"
+)
+# Destructive action (E-stop, disconnect)
+RED_BUTTON_STYLE = (
+    "QPushButton { background: #DC2626; color: white; font-weight: 700; padding: 8px; border-radius: 4px; }"
+    "QPushButton:hover { background: #B91C1C; }"
+    "QPushButton:disabled { background: #D1D5DB; color: #9CA3AF; }"
+)
+# Connect / pending action (amber → blue in professional palette)
+YELLOW_BUTTON_STYLE = (
+    "QPushButton { background: #2563EB; color: white; font-weight: 700; padding: 8px; border-radius: 4px; }"
+    "QPushButton:hover { background: #1D4ED8; }"
+    "QPushButton:disabled { background: #D1D5DB; color: #9CA3AF; }"
+)
+# Disabled / greyed-out action
+DISABLED_BUTTON_STYLE = (
+    "QPushButton { background: #E5E7EB; color: #9CA3AF; font-weight: 700; padding: 8px; border-radius: 4px; }"
+)
+# Secondary / service action (ghost)
+GRAY_BUTTON_STYLE = (
+    "QPushButton { background: #F3F4F6; color: #374151; font-weight: 600; padding: 8px;"
+    "border: 1px solid #D1D5DB; border-radius: 4px; }"
+    "QPushButton:hover { background: #E5E7EB; }"
+    "QPushButton:disabled { background: #F9FAFB; color: #9CA3AF; }"
+)
 LINE_VIEW_LABELS = ("Line Mode X+", "Line Mode X-", "Line Mode Y+", "Line Mode Y-")
 TOPOGRAPHY_VIEW_LABELS = ("Topography X+", "Topography X-", "Topography Y+", "Topography Y-")
 
@@ -135,7 +165,8 @@ class ZTraceWidget(QWidget):
 
     def paintEvent(self, _event: Any) -> None:  # noqa: N802
         painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor("#050914"))
+        # Professional light background — instrument oscilloscope style
+        painter.fillRect(self.rect(), QColor("#FAFBFC"))
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         width = self.width()
@@ -147,12 +178,13 @@ class ZTraceWidget(QWidget):
         plot_w = max(1, width - margin_left - margin_right)
         plot_h = max(1, height - margin_top - margin_bottom)
 
-        painter.setPen(QPen(QColor("#263244"), 1))
+        # Subtle grid lines
+        painter.setPen(QPen(QColor("#E5E7EB"), 1))
         for i in range(6):
             y = margin_top + (plot_h * i / 5)
             painter.drawLine(margin_left, int(y), width - margin_right, int(y))
 
-        painter.setPen(QColor("#9fb3c8"))
+        painter.setPen(QColor("#6B7280"))
         painter.drawText(12, 18, f"Live Z signal ({self.view_mode})")
         painter.drawText(8, margin_top + 12, "Z mm")
 
@@ -173,7 +205,8 @@ class ZTraceWidget(QWidget):
             low, high = low - pad, high + pad
         span = max(0.01, high - low)
 
-        painter.setPen(QPen(QColor("#5fd0ff"), 2))
+        # Professional blue signal trace
+        painter.setPen(QPen(QColor("#2563EB"), 2))
         points = self.samples[-240:]
         last_x = last_y = None
         for index, value in enumerate(points):
@@ -184,7 +217,7 @@ class ZTraceWidget(QWidget):
                 painter.drawLine(last_x, last_y, x, y)
             last_x, last_y = x, y
 
-        painter.setPen(QColor("#d7e6f8"))
+        painter.setPen(QColor("#374151"))
         painter.drawText(12, height - 10, f"view {low:.3f}..{high:.3f} mm | current {latest:.3f} mm")
         painter.drawText(12, margin_top + 2, f"{high:.2f}")
         painter.drawText(12, margin_top + plot_h, f"{low:.2f}")
@@ -207,9 +240,10 @@ class SignalPlotWidget(QWidget):
 
     def paintEvent(self, _event: Any) -> None:  # noqa: N802
         painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor("#050914"))
+        # Professional light background
+        painter.fillRect(self.rect(), QColor("#FAFBFC"))
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setPen(QColor("#d7e6f8"))
+        painter.setPen(QColor("#1A1F2B"))
         painter.drawText(14, 22, self.title)
 
         if self.mode == "line":
@@ -226,7 +260,7 @@ class SignalPlotWidget(QWidget):
     def paint_line(self, painter: QPainter) -> None:
         line = self.selected_line()
         if not line:
-            painter.setPen(QColor("#9fb3c8"))
+            painter.setPen(QColor("#6B7280"))
             painter.drawText(24, 58, "Line mode waiting for measurement points")
             return
 
@@ -242,12 +276,14 @@ class SignalPlotWidget(QWidget):
         width = max(1, self.width() - left - right)
         height = max(1, self.height() - top - bottom)
 
-        painter.setPen(QPen(QColor("#263244"), 1))
+        # Subtle grid lines
+        painter.setPen(QPen(QColor("#E5E7EB"), 1))
         for i in range(5):
             y = top + int(height * i / 4)
             painter.drawLine(left, y, self.width() - right, y)
 
-        painter.setPen(QPen(QColor("#5fd0ff"), 2))
+        # Professional blue signal trace
+        painter.setPen(QPen(QColor("#2563EB"), 2))
         last_x = last_y = None
         point_pixels: list[tuple[int, int]] = []
         for index, value in enumerate(values):
@@ -258,8 +294,8 @@ class SignalPlotWidget(QWidget):
             last_x, last_y = x, y
             point_pixels.append((x, y))
 
-        painter.setPen(QPen(QColor("#b8efff"), 1))
-        painter.setBrush(QColor("#5fd0ff"))
+        painter.setPen(QPen(QColor("#93C5FD"), 1))
+        painter.setBrush(QColor("#2563EB"))
         for x, y in point_pixels:
             painter.drawEllipse(x - 3, y - 3, 6, 6)
         if point_pixels:
@@ -267,7 +303,7 @@ class SignalPlotWidget(QWidget):
             painter.setBrush(QColor("#ffffff"))
             painter.drawEllipse(x - 5, y - 5, 10, 10)
 
-        painter.setPen(QColor("#d7e6f8"))
+        painter.setPen(QColor("#374151"))
         latest_source = str(line[-1].get("feedback_source", "z_feedback"))
         painter.drawText(12, top + 4, f"{high:.3f} mm")
         painter.drawText(12, top + height, f"{low:.3f} mm")
@@ -278,7 +314,7 @@ class SignalPlotWidget(QWidget):
         if self.current_line:
             rows.append(list(self.current_line))
         if not rows:
-            painter.setPen(QColor("#9fb3c8"))
+            painter.setPen(QColor("#6B7280"))
             painter.drawText(24, 58, "Topography waiting for accumulated scan lines")
             return
 
@@ -314,10 +350,10 @@ class SignalPlotWidget(QWidget):
                     cell_height,
                     color,
                 )
-                painter.setPen(QPen(QColor("#111827"), 1))
+                painter.setPen(QPen(QColor("#E5E7EB"), 1))
                 painter.drawRect(cell_x, cell_y, cell_width, cell_height)
 
-        painter.setPen(QColor("#d7e6f8"))
+        painter.setPen(QColor("#374151"))
         painter.drawText(left, self.height() - 8, f"{len(rows)} lines | Z {low:.4f}..{high:.4f} mm")
 
 
@@ -1650,85 +1686,525 @@ class OperatorWorkstation(QMainWindow):
 
         root = QWidget()
 
-        # SPARK_UI_V2_CONTROL_STYLE
-        # Linux/Spark desktop sizing. UI-only; no hardware behavior.
+        # PROFESSIONAL_INSTRUMENT_STYLE — Bruker/Park/Oxford scientific instrument palette
+        # Light neutral background, charcoal text, colored status indicators only.
         root.setStyleSheet("""
-            QLabel {
+            QWidget {
+                font-family: Ubuntu, Inter, 'Segoe UI', Arial, sans-serif;
                 font-size: 11px;
+                color: #374151;
+                background-color: #F5F6F8;
+            }
+
+            QMainWindow, QDialog {
+                background-color: #F5F6F8;
             }
 
             QGroupBox {
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 700;
+                color: #1A1F2B;
+                border: 1px solid #D0D5DD;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 8px;
+                background-color: #FFFFFF;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 6px;
+                color: #374151;
+                background-color: #FFFFFF;
             }
 
             QPushButton {
                 min-height: 28px;
-                padding: 2px 8px;
+                padding: 3px 10px;
                 font-size: 11px;
-                font-weight: 700;
+                font-weight: 600;
+                border-radius: 4px;
+                border: 1px solid #D1D5DB;
+                background-color: #F3F4F6;
+                color: #374151;
+            }
+            QPushButton:hover {
+                background-color: #E5E7EB;
+            }
+            QPushButton:pressed {
+                background-color: #D1D5DB;
+            }
+            QPushButton:disabled {
+                background-color: #F9FAFB;
+                color: #9CA3AF;
+                border-color: #E5E7EB;
             }
 
             QComboBox {
                 min-height: 26px;
-                padding: 1px 6px;
+                padding: 2px 8px;
                 font-size: 11px;
+                border: 1px solid #D1D5DB;
+                border-radius: 4px;
+                background-color: #FFFFFF;
+                color: #374151;
+            }
+            QComboBox:focus {
+                border-color: #2563EB;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 20px;
+            }
+            QComboBox QAbstractItemView {
+                border: 1px solid #D1D5DB;
+                background-color: #FFFFFF;
+                selection-background-color: #EFF6FF;
+                selection-color: #1D4ED8;
             }
 
             QLineEdit {
                 min-height: 24px;
+                padding: 2px 8px;
                 font-size: 11px;
+                border: 1px solid #D1D5DB;
+                border-radius: 4px;
+                background-color: #FFFFFF;
+                color: #374151;
+            }
+            QLineEdit:focus {
+                border-color: #2563EB;
             }
 
             QTextEdit {
                 font-size: 11px;
+                border: 1px solid #D1D5DB;
+                border-radius: 4px;
+                background-color: #FFFFFF;
+                color: #374151;
+            }
+            QTextEdit:focus {
+                border-color: #2563EB;
             }
 
             QCheckBox {
                 font-size: 11px;
+                color: #374151;
+                spacing: 6px;
+            }
+            QCheckBox::indicator {
+                width: 14px;
+                height: 14px;
+                border: 1px solid #D1D5DB;
+                border-radius: 3px;
+                background-color: #FFFFFF;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #2563EB;
+                border-color: #2563EB;
+            }
+
+            QRadioButton {
+                font-size: 11px;
+                color: #374151;
+                spacing: 6px;
+            }
+            QRadioButton::indicator {
+                width: 14px;
+                height: 14px;
+                border: 1px solid #D1D5DB;
+                border-radius: 7px;
+                background-color: #FFFFFF;
+            }
+            QRadioButton::indicator:checked {
+                background-color: #2563EB;
+                border-color: #2563EB;
+            }
+
+            QTabWidget::pane {
+                border: 1px solid #D0D5DD;
+                border-radius: 0px 4px 4px 4px;
+                background-color: #FFFFFF;
+            }
+            QTabBar::tab {
+                font-size: 11px;
+                font-weight: 600;
+                padding: 6px 14px;
+                border: 1px solid #D0D5DD;
+                border-bottom: none;
+                border-radius: 4px 4px 0 0;
+                background-color: #F3F4F6;
+                color: #6B7280;
+                margin-right: 2px;
+            }
+            QTabBar::tab:selected {
+                background-color: #FFFFFF;
+                color: #1A1F2B;
+                border-color: #D0D5DD;
+            }
+            QTabBar::tab:hover:!selected {
+                background-color: #E5E7EB;
+            }
+
+            QSplitter::handle {
+                background-color: #E5E7EB;
+                width: 3px;
+                height: 3px;
+            }
+            QSplitter::handle:hover {
+                background-color: #2563EB;
+            }
+
+            QScrollBar:vertical {
+                border: none;
+                background: #F3F4F6;
+                width: 8px;
+                margin: 0;
+            }
+            QScrollBar::handle:vertical {
+                background: #D1D5DB;
+                border-radius: 4px;
+                min-height: 30px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #9CA3AF;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+
+            QSpinBox, QDoubleSpinBox {
+                min-height: 24px;
+                padding: 2px 6px;
+                font-size: 11px;
+                border: 1px solid #D1D5DB;
+                border-radius: 4px;
+                background-color: #FFFFFF;
+                color: #374151;
+            }
+            QSpinBox:focus, QDoubleSpinBox:focus {
+                border-color: #2563EB;
+            }
+
+            QLabel#sectionTitle {
+                font-size: 13px;
+                font-weight: 700;
+                color: #1A1F2B;
+            }
+
+            QStatusBar {
+                background-color: #1A1F2B;
+                color: #D1D5DB;
+                font-size: 11px;
+                border-top: 1px solid #374151;
+            }
+            QStatusBar::item {
+                border: none;
             }
         """)
-        layout = QGridLayout()
-        layout.setContentsMargins(16, 14, 16, 14)
-        layout.setSpacing(12)
-        self.global_status_banner = QLabel("⚠ HARDWARE OFFLINE — Operation locked. Connect to MK4S to enable controls.")
-        self.global_status_banner.setStyleSheet(
-            "font-weight:700; color:#241900; background:#ffb703; border:1px solid #d28d00; padding:7px;"
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # ── Instrument Header Bar ──────────────────────────────────────────────
+        # Always-visible strip: product identity + live telemetry + connection pill
+        header_frame = QFrame()
+        header_frame.setFrameShape(QFrame.Shape.NoFrame)
+        header_frame.setStyleSheet(
+            "QFrame { background-color: #1A1F2B; border-bottom: 1px solid #374151; }"
         )
-        layout.addWidget(self.global_status_banner, 0, 0, 1, 2)
-        layout.addLayout(self.build_header(), 1, 0, 1, 2)
-        # SPARK_UI_V2_GRID
-        # Left preparation panel gets the complete vertical workspace.
+        header_frame.setFixedHeight(56)
+        header_layout = QHBoxLayout(header_frame)
+        header_layout.setContentsMargins(16, 6, 16, 6)
+        header_layout.setSpacing(0)
+
+        # Product identity
+        product_label = QLabel("SPM Operator Workstation")
+        product_label.setStyleSheet(
+            "font-size: 14px; font-weight: 700; color: #F9FAFB; background: transparent;"
+        )
+        version_label = QLabel(f"  ·  {FULL_VERSION}  ·  {BUILD_DATE_DISPLAY}")
+        version_label.setStyleSheet("font-size: 10px; color: #9CA3AF; background: transparent;")
+
+        # Live telemetry labels (updated on every hardware poll)
+        self.header_x = QLabel("X: —")
+        self.header_y = QLabel("Y: —")
+        self.header_z = QLabel("Z: —")
+        self.header_temp = QLabel("T: —")
+        for lbl in (self.header_x, self.header_y, self.header_z, self.header_temp):
+            lbl.setStyleSheet(
+                "font-size: 11px; font-weight: 600; color: #D1D5DB; background: transparent; padding: 0 8px;"
+            )
+
+        # Motion authorization pill
+        self.header_auth_pill = QLabel("LOCKED")
+        self.header_auth_pill.setStyleSheet(
+            "font-size: 10px; font-weight: 700; color: #FEF3C7; background: #92400E;"
+            "border-radius: 10px; padding: 2px 10px;"
+        )
+
+        # Connection status pill
+        self.global_status_banner = QLabel("● OFFLINE")
+        self.global_status_banner.setStyleSheet(
+            "font-size: 10px; font-weight: 700; color: #FCA5A5; background: #7F1D1D;"
+            "border-radius: 10px; padding: 2px 10px;"
+        )
+
+        header_layout.addWidget(product_label)
+        header_layout.addWidget(version_label)
+        header_layout.addStretch(1)
+        header_layout.addWidget(QLabel(" ").setStyleSheet("") or QLabel(""))  # spacer
+        for lbl in (self.header_x, self.header_y, self.header_z, self.header_temp):
+            header_layout.addWidget(lbl)
+        header_layout.addSpacing(12)
+        header_layout.addWidget(self.header_auth_pill)
+        header_layout.addSpacing(8)
+        header_layout.addWidget(self.global_status_banner)
+
+        layout.addWidget(header_frame)
+
+        # ── Workspace ─────────────────────────────────────────────────────────
+        workspace_widget = QWidget()
+        workspace_widget.setStyleSheet("background-color: #F5F6F8;")
+        workspace_layout = QHBoxLayout(workspace_widget)
+        workspace_layout.setContentsMargins(8, 8, 8, 8)
+        workspace_layout.setSpacing(0)
+
+        # Build panels
         system_panel = self.build_system_panel()
-        system_panel.setMinimumWidth(440)
-        system_panel.setMaximumWidth(500)
+        system_panel.setMinimumWidth(380)
+        system_panel.setMaximumWidth(460)
 
         overview_panel = self.build_overview_panel()
-        log_panel = self.build_main_log_panel()
-
-        layout.addWidget(system_panel, 2, 0, 2, 1)
-        layout.addWidget(overview_panel, 2, 1)
-        layout.addWidget(log_panel, 3, 1)
-
-        layout.setColumnStretch(0, 0)
-        layout.setColumnStretch(1, 1)
-
-        layout.setRowStretch(2, 3)
-        layout.setRowStretch(3, 2)
-        root.setLayout(layout)
-        self.setCentralWidget(root)
+        self.main_log_panel = self.build_main_log_panel()
 
         self.z_scanner_window = ZScannerWindow(self)
         self.live_log_window = LiveLogWindow(self)
         self.academic_gcode_window = AcademicGCodeWindow(self)
         self.crtouch_prep_window = CRTouchPrepWindow(self)
+
+        # Embed all as widgets (no floating windows)
+        self.z_scanner_window.setWindowFlags(Qt.WindowType.Widget)
+        self.live_log_window.setWindowFlags(Qt.WindowType.Widget)
+        self.academic_gcode_window.setWindowFlags(Qt.WindowType.Widget)
+        self.crtouch_prep_window.setWindowFlags(Qt.WindowType.Widget)
+
+        # Center tabbed workspace
+        self.center_tabs = QTabWidget()
+        self.center_tabs.addTab(self.z_scanner_window, "🔬 Scan & Metrology")
+        self.center_tabs.addTab(overview_panel, "📋 System Overview")
+        self.center_tabs.addTab(self.crtouch_prep_window, "🔧 Probe Diagnostics")
+        self.center_tabs.addTab(self.academic_gcode_window, "⚡ Academic G-Code")
+
+        # AI Advisor + Log right panel
+        right_panel = self.build_ai_advisor_panel()
+
+        workspace_splitter = QSplitter(Qt.Orientation.Horizontal)
+        workspace_splitter.addWidget(system_panel)
+        workspace_splitter.addWidget(self.center_tabs)
+        workspace_splitter.addWidget(right_panel)
+        workspace_splitter.setStretchFactor(0, 0)
+        workspace_splitter.setStretchFactor(1, 1)
+        workspace_splitter.setStretchFactor(2, 0)
+        workspace_splitter.setSizes([420, 1400, 520])
+        workspace_layout.addWidget(workspace_splitter)
+
+        layout.addWidget(workspace_widget, 1)
+
+        root.setLayout(layout)
+        self.setCentralWidget(root)
         self.build_menu_bar()
+
+        # ── Status Bar ────────────────────────────────────────────────────────
+        self._status_bar = self.statusBar()
+        self._status_bar.showMessage("Instrument ready — connect hardware or use simulation mode")
 
         self.append_log(f"{APP_TITLE} loaded. Simulation is available offline; hardware motion remains locked.")
         self.load_z_reference()
         self.update_scan_summary()
         self.update_system_connection_controls(connected=False, busy=False)
         self.apply_motion_authorization("LOCKED", confirm=False)
+
+    def build_ai_advisor_panel(self) -> QWidget:
+        """Right panel: AI Advisor (top) + Session Log (bottom).
+
+        The AI Advisor surfaces the existing ``build_ai_recommendation()`` backend
+        as a persistent instrument assistant. Hardware context (position, temperature,
+        motion state, last error) is auto-injected into every query so the LLM has
+        full situational awareness. The panel degrades gracefully when Ollama is
+        offline, showing deterministic fallback recommendations.
+        """
+        container = QWidget()
+        container.setMinimumWidth(300)
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(0)
+
+        splitter = QSplitter(Qt.Orientation.Vertical)
+
+        # ── AI Advisor section ────────────────────────────────────────────────
+        advisor_widget = QGroupBox("AI Advisor")
+        advisor_layout = QVBoxLayout(advisor_widget)
+        advisor_layout.setContentsMargins(8, 12, 8, 8)
+        advisor_layout.setSpacing(6)
+
+        # Model status pill
+        ai_status_row = QHBoxLayout()
+        self.ai_model_pill = QLabel("● Checking model…")
+        self.ai_model_pill.setStyleSheet(
+            "font-size: 10px; font-weight: 600; color: #6B7280; background: transparent;"
+        )
+        ai_status_row.addWidget(self.ai_model_pill)
+        ai_status_row.addStretch(1)
+        advisor_layout.addLayout(ai_status_row)
+
+        # Chat transcript
+        self.ai_chat_transcript = QTextEdit()
+        self.ai_chat_transcript.setReadOnly(True)
+        self.ai_chat_transcript.setPlaceholderText(
+            "AI Advisor ready.\n\nType a question below and click Ask. "
+            "The advisor cannot execute motion — it explains, recommends, and diagnoses."
+        )
+        self.ai_chat_transcript.setStyleSheet(
+            "QTextEdit { background: #FFFFFF; border: 1px solid #E5E7EB;"
+            "border-radius: 4px; font-size: 11px; color: #374151; }"
+        )
+        advisor_layout.addWidget(self.ai_chat_transcript, 1)
+
+        # Input field
+        self.ai_input = QLineEdit()
+        self.ai_input.setPlaceholderText("Ask the AI advisor… e.g. 'Why does Z drift after approach?'")
+        self.ai_input.returnPressed.connect(self._send_ai_advisor_message)
+        advisor_layout.addWidget(self.ai_input)
+
+        # Action buttons
+        ask_row = QHBoxLayout()
+        ask_btn = QPushButton("Ask AI")
+        ask_btn.setStyleSheet(YELLOW_BUTTON_STYLE)
+        ask_btn.clicked.connect(self._send_ai_advisor_message)
+        context_btn = QPushButton("Inject Context")
+        context_btn.setToolTip("Send current hardware state to AI for situational analysis.")
+        context_btn.clicked.connect(self._send_ai_hardware_context)
+        clear_btn = QPushButton("Clear")
+        clear_btn.clicked.connect(self.ai_chat_transcript.clear)
+        ask_row.addWidget(ask_btn, 2)
+        ask_row.addWidget(context_btn, 1)
+        ask_row.addWidget(clear_btn, 1)
+        advisor_layout.addLayout(ask_row)
+
+        splitter.addWidget(advisor_widget)
+
+        # ── Session Log section ───────────────────────────────────────────────
+        log_widget = QGroupBox("Session Log")
+        log_layout = QVBoxLayout(log_widget)
+        log_layout.setContentsMargins(8, 12, 8, 8)
+        log_layout.setSpacing(4)
+        log_layout.addWidget(self.build_log_panel())
+        splitter.addWidget(log_widget)
+
+        splitter.setSizes([400, 280])
+        container_layout.addWidget(splitter)
+
+        # Async model status check (non-blocking)
+        QTimer.singleShot(1200, self._refresh_ai_model_status)
+
+        return container
+
+    def _refresh_ai_model_status(self) -> None:
+        """Non-blocking check of local AI model availability."""
+        try:
+            from core.ai.academic_ai_client import get_local_ai_status
+            status = get_local_ai_status()
+            model = status.get("model", "?")
+            configured = bool(status.get("configured"))
+            if configured:
+                self.ai_model_pill.setText(f"● {model}")
+                self.ai_model_pill.setStyleSheet(
+                    "font-size: 10px; font-weight: 600; color: #16A34A; background: transparent;"
+                )
+            else:
+                self.ai_model_pill.setText("● Offline — deterministic mode")
+                self.ai_model_pill.setStyleSheet(
+                    "font-size: 10px; font-weight: 600; color: #D97706; background: transparent;"
+                )
+        except Exception:
+            self.ai_model_pill.setText("● AI unavailable")
+            self.ai_model_pill.setStyleSheet(
+                "font-size: 10px; font-weight: 600; color: #DC2626; background: transparent;"
+            )
+
+    def _collect_hardware_context(self) -> dict[str, Any]:
+        """Assemble current instrument state for AI context injection."""
+        return {
+            "system_connected": bool(self.system_connected),
+            "motion_authorization": str(getattr(self, "motion_authorization", "LOCKED")),
+            "latest_z_mm": float(self.latest_z_value),
+            "last_system_payload": dict(self.last_system_payload),
+            "simulation_active": bool(self.simulation_engine.is_active),
+            "acquisition_mode": (
+                self.z_scanner_window.acquisition_mode.currentText()
+                if self.z_scanner_window is not None else "Unknown"
+            ),
+        }
+
+    def _send_ai_advisor_message(self) -> None:
+        """Send the typed question to the AI advisor with hardware context."""
+        question = self.ai_input.text().strip()
+        if not question:
+            return
+        self.ai_input.clear()
+        self.ai_chat_transcript.append(f"<b>You:</b> {question}")
+        self.ai_chat_transcript.append("<i>AI thinking…</i>")
+        context = self._collect_hardware_context()
+        # Run in a lightweight worker to avoid blocking the UI
+        def _ask() -> dict[str, Any]:
+            from core.ai.academic_ai_client import build_ai_recommendation
+            return build_ai_recommendation(task=question, context=context)
+        worker = Worker(_ask)
+        worker.finished_payload.connect(self._display_ai_advisor_response)
+        worker.finished.connect(lambda: setattr(self, "_ai_worker", None))
+        self._ai_worker = worker
+        worker.start()
+
+    def _send_ai_hardware_context(self) -> None:
+        """Inject current hardware state into AI for situational analysis."""
+        self._send_ai_advisor_message_with_text(
+            "Analyze the current instrument state and advise on next steps."
+        )
+
+    def _send_ai_advisor_message_with_text(self, text: str) -> None:
+        self.ai_input.setText(text)
+        self._send_ai_advisor_message()
+
+    def _display_ai_advisor_response(self, payload: dict[str, Any]) -> None:
+        """Render AI advisor response in the transcript."""
+        # Remove the "AI thinking…" placeholder
+        cursor = self.ai_chat_transcript.textCursor()
+        text = self.ai_chat_transcript.toPlainText()
+        if "AI thinking…" in text:
+            self.ai_chat_transcript.setPlainText(
+                text.replace("AI thinking…\n", "").replace("AI thinking…", "").rstrip()
+            )
+        recommendations = payload.get("recommendation", [])
+        risk = str(payload.get("risk", "medium")).upper()
+        if isinstance(recommendations, list) and recommendations:
+            answer = "\n".join(f"• {r}" for r in recommendations[:5])
+        else:
+            answer = str(recommendations)
+        risk_color = {"LOW": "#16A34A", "MEDIUM": "#D97706", "HIGH": "#DC2626"}.get(risk, "#374151")
+        self.ai_chat_transcript.append(
+            f"<b>AI</b> <span style='color:{risk_color}; font-size:10px;'>[Risk: {risk}]</span>"
+        )
+        self.ai_chat_transcript.append(answer)
+        self.ai_chat_transcript.append("")
+        self.ai_chat_transcript.verticalScrollBar().setValue(
+            self.ai_chat_transcript.verticalScrollBar().maximum()
+        )
+        if "ai_api_error" in payload:
+            self.ai_model_pill.setText("● Offline — deterministic mode")
+            self.ai_model_pill.setStyleSheet(
+                "font-size: 10px; font-weight: 600; color: #D97706; background: transparent;"
+            )
 
     def build_header(self) -> QVBoxLayout:
         header = QVBoxLayout()
@@ -2039,6 +2515,25 @@ class OperatorWorkstation(QMainWindow):
         os.environ["SPM_WEB_ALLOW_REAL_SCAN"] = gates[2]
         os.environ["SPM_WEB_ALLOW_FOIL_TAP"] = gates[3]
         self.append_log(f"[SAFETY] Motion authorization changed to {level} by profile {self.profile_select.currentText()}.")
+
+        # Update header auth pill with authorization-appropriate color
+        if hasattr(self, "header_auth_pill"):
+            pill_styles = {
+                "LOCKED": ("LOCKED", "#FEF3C7", "#92400E"),       # amber — restricted
+                "STANDBY": ("STANDBY", "#FEF3C7", "#1E40AF"),     # blue — Z authorized
+                "OPERATIONAL": ("OPERATIONAL", "#DCFCE7", "#166534"),  # green — full motion
+            }
+            label, fg, bg = pill_styles.get(level, ("LOCKED", "#FEF3C7", "#92400E"))
+            self.header_auth_pill.setText(label)
+            self.header_auth_pill.setStyleSheet(
+                f"font-size: 10px; font-weight: 700; color: {fg}; background: {bg};"
+                "border-radius: 10px; padding: 2px 10px;"
+            )
+
+        # Update status bar
+        if hasattr(self, "_status_bar") and self.system_connected:
+            self._status_bar.showMessage(f"Connected · Motion: {level} · Safety gate ARMED")
+
         self.update_authorization_controls()
 
     def update_authorization_controls(self) -> None:
@@ -2710,117 +3205,235 @@ class OperatorWorkstation(QMainWindow):
         self.system_connected = False
         self._safe_close_in_progress = False
         self._safe_close_approved = True
-        self.append_log("[SAFE CLOSE] Safe park verified, hardware disconnected, closing software.")
+        self.append_log("[SAFE CLOSE] Shutdown completed; see stage results for parking and disconnection.")
         self.close()
 
-    def build_system_panel(self) -> QGroupBox:
-        box = QGroupBox("Device Connection & Preparation")
-        layout = QVBoxLayout()
-        layout.setContentsMargins(12, 16, 12, 12)
-        layout.setSpacing(9)
+    def build_system_panel(self) -> QWidget:
+        """Left control panel — Device Connection & Preparation.
 
-        self.port_select = QComboBox()
-        self.port_select.setEditable(True)
-        self.port_select.addItem("AUTO")
-        self.refresh_ports(announce=False)
-        self.port_select.setMinimumHeight(34)
+        Four labeled zones (NanoScope / SmartScan style):
+        1. CONNECTION  — port select, connect/disconnect
+        2. AUTHORIZATION — LOCKED/STANDBY/OPERATIONAL (always visible, no tab needed)
+        3. SAFETY      — E-Stop (large red)
+        4. SERVICE     — diagnostics, standby, close
+        """
+        scroll_area_widget = QWidget()
+        outer_layout = QVBoxLayout(scroll_area_widget)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        outer_layout.setSpacing(0)
+
+        def _section_label(text: str) -> QLabel:
+            lbl = QLabel(text)
+            lbl.setStyleSheet(
+                "font-size: 10px; font-weight: 700; color: #6B7280; letter-spacing: 1px;"
+                "padding: 10px 12px 4px 12px; background: transparent;"
+            )
+            return lbl
+
+        def _separator() -> QFrame:
+            sep = QFrame()
+            sep.setFrameShape(QFrame.Shape.HLine)
+            sep.setStyleSheet("color: #E5E7EB;")
+            sep.setFixedHeight(1)
+            return sep
+
+        # ── 1. CONNECTION ─────────────────────────────────────────────────────
+        outer_layout.addWidget(_section_label("CONNECTION"))
+        conn_widget = QWidget()
+        conn_widget.setStyleSheet("background: #FFFFFF; border-bottom: 1px solid #E5E7EB;")
+        conn_layout = QVBoxLayout(conn_widget)
+        conn_layout.setContentsMargins(12, 8, 12, 12)
+        conn_layout.setSpacing(6)
 
         self.connection_badge = QLabel("● OFFLINE")
         self.connection_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.connection_badge.setStyleSheet(
-            "font-weight:800; color:#7f1d1d; background:#fee2e2; border:1px solid #dc2626; padding:8px;"
+            "font-weight: 800; color: #7F1D1D; background: #FEE2E2;"
+            "border: 1px solid #DC2626; padding: 8px; border-radius: 4px;"
         )
-        connection_help = QLabel("Read-only handshake: firmware · temperature · endstops · XYZ position. No motion during Connect.")
+        conn_layout.addWidget(self.connection_badge)
+
+        connection_help = QLabel("Read-only handshake: firmware · temperature · endstops · position. No motion.")
         connection_help.setWordWrap(True)
-        connection_help.setStyleSheet("color:#475569; padding:4px;")
+        connection_help.setStyleSheet("color: #6B7280; font-size: 10px; padding: 2px 0;")
+        conn_layout.addWidget(connection_help)
+
+        port_row = QHBoxLayout()
+        port_label = QLabel("Port")
+        port_label.setStyleSheet("font-weight: 600; color: #374151;")
+        self.port_select = QComboBox()
+        self.port_select.setEditable(True)
+        self.port_select.addItem("AUTO")
+        self.refresh_ports(announce=False)
+        port_row.addWidget(port_label)
+        port_row.addWidget(self.port_select, 1)
+        conn_layout.addLayout(port_row)
+
+        refresh = QPushButton("↺  Refresh Ports")
+        refresh.setToolTip("Rescan available serial ports.")
+        refresh.clicked.connect(self.refresh_ports)
+        self.refresh_button = refresh
+        conn_layout.addWidget(refresh)
+
+        self.connect_button = QPushButton("Connect Hardware")
+        self.connect_button.setStyleSheet(YELLOW_BUTTON_STYLE)
+        self.connect_button.setMinimumHeight(40)
+        self.connect_button.clicked.connect(self.connect_system)
+
+        self.disconnect_button = QPushButton("Disconnect")
+        self.disconnect_button.setStyleSheet(RED_BUTTON_STYLE)
+        self.disconnect_button.setEnabled(False)
+        self.disconnect_button.clicked.connect(self.disconnect_system)
+
+        conn_btns = QHBoxLayout()
+        conn_btns.addWidget(self.connect_button, 2)
+        conn_btns.addWidget(self.disconnect_button, 1)
+        conn_layout.addLayout(conn_btns)
 
         self.system_state = QLabel("System: not connected")
         self.system_state.setWordWrap(True)
         self.system_state.setMinimumHeight(170)
         self.system_state.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-        self.system_state.setStyleSheet("color:#1f2937; border:1px solid #8da2b8; padding:10px; background:#f8fbff;")
+        self.system_state.setStyleSheet(
+            "color: #374151; border: 1px solid #E5E7EB; padding: 8px; background: #FAFBFC;"
+            "border-radius: 4px; font-size: 11px;"
+        )
+        conn_layout.addWidget(self.system_state, 1)
+        conn_layout.addWidget(QLabel("Connection activity"))
+        self.system_log = QTextEdit()
+        self.system_log.setReadOnly(True)
+        self.system_log.setMaximumHeight(90)
+        self.system_log.setStyleSheet(
+            "font-family: 'Consolas', 'Ubuntu Mono', monospace; font-size: 10px;"
+            "background: #FAFBFC; border: 1px solid #E5E7EB; border-radius: 4px;"
+        )
+        self.system_log.setPlainText("Hardware interface ready. Select AUTO or /dev/spm-mk4s, then connect.")
+        conn_layout.addWidget(self.system_log)
 
-        self.connect_button = QPushButton("Connect Hardware")
-        self.disconnect_button = QPushButton("Disconnect")
-        refresh = QPushButton("Refresh Ports")
-        refresh.setToolTip("Rescan available ports.")
-        diagnosis = QPushButton("Run Diagnostics")
+        outer_layout.addWidget(conn_widget)
+
+        # ── 2. MOTION AUTHORIZATION (always visible) ─────────────────────────
+        outer_layout.addWidget(_section_label("MOTION AUTHORIZATION"))
+        auth_widget = QWidget()
+        auth_widget.setStyleSheet("background: #FFFFFF; border-bottom: 1px solid #E5E7EB;")
+        auth_layout = QVBoxLayout(auth_widget)
+        auth_layout.setContentsMargins(12, 8, 12, 12)
+        auth_layout.setSpacing(4)
+
+        auth_note = QLabel("Select authorization level. OPERATIONAL requires connected hardware.")
+        auth_note.setWordWrap(True)
+        auth_note.setStyleSheet("color: #6B7280; font-size: 10px; padding: 0 0 4px 0;")
+        auth_layout.addWidget(auth_note)
+
+        # Hidden combo kept for backward compatibility (other methods use it)
+        self.authorization_select = QComboBox()
+        self.authorization_select.addItems(["LOCKED", "STANDBY", "OPERATIONAL"])
+        self.authorization_select.setVisible(False)
+        self.authorization_select.currentTextChanged.connect(self.apply_motion_authorization)
+        auth_layout.addWidget(self.authorization_select)
+
+        # Professional radio button group (visible to operator)
+        self._auth_radio_group = QButtonGroup(self)
+        self._auth_radios: dict[str, QRadioButton] = {}
+        for auth_level, description, color in [
+            ("LOCKED",      "No motion — safe default",         "#6B7280"),
+            ("STANDBY",     "Z approach & retract authorized",  "#1D4ED8"),
+            ("OPERATIONAL", "Full XY + Z scan authorized",      "#16A34A"),
+        ]:
+            radio = QRadioButton(f"  {auth_level}")
+            radio.setToolTip(description)
+            radio.setStyleSheet(f"font-weight: 700; color: {color};")
+            self._auth_radio_group.addButton(radio)
+            self._auth_radios[auth_level] = radio
+            desc_label = QLabel(f"    {description}")
+            desc_label.setStyleSheet("font-size: 10px; color: #6B7280; padding: 0 0 4px 24px;")
+            auth_layout.addWidget(radio)
+            auth_layout.addWidget(desc_label)
+            radio.toggled.connect(
+                lambda checked, lvl=auth_level: (
+                    self.authorization_select.setCurrentText(lvl) if checked else None
+                )
+            )
+        self._auth_radios["LOCKED"].setChecked(True)
+
+        outer_layout.addWidget(auth_widget)
+
+        # ── 3. SAFETY ─────────────────────────────────────────────────────────
+        outer_layout.addWidget(_section_label("SAFETY"))
+        safety_widget = QWidget()
+        safety_widget.setStyleSheet("background: #FFFFFF; border-bottom: 1px solid #E5E7EB;")
+        safety_layout = QVBoxLayout(safety_widget)
+        safety_layout.setContentsMargins(12, 8, 12, 12)
+        safety_layout.setSpacing(6)
+
+        emergency = QPushButton("🛑  EMERGENCY STOP")
+        emergency.setToolTip("IMMEDIATE STOP. Latches E-STOP gate — requires manual reset.")
+        emergency.setStyleSheet(RED_BUTTON_STYLE)
+        emergency.setMinimumHeight(50)
+        emergency.setFont(emergency.font())
+        emergency.clicked.connect(self.stop_z)
+        safety_layout.addWidget(emergency)
+
+        outer_layout.addWidget(safety_widget)
+
+        # ── 4. SERVICE ────────────────────────────────────────────────────────
+        outer_layout.addWidget(_section_label("SERVICE"))
+        service_widget = QWidget()
+        service_widget.setStyleSheet("background: #FFFFFF;")
+        service_layout = QVBoxLayout(service_widget)
+        service_layout.setContentsMargins(12, 8, 12, 12)
+        service_layout.setSpacing(6)
+
+        diagnosis = QPushButton("Diagnosis")
         calibration = QPushButton("Calibrate MK4S")
-        ai_fix = QPushButton("AI Connection Assistant")
+        ai_fix = QPushButton("AI Error Correction")
         standby = QPushButton("Safe Standby X125 Y105 Z120")
         close_button = QPushButton("Close Safely")
-        emergency = QPushButton("E-Stop")
-        emergency.setToolTip("IMMEDIATE STOP. Use only in emergencies.")
-        emergency.setStyleSheet(RED_BUTTON_STYLE)
-        for button in (self.connect_button, self.disconnect_button, refresh, diagnosis, calibration, ai_fix, standby, close_button, emergency):
+
+        for button in (diagnosis, calibration, ai_fix, standby, close_button):
             button.setMinimumHeight(38)
-        self.connect_button.setStyleSheet(YELLOW_BUTTON_STYLE)
+
         diagnosis.setStyleSheet(GRAY_BUTTON_STYLE)
         calibration.setStyleSheet(GRAY_BUTTON_STYLE)
         ai_fix.setStyleSheet(GRAY_BUTTON_STYLE)
         standby.setStyleSheet(GRAY_BUTTON_STYLE)
         close_button.setStyleSheet(GRAY_BUTTON_STYLE)
-        self.disconnect_button.setStyleSheet(RED_BUTTON_STYLE)
-        self.disconnect_button.setEnabled(False)
-        self.connect_button.clicked.connect(self.connect_system)
-        self.disconnect_button.clicked.connect(self.disconnect_system)
+
         diagnosis.clicked.connect(self.run_diagnosis)
         calibration.clicked.connect(self.run_calibration)
         ai_fix.clicked.connect(self.ai_error_correction)
         standby.clicked.connect(self.safe_standby)
         close_button.clicked.connect(self.request_safe_exit)
-        emergency.clicked.connect(self.stop_z)
-        refresh.clicked.connect(self.refresh_ports)
-        # Explicit safety classes:
-        # read-only controls may operate while connected + LOCKED;
-        # motion controls require STANDBY or OPERATIONAL.
+
         self.diagnosis_button = diagnosis
         self.calibration_button = calibration
         self.standby_button = standby
         self.ai_fix_button = ai_fix
-        self.refresh_button = refresh
 
         self.readonly_buttons = (diagnosis,)
         self.motion_buttons = (calibration, standby)
-
-        # Legacy alias retained for compatibility.
         self.advanced_buttons = self.motion_buttons
 
         diagnosis.setEnabled(False)
         calibration.setEnabled(False)
         standby.setEnabled(False)
 
-        self.system_log = QTextEdit()
-        self.system_log.setReadOnly(True)
-        self.system_log.setMaximumHeight(120)
-        self.system_log.setStyleSheet("font-family: Consolas, monospace; background: #f8fbff; border: 1px solid #8da2b8;")
-        self.system_log.setPlainText("Hardware interface ready. Select AUTO or the MK4S COM port, then connect.")
+        svc_grid = QGridLayout()
+        svc_grid.addWidget(diagnosis, 0, 0)
+        svc_grid.addWidget(calibration, 0, 1)
+        svc_grid.addWidget(ai_fix, 1, 0, 1, 2)
+        service_layout.addLayout(svc_grid)
 
-        layout.addWidget(self.connection_badge)
-        layout.addWidget(connection_help)
-        layout.addWidget(QLabel("MK4S Serial Port"))
-        layout.addWidget(self.port_select)
-        layout.addWidget(refresh)
-        connection_actions = QHBoxLayout()
-        connection_actions.addWidget(self.connect_button, 2)
-        connection_actions.addWidget(self.disconnect_button, 1)
-        layout.addLayout(connection_actions)
-        layout.addWidget(emergency)
-        service_actions = QGridLayout()
-        service_actions.addWidget(diagnosis, 0, 0)
-        service_actions.addWidget(calibration, 0, 1)
-        service_actions.addWidget(ai_fix, 1, 0, 1, 2)
-        layout.addLayout(service_actions)
-        shutdown_actions = QHBoxLayout()
-        shutdown_actions.addWidget(standby, 2)
-        shutdown_actions.addWidget(close_button, 1)
-        layout.addLayout(shutdown_actions)
-        layout.addWidget(self.system_state, 1)
-        layout.addWidget(QLabel("Connection activity"))
-        layout.addWidget(self.system_log)
-        box.setLayout(layout)
-        box.setMinimumWidth(440)
-        return box
+        shutdown_row = QHBoxLayout()
+        shutdown_row.addWidget(standby, 2)
+        shutdown_row.addWidget(close_button, 1)
+        service_layout.addLayout(shutdown_row)
+
+        outer_layout.addWidget(service_widget)
+        outer_layout.addStretch(1)
+
+        scroll_area_widget.setMinimumWidth(380)
+        return scroll_area_widget
 
     def build_z_panel(self) -> QGroupBox:
         box = QGroupBox("Z Scanner")
@@ -3024,40 +3637,65 @@ class OperatorWorkstation(QMainWindow):
                 button.setEnabled(self.system_connected and not self.system_busy)
         if hasattr(self, "start_scan_button"):
             self.update_run_controls()
+
+        # ── Header instrument pills ─────────────────────────────────────────
         if hasattr(self, "global_status_banner"):
-            if self.system_connected:
-                self.global_status_banner.setText(
-                    f"SYSTEM ONLINE — MK4S connected · Motion authorization: {self.motion_authorization}"
-                )
+            if self.system_busy:
+                self.global_status_banner.setText("● CONNECTING…")
                 self.global_status_banner.setStyleSheet(
-                    "font-weight:700; color:#083b25; background:#b9f4d3; border:1px solid #167a3a; padding:10px;"
+                    "font-size: 10px; font-weight: 700; color: #FEF3C7; background: #92400E;"
+                    "border-radius: 10px; padding: 2px 10px;"
+                )
+            elif self.system_connected:
+                port = getattr(self.connection_manager.getStatus(), "port", None) or self.selected_port() or "AUTO"
+                self.global_status_banner.setText(f"● ONLINE · {port}")
+                self.global_status_banner.setStyleSheet(
+                    "font-size: 10px; font-weight: 700; color: #DCFCE7; background: #166534;"
+                    "border-radius: 10px; padding: 2px 10px;"
                 )
             else:
-                self.global_status_banner.setText(
-                    "HARDWARE OFFLINE — Operation locked. Connect to MK4S to enable controls."
-                )
+                self.global_status_banner.setText("● OFFLINE")
                 self.global_status_banner.setStyleSheet(
-                    "font-weight:700; color:#241900; background:#ffb703; border:1px solid #d28d00; padding:7px;"
+                    "font-size: 10px; font-weight: 700; color: #FCA5A5; background: #7F1D1D;"
+                    "border-radius: 10px; padding: 2px 10px;"
                 )
-        if hasattr(self, "authorization_select"):
-            self.update_authorization_controls()
+
+        # ── Legacy connection_badge (left panel) ────────────────────────────
         if hasattr(self, "connection_badge"):
             if self.system_busy:
                 self.connection_badge.setText("● CONNECTING / WORKING")
                 self.connection_badge.setStyleSheet(
-                    "font-weight:800; color:#713f12; background:#fef3c7; border:1px solid #d97706; padding:8px;"
+                    "font-weight: 800; color: #713F12; background: #FEF3C7;"
+                    "border: 1px solid #D97706; padding: 8px; border-radius: 4px;"
                 )
             elif self.system_connected:
-                port = self.connection_manager.getStatus().port or self.selected_port() or "AUTO"
+                port = getattr(self.connection_manager.getStatus(), "port", None) or self.selected_port() or "AUTO"
                 self.connection_badge.setText(f"● ONLINE · {port}")
                 self.connection_badge.setStyleSheet(
-                    "font-weight:800; color:#14532d; background:#dcfce7; border:1px solid #16a34a; padding:8px;"
+                    "font-weight: 800; color: #14532D; background: #DCFCE7;"
+                    "border: 1px solid #16A34A; padding: 8px; border-radius: 4px;"
                 )
             else:
                 self.connection_badge.setText("● OFFLINE")
                 self.connection_badge.setStyleSheet(
-                    "font-weight:800; color:#7f1d1d; background:#fee2e2; border:1px solid #dc2626; padding:8px;"
+                    "font-weight: 800; color: #7F1D1D; background: #FEE2E2;"
+                    "border: 1px solid #DC2626; padding: 8px; border-radius: 4px;"
                 )
+
+        # ── Status bar ──────────────────────────────────────────────────────
+        if hasattr(self, "_status_bar"):
+            if self.system_busy:
+                self._status_bar.showMessage("Connecting to hardware…")
+            elif self.system_connected:
+                auth = getattr(self, "motion_authorization", "LOCKED")
+                self._status_bar.showMessage(
+                    f"Connected · Motion: {auth} · Safety gate ARMED"
+                )
+            else:
+                self._status_bar.showMessage("Offline — connect hardware or use simulation mode")
+
+        if hasattr(self, "authorization_select"):
+            self.update_authorization_controls()
         if not hasattr(self, "connect_button"):
             return
 
@@ -3134,10 +3772,14 @@ class OperatorWorkstation(QMainWindow):
             self.update_system_connection_controls(busy=False)
 
     def run_calibration(self) -> None:
-        if QMessageBox.question(self,"MK4S Calibration","Home all axes (G28) and verify endstops?\n\nPrinter will move. Clear the scan area.") != QMessageBox.StandardButton.Yes:
-            return
-        self.append_system_message("Calibration started. Homing all axes via G28...")
-        self.run_worker(lambda: system_calibration(port=self.selected_port() or None),self.render_system_payload)
+        self.append_system_message(
+            "Calibration blocked following unsafe Z homing. No command sent."
+        )
+        QMessageBox.warning(
+            self, "Calibration Blocked",
+            "Calibration is disabled after the Z homing incident.\n"
+            "Arduino feedback and motion interlocks require verification."
+        )
 
     def run_diagnosis(self) -> None:
         self.append_system_message("Diagnosis started: strictly read-only check (M115, M105, M119, M114). No motion.")
@@ -3329,11 +3971,23 @@ class OperatorWorkstation(QMainWindow):
         self.run_worker(lambda: z_retract(confirmed=True), self.render_z_payload)
 
     def stop_z(self) -> None:
+        from core.system.deterministic_safety_gate import HARDWARE_SAFETY_GATE
+        from core.system.safety_supervisor import SAFETY_SUPERVISOR
+
         request_real_scan_stop()
+        try:
+            HARDWARE_SAFETY_GATE.emergency_stop("Operator Workstation Stop Button Clicked")
+        except Exception:
+            pass
+        try:
+            SAFETY_SUPERVISOR.emergency_stop("Operator Workstation Stop Button Clicked")
+        except Exception:
+            pass
+
         if self.simulation_engine.is_active:
             self.simulation_engine.stop_scan()
             self.measurement_timer.stop()
-            self.append_log("[SIMULATION] Virtual Z/scan stop completed; no firmware command sent.")
+            self.append_log("[SIMULATION] Virtual Z/scan stop completed; safety gates latched E_STOP.")
             if self.z_scanner_window is not None:
                 self.z_scanner_window.update_instrument_state(
                     connected=self.system_connected, motion_enabled=False, acquisition="Simulation Stopped"
@@ -3546,6 +4200,8 @@ class OperatorWorkstation(QMainWindow):
         )
 
     def open_z_scanner_window(self) -> None:
+        if hasattr(self, "center_tabs") and self.z_scanner_window is not None:
+            self.center_tabs.setCurrentWidget(self.z_scanner_window)
         if self.z_scanner_window is not None:
             self.z_scanner_window.show()
             self.z_scanner_window.raise_()
@@ -3564,12 +4220,16 @@ class OperatorWorkstation(QMainWindow):
             self.live_log_window.activateWindow()
 
     def open_academic_gcode_window(self) -> None:
+        if hasattr(self, "center_tabs") and self.academic_gcode_window is not None:
+            self.center_tabs.setCurrentWidget(self.academic_gcode_window)
         if self.academic_gcode_window is not None:
             self.academic_gcode_window.show()
             self.academic_gcode_window.raise_()
             self.academic_gcode_window.activateWindow()
 
     def open_crtouch_prep_window(self) -> None:
+        if hasattr(self, "center_tabs") and self.crtouch_prep_window is not None:
+            self.center_tabs.setCurrentWidget(self.crtouch_prep_window)
         if self.crtouch_prep_window is not None:
             self.crtouch_prep_window.show()
             self.crtouch_prep_window.raise_()

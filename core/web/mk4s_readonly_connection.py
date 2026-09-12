@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from typing import Any
@@ -68,6 +68,17 @@ def list_serial_ports() -> list[dict[str, str]]:
 
 
 def choose_prusa_port(logger: HardwareDevLogger | None = None) -> str:
+    from pathlib import Path
+    if Path("/dev/spm-mk4s").exists():
+        if logger:
+            logger.emit(
+                "PASS",
+                "port_selected",
+                reason="matched_authoritative_spm_mk4s_symlink",
+                device="/dev/spm-mk4s",
+            )
+        return "/dev/spm-mk4s"
+
     ports = list_serial_ports()
 
     if logger:
@@ -184,7 +195,7 @@ def _send_readonly_command(
     command = command.strip().upper()
     if command not in READONLY_COMMANDS:
         logger.emit("FAIL", "command_blocked", command=command, reason="not_in_readonly_allowlist")
-        raise RuntimeError(f"Command not allowed in read-only hardware mode: {command}")
+        raise ValueError(f"Command not allowed in read-only hardware mode: {command}")
 
     logger.emit(
         "SAFE",
@@ -194,16 +205,20 @@ def _send_readonly_command(
         forbidden="movement_homing_heating_writes",
     )
 
-    ser.write((command + "\n").encode("ascii"))
-    ser.flush()
+    data = (command + "\n").encode("ascii")
+    written = ser.write(data)
+    if written is not None and written < len(data):
+        raise OSError("Incomplete serial write to hardware")
+    if hasattr(ser, "flush"):
+        ser.flush()
 
     logger.emit_raw("command_sent", command, command=command)
 
     lines = [f">>> {command}"]
-    deadline = time.time() + timeout_seconds
+    deadline = time.monotonic() + timeout_seconds
     got_ok = False
 
-    while time.time() < deadline:
+    while time.monotonic() < deadline:
         raw = ser.readline()
         if not raw:
             continue
@@ -215,15 +230,21 @@ def _send_readonly_command(
         lines.append(text)
         logger.emit_raw("printer_response", text, command=command)
 
+        if text.startswith("Error:") or text.startswith("Resend:"):
+            raise RuntimeError(f"Printer error: {text}")
+
         if text.strip().lower() == "ok" or text.strip().lower().startswith("ok "):
             got_ok = True
             break
 
+    if not got_ok:
+        raise TimeoutError(f"Acknowledgement timeout for command: {command}")
+
     logger.emit(
-        "PASS" if got_ok else "WARN",
+        "PASS",
         "command_complete",
         command=command,
-        ok=got_ok,
+        ok=True,
         response_lines=max(0, len(lines) - 1),
     )
 

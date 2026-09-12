@@ -310,3 +310,21 @@ def test_two_object_repeat_scan_offers_explicit_resolution_profiles():
     assert "Precision · 20 mm overview → 2.5 mm focus" in APP_SOURCE
     assert "Research · 15 mm overview → 1 mm focus" in APP_SOURCE
     assert "run_verified_two_magnet_map(self.resolution)" in APP_SOURCE
+
+
+def test_software_stop_button_latches_hardware_safety_gate():
+    from core.system.deterministic_safety_gate import HARDWARE_SAFETY_GATE, GateState
+    from core.system.safety_supervisor import SAFETY_SUPERVISOR, SafetyState
+    from core.web.z_scanner_control import z_stop_now
+
+    # Ensure clean starting state for testing
+    if HARDWARE_SAFETY_GATE.state in (GateState.FAULT, GateState.E_STOP):
+        HARDWARE_SAFETY_GATE.acknowledge_fault(operator_id="test")
+    HARDWARE_SAFETY_GATE.enter_read_only()
+
+    # Trigger z_stop_now (invoked by software stop button)
+    res = z_stop_now()
+    assert res["ok"] is True
+    assert HARDWARE_SAFETY_GATE.state == GateState.E_STOP
+    assert SAFETY_SUPERVISOR.state == SafetyState.E_STOP
+

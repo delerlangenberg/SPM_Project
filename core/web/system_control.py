@@ -358,33 +358,44 @@ def _send_serial_commands(commands, *, port=None, baudrate=115200, settle_second
 
 
 def system_apply_port(port: str = ""):
-    selected = (port or "").strip().upper()
+    import os
+    from serial.tools import list_ports
 
-    if selected == "":
-        _SPM_SYSTEM_STATE["manual_port"] = ""
-        return {
-            **_base_payload(),
-            "ok": True,
-            "status": "ok",
-            "mode": _SPM_SYSTEM_STATE.get("mode", "dry_run"),
-            "message": "Connection port set to automatic detection.",
-            "manual_port": "",
-            "log_lines": ["Connection port set to automatic detection."],
-        }
+    selected = (port or "").strip()
+    if selected.upper() == "AUTO":
+        selected = ""
 
-    allowed = {f"COM{i}" for i in range(1, 11)}
-    if selected not in allowed:
-        return _blocked_payload("config", f"Port rejected: {selected}. Allowed troubleshooting ports are COM1-COM10.")
+    if selected and os.name == "posix":
+        resolved = os.path.realpath(selected)
+        matches = [
+            item for item in list_ports.comports()
+            if os.path.realpath(item.device) == resolved
+            and item.vid == 0x2C99
+            and item.pid == 0x001A
+        ]
+        if len(matches) != 1:
+            return _blocked_payload(
+                "config",
+                f"Port rejected: {selected}. Select the detected Prusa MK4S."
+            )
+    elif selected:
+        selected = selected.upper()
+        if selected not in {f"COM{i}" for i in range(1, 11)}:
+            return _blocked_payload("config", f"Port rejected: {selected}")
 
     _SPM_SYSTEM_STATE["manual_port"] = selected
+    message = (
+        f"Connection port applied: {selected}"
+        if selected else "Connection port set to automatic detection."
+    )
     return {
         **_base_payload(),
         "ok": True,
         "status": "ok",
         "mode": _SPM_SYSTEM_STATE.get("mode", "dry_run"),
-        "message": f"Connection port applied: {selected}",
+        "message": message,
         "manual_port": selected,
-        "log_lines": [f"Connection port applied: {selected}"],
+        "log_lines": [message],
     }
 
 
@@ -502,7 +513,9 @@ def system_on(mode: str = "dry_run", port: str | None = None):
     selected_mode = (mode or "dry_run").strip().lower()
 
     if port:
-        system_apply_port(port)
+        port_result = system_apply_port(port)
+        if not port_result.get("ok"):
+            return port_result
 
     if selected_mode in {"dry_run", "simulation", "simulated"}:
         payload = {
@@ -1058,12 +1071,14 @@ if _spm_original_system_safe_standby is not None:
 # === Calibration runner ===
 
 def system_calibration(port: str | None = None) -> dict:
+    raise PermissionError('CALIBRATION BLOCKED: unsafe Z homing incident. Arduino feedback and central motion authorization must be implemented and verified before calibration can be restored.')
     from core.hardware.mk4s_endstop_calibration import run_home_and_verify
     result = run_home_and_verify(port=port)
     return result
 
 
 def system_calibration_repeatability(port: str | None = None, iterations: int = 3) -> dict:
+    raise PermissionError('CALIBRATION BLOCKED: unsafe Z homing incident. Arduino feedback and central motion authorization must be implemented and verified before calibration can be restored.')
     from core.hardware.mk4s_endstop_calibration import run_repeatability_test
     result = run_repeatability_test(port=port, iterations=iterations)
     return result

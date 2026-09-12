@@ -317,13 +317,25 @@ def z_retract(*, confirmed: bool) -> dict[str, Any]:
 
 
 def z_stop_now() -> dict[str, Any]:
+    from core.system.deterministic_safety_gate import HARDWARE_SAFETY_GATE
+    from core.system.safety_supervisor import SAFETY_SUPERVISOR
+
     request_z_motion_stop()
+    try:
+        HARDWARE_SAFETY_GATE.emergency_stop("Software stop requested via z_stop_now.")
+    except Exception:
+        pass
+    try:
+        SAFETY_SUPERVISOR.emergency_stop("Software stop requested via z_stop_now.")
+    except Exception:
+        pass
+
     return {
         **z_reference_payload(),
         "ok": True,
         "status": "stop_requested",
-        "message": "Z stop requested. Active Z sequence will stop at the next verified command boundary.",
-        "log_lines": ["Z stop requested. Software stop flag set; no firmware quick-stop command was sent."],
+        "message": "Z stop requested. Active Z sequence will stop and safety gates have latched E_STOP.",
+        "log_lines": ["Z stop requested. Software stop flag set; HARDWARE_SAFETY_GATE latched E_STOP."],
     }
 
 

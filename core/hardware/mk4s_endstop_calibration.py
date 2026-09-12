@@ -102,6 +102,7 @@ def _load_motion_limits() -> dict[str, float] | None:
 
 def run_home_and_verify(port: str | None = None) -> dict[str, Any]:
     "Run G28 auto-home, verify endstops, and record home position."
+    raise PermissionError('CALIBRATION BLOCKED: unsafe Z homing incident. Arduino feedback and central motion authorization must be implemented and verified before calibration can be restored.')
     chosen, log = _choose_port(port)
     log.append("CALIBRATION: opening serial connection.")
     with Serial(chosen, 115200, timeout=0.2, write_timeout=1.0) as ser:
@@ -176,6 +177,7 @@ def _save_calibration_results(data: dict[str, Any]) -> None:
 
 def run_repeatability_test(port: str | None = None, iterations: int = 3) -> dict[str, Any]:
     "Home multiple times and verify position repeatability."
+    raise PermissionError('CALIBRATION BLOCKED: unsafe Z homing incident. Arduino feedback and central motion authorization must be implemented and verified before calibration can be restored.')
     chosen, log = _choose_port(port)
     log.append(f"REPEATABILITY: {iterations} iterations.")
     positions: list[dict[str, int] | None] = []

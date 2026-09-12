@@ -1,14 +1,19 @@
-# Hardware Safety and USB Gate
+# Hardware Safety Gate — Incident Hold
 
-Physical motion, probe actuation, and serial sessions remain BLOCKED.
+Physical operation and new serial sessions are BLOCKED.
+The earlier Stage 5 live button-test exception is revoked.
 
-OS-level USB inspection is permitted.
-Stage 4 verified identities, aliases, and account access.
-Stage 5 begins with source inspection and procedure review.
+Reason: the operator reported calibration driving Z downward without
+Arduino feedback and nearly damaging the CR-Touch.
 
-Before opening serial ports, verify the exact read-only command path,
-timeout behavior, competing clients, and Arduino startup/reset behavior.
-A subsequent documented procedure must explicitly authorize communication.
+Known calibration backend entry points are blocked in source.
+Three entry points have been tested to reject before serial access.
+These results do not establish that every motion path is protected.
 
-This document does not modify runtime interlocks.
-Historical position, calibration, and firmware are not live evidence.
+Current work: offline source review, mocked tests, and incident evidence.
+Do not trust the changed calibration record pending investigation.
+Existing application processes may still contain the pre-patch code.
+
+Reopening hardware access requires a reviewed procedure with verified
+central motion authorization, probe feedback, stale-feedback handling,
+travel limits, and stop behavior. A UI authorization label is insufficient.

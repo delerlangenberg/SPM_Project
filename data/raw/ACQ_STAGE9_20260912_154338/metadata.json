@@ -1,0 +1,33 @@
+{
+  "acquisition_id": "ACQ_STAGE9_20260912_154338",
+  "created_at_utc": "2026-09-12T13:43:38+00:00",
+  "machine_id": "13052-4742441644411328",
+  "machine_type": "Prusa-MK4",
+  "firmware_prusa": "Buddy 6.2.4+8909",
+  "firmware_mega": "0.8.7-fast-tap",
+  "calibration_id": "CRT-D3-D8-5OF5",
+  "operator_id": "deler",
+  "scan_envelope_mm": {
+    "x_range": [
+      20.0,
+      40.0
+    ],
+    "y_range": [
+      20.0,
+      40.0
+    ],
+    "z_safe_range": [
+      120.0,
+      150.0
+    ]
+  },
+  "hotend_temp_c": -20.0,
+  "bed_temp_c": 24.8,
+  "ambient_temp_c": 37.9,
+  "uncertainty_spec": {
+    "xy_position_uncertainty_mm": 0.01,
+    "z_position_uncertainty_mm": 0.0025,
+    "probe_trigger_repeatability_mm": 0.005,
+    "confidence_level_percent": 95.0
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "acquisition_id": "ACQ_20260912_152912",
+  "sample_count": 10,
+  "raw_jsonl": "/srv/doro_lab_projects/apps/spm-prusa/data/raw/ACQ_20260912_152912/acquisition_stream.jsonl",
+  "raw_csv": "/srv/doro_lab_projects/apps/spm-prusa/data/raw/ACQ_20260912_152912/acquisition_stream.csv",
+  "raw_metadata": "/srv/doro_lab_projects/apps/spm-prusa/data/raw/ACQ_20260912_152912/metadata.json",
+  "processed_dir": "/srv/doro_lab_projects/apps/spm-prusa/data/processed/ACQ_20260912_152912",
+  "completed_at_utc": "2026-09-12T13:29:12+00:00"
+}

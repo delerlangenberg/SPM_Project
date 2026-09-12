@@ -61,10 +61,23 @@ class ConnectionManager:
 
         # This gate controls read-only M115/M119/M105/M114 queries only. Motion
         # remains protected by the independent authorization module gates.
-        os.environ["SPM_WEB_ALLOW_READONLY_HARDWARE"] = "1"
         try:
-            if port:
-                self._apply_port(port)
+            if os.environ.get("SPM_WEB_ALLOW_READONLY_HARDWARE", "1") == "0":
+                raise PermissionError(
+                    "Read-only hardware access is disabled for this session."
+                )
+            os.environ["SPM_WEB_ALLOW_READONLY_HARDWARE"] = "1"
+            port_result = self._apply_port(port)
+            if isinstance(port_result, dict) and not port_result.get("ok"):
+                return self.accept_payload({
+                    **port_result,
+                    "ok": False,
+                    "connected": False,
+                    "powered": False,
+                    "ready": False,
+                    "status": "failed",
+                    "port": port,
+                })
             payload = dict(self._connect_backend(mode="hardware_readonly", port=port))
         except Exception as exc:
             payload = {"ok": False, "connected": False, "status": "failed", "message": str(exc), "port": port}
@@ -92,11 +105,11 @@ class ConnectionManager:
         """Update lifecycle state from a backend result and return a safe copy."""
         result = dict(payload)
         backend_state = str(result.get("status", "unknown"))
-        connected = bool(
-            result.get("connected")
-            or result.get("powered")
-            or result.get("ready")
-        ) and backend_state != "disconnected"
+        if "connected" in result:
+            connected = bool(result["connected"])
+        else:
+            connected = bool(result.get("powered") or result.get("ready"))
+        connected = connected and backend_state != "disconnected"
         if backend_state == "failed" and self._status.state == "disconnecting":
             connected = True
         state = "connected" if connected else ("disconnected" if backend_state == "disconnected" else "failed")

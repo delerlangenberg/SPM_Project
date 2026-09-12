@@ -1,0 +1,65 @@
+{
+  "ok": true,
+  "stage": "Stage 9 \u2014 Scientific surface analysis",
+  "acquisition_id": "ACQ_STAGE9_20260912_154338",
+  "timestamp_utc": "2026-09-12T13:43:38+00:00",
+  "raw_samples": 441,
+  "raw_dir": "/srv/doro_lab_projects/apps/spm-prusa/data/raw/ACQ_STAGE9_20260912_154338",
+  "processed_dir": "/srv/doro_lab_projects/apps/spm-prusa/data/processed/ACQ_STAGE9_20260912_154338",
+  "roughness_iso25178": {
+    "sa_mm": 0.004358265682244447,
+    "sq_mm": 0.005262565106135242,
+    "sz_mm": 0.022557463107832118,
+    "sp_mm": 0.011268379035273016,
+    "sv_mm": 0.011289084072559102,
+    "ssk": -0.30472908928695247,
+    "sku": 2.1410755210278394,
+    "valid_points": 441
+  },
+  "step_metrology": {
+    "step_height_mm": 0.008922982192739277,
+    "standard_error_mm": 0.0007030893215386797,
+    "lower_plateau_mean_mm": 0.005520722026550583,
+    "lower_plateau_std_mm": 0.0019775753994384425,
+    "lower_points": 12,
+    "upper_plateau_mean_mm": 0.01444370421928986,
+    "upper_plateau_std_mm": 0.001421692888171189,
+    "upper_points": 12
+  },
+  "feature_detection": {
+    "particle_count": 2,
+    "threshold_z_mm": 0.01760416219992139,
+    "total_area_mm2": 47.0,
+    "total_volume_mm3": 0.07254350217997732,
+    "particles": [
+      {
+        "particle_id": 1,
+        "centroid_x_mm": 30.61904761904762,
+        "centroid_y_mm": 30.19047619047619,
+        "area_mm2": 42.0,
+        "equivalent_diameter_mm": 7.312732791431452,
+        "peak_height_mm": 0.0027109825059529608,
+        "mean_height_mm": 0.0014267692713445398,
+        "volume_mm3": 0.05992430939647067,
+        "pixel_count": 42
+      },
+      {
+        "particle_id": 2,
+        "centroid_x_mm": 34.4,
+        "centroid_y_mm": 26.2,
+        "area_mm2": 5.0,
+        "equivalent_diameter_mm": 2.5231325220201604,
+        "peak_height_mm": 0.0049533009079107265,
+        "mean_height_mm": 0.00252383855670133,
+        "volume_mm3": 0.01261919278350665,
+        "pixel_count": 5
+      }
+    ]
+  },
+  "artifacts": {
+    "topography_2d": "/srv/doro_lab_projects/apps/spm-prusa/data/processed/ACQ_STAGE9_20260912_154338/topography_2d.png",
+    "topography_3d": "/srv/doro_lab_projects/apps/spm-prusa/data/processed/ACQ_STAGE9_20260912_154338/topography_3d.png",
+    "step_line_profile": "/srv/doro_lab_projects/apps/spm-prusa/data/processed/ACQ_STAGE9_20260912_154338/step_line_profile.png",
+    "processed_grid_csv": "/srv/doro_lab_projects/apps/spm-prusa/data/processed/ACQ_STAGE9_20260912_154338/processed_height_map.csv"
+  }
+}

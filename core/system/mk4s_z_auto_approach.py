@@ -137,6 +137,8 @@ def run_mk4s_z_auto_approach(
     retract_after: bool = False,
     raw_log_path: str | Path = "logs/mk4s_z_auto_approach_raw.txt",
 ) -> ZAutoApproachResult:
+    if execute:
+        raise PermissionError('DIRECT_Z_INCIDENT_LOCK: physical Z execution is blocked pending verified Arduino feedback and stop handling.')
     commands = planned_auto_approach_commands(setpoint_distance_mm=setpoint_distance_mm, retract_after=retract_after)
     reference = confirmed_approach_reference()
     auto = reference["auto_step_approach_confirmed"]
@@ -269,6 +271,8 @@ def run_mk4s_z_move_to_setpoint(
     execute: bool = False,
     on_sample: Callable[[dict[str, float | str]], None] | None = None,
 ) -> ZManualMoveResult:
+    if execute:
+        raise PermissionError('DIRECT_Z_INCIDENT_LOCK: physical Z execution is blocked pending verified Arduino feedback and stop handling.')
     reference = confirmed_approach_reference()
     profile = load_hardware_initialized_profile()
     motion_limits = profile["hardware_initialized_profile"]["motion_limits"]
@@ -353,6 +357,8 @@ def run_mk4s_z_manual_step(
     step_mm: float,
     execute: bool = False,
 ) -> ZManualMoveResult:
+    if execute:
+        raise PermissionError('DIRECT_Z_INCIDENT_LOCK: physical Z execution is blocked pending verified Arduino feedback and stop handling.')
     if step_mm <= 0:
         raise ValueError("step_mm must be positive")
     direction_clean = direction.strip().lower()
@@ -422,6 +428,8 @@ def run_mk4s_z_manual_step(
 
 
 def run_mk4s_z_safe_retract(*, execute: bool = False) -> ZManualMoveResult:
+    if execute:
+        raise PermissionError('DIRECT_Z_INCIDENT_LOCK: physical Z execution is blocked pending verified Arduino feedback and stop handling.')
     reference = confirmed_approach_reference()
     safe_z = float(reference["safe_retract_z"])
     command = f"G1 Z{safe_z:.2f} F600"

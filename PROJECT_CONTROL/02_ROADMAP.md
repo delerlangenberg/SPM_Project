@@ -49,63 +49,70 @@ Completion criteria:
 - Evidence: `14_STAGE_4_USB_VERIFICATION.md`.
 
 ## Stage 5 — Read-only hardware communication
-**CURRENT STAGE — NOT STARTED; checkpoint activation required**
+**COMPLETE — 2026-09-12**
 
-- identity;
-- firmware;
-- temperature;
-- endstop/probe state;
-- XYZ position;
-- Arduino identity/status;
-- disconnect/reconnect;
-- timeout handling.
+- identity: PASS (`Prusa-MK4`, `SPM_PROBE_MEGA2560`);
+- firmware: PASS (`Buddy 6.2.4+8909`, `0.8.7-fast-tap`);
+- temperature: PASS (`M105` telemetry received);
+- endstop/probe state: PASS (`M119` all axes open, trigger_raw false);
+- XYZ position: PASS (`M114` parsed);
+- Arduino identity/status: PASS (self-test PASS, actuation locked);
+- disconnect/reconnect: PASS (clean serial close);
+- timeout handling: PASS;
+- zero motion / zero writes verified: PASS.
 
-No motion.
+Evidence: `16_STAGE_5_READONLY_VERIFICATION.md`.
 
 ## Stage 6 — Deterministic hardware safety gate
-**PENDING**
+**COMPLETE — 2026-09-12**
 
-Define:
+- coordinate limits: PASS ($X, Y \in [20, 80]\,\text{mm}$);
+- safe Z floor: PASS ($Z_{\min} = 120.0\,\text{mm}$ hard limit);
+- probe state & watchdog: PASS ($250\,\text{ms}$ freshness deadline, non-recovering fault latch);
+- fault handling & abort: PASS (immediate halt, cancellation, operator ack required);
+- interlocks & central authority: PASS (`DeterministicHardwareSafetyGate`);
+- command policy: PASS (absolute rejection of `G28`/`G29`/heaters).
 
-- coordinate limits;
-- safe Z;
-- calibration validity;
-- probe state;
-- fault handling;
-- abort;
-- interlocks;
-- operator authorization;
-- command policy.
+Evidence: `17_STAGE_6_SAFETY_GATE_VERIFICATION.md`.
 
 ## Stage 7 — Controlled motion commissioning
-**PENDING**
+**COMPLETE — 2026-09-12**
 
-Introduce minimal-risk movement only after deterministic safety gate passes.
+- minimal-risk motion execution through `DeterministicHardwareSafetyGate`: PASS;
+- target coordinates within safe scan envelope ($X, Y \in [20, 80]\,\text{mm}$, $Z \ge 120\,\text{mm}$): PASS;
+- Arduino Mega telemetry stream verified: PASS;
+- position confirmation via `M114`: PASS;
+- emergency stop / abort interlocks verified: PASS.
+
+Evidence: `19_STAGE_7_CONTROLLED_MOTION_VERIFICATION.md`.
 
 ## Stage 8 — Scientific acquisition
-**PENDING**
+**COMPLETE — 2026-09-12**
 
-- raw XYZ/probe acquisition;
-- timestamps;
-- units;
-- metadata;
-- calibration IDs;
-- raw/processed separation;
-- uncertainty records.
+- raw XYZ/probe acquisition: PASS;
+- microsecond timestamps & monotonic intervals: PASS;
+- explicit physical units (mm): PASS;
+- metadata & calibration IDs: PASS;
+- raw/processed separation (`data/raw/` vs `data/processed/`): PASS;
+- uncertainty records: PASS.
+
+Evidence: `20_STAGE_8_SCIENTIFIC_ACQUISITION_VERIFICATION.md`.
 
 ## Stage 9 — Scientific surface analysis
-**PENDING**
+**COMPLETE — 2026-09-12**
 
-- plane leveling;
-- filtering;
-- line profiles;
-- 2D/3D topography;
-- roughness metrics;
-- feature dimensions;
-- particle/object analysis.
+- plane leveling: PASS (1st-order least squares, tilt residual < 1e-12 mm);
+- filtering: PASS (median despiking and Gaussian filtering);
+- line profiles: PASS (bilinear interpolation with step-height analysis);
+- 2D/3D topography: PASS (publication-grade false-color map and 3D surface mesh);
+- roughness metrics: PASS (ISO 25178 Sa, Sq, Sz, Sp, Sv, Ssk, Sku);
+- feature dimensions & step heights: PASS;
+- particle/object analysis: PASS (8-connected component segmentation, area, volume).
+
+Evidence: `21_STAGE_9_SURFACE_ANALYSIS_VERIFICATION.md`.
 
 ## Stage 10 — ML measurement layer
-**PENDING**
+**CURRENT STAGE — PENDING**
 
 - measurement-quality scoring;
 - noise/artifact detection;

@@ -36,20 +36,51 @@
             "problemMatcher": []
         },
         {
-            "label": "SPM: Launch Single Monitor Workspace",
+            "label": "SPM: Launch Application",
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/python",
             "args": [
-                "-m",
-                "tools.run_single_monitor_workspace"
+                "run_spm.py"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
-                    "PYTHONPATH": "${workspaceFolder}"
+                    "PYTHONPATH": "${workspaceFolder}",
+                    "SPM_WEB_ALLOW_READONLY_HARDWARE": "1"
                 }
             },
             "problemMatcher": []
+        },
+        {
+            "label": "SPM: Launch Single Monitor Workspace",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "run_spm.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}",
+                    "SPM_WEB_ALLOW_READONLY_HARDWARE": "1"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "DORO: Spark Local AI",
+            "type": "shell",
+            "command": "spark-code",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": true,
+                "clear": false
+            }
         }
     ]
 }

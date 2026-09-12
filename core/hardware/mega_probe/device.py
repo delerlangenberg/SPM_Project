@@ -72,9 +72,13 @@ def parse_mega_line(line: str) -> tuple[str, Mapping[str, str]]:
 
 def discover_mega_candidate_ports(ports: Iterable[object] | None = None) -> list[str]:
     """Return plausible Mega ports; the protocol handshake is still mandatory."""
+    from pathlib import Path
+
+    candidates: list[str] = []
+    if ports is None and Path("/dev/spm-arduino").exists():
+        candidates.append("/dev/spm-arduino")
 
     available = list(list_ports.comports() if ports is None else ports)
-    candidates: list[str] = []
     for port in available:
         identity = (getattr(port, "vid", None), getattr(port, "pid", None))
         description = " ".join(
@@ -89,8 +93,10 @@ def discover_mega_candidate_ports(ports: Iterable[object] | None = None) -> list
             marker in description
             for marker in ("arduino", "mega 2560", "ch340", "usb-serial")
         ):
-            candidates.append(str(getattr(port, "device", "")))
-    return sorted(port for port in candidates if port)
+            dev = str(getattr(port, "device", ""))
+            if dev and dev not in candidates:
+                candidates.append(dev)
+    return candidates
 
 
 class MegaProbeSerialTransport:
