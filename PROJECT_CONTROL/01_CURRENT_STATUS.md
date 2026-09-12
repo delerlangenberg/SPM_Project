@@ -2,34 +2,29 @@
 
 ## CURRENT STAGE
 
-**Stage 4 — USB migration to Spark — NOT STARTED**
+**Stage 5 — Read-only hardware communication — NOT STARTED**
 
-Activation requires `/home/deler/SPM_Recovery/STAGE_3_COMPLETE_20260912_131956/VERIFIED`.
-If that marker is absent, finish Stage 3 recovery verification first.
+Activation requires `/home/deler/SPM_Recovery/STAGE_4_COMPLETE_20260912_132523/VERIFIED`.
+If absent, finish Stage 4 checkpoint verification first.
 
 ## Completed-stage log
 
 - Stages 0–2: completed as recorded in the roadmap.
-- Stage 3: source baseline `53f3b91`; offline environment rebuilt;
-  42 canonical tests passed; documentation reconciled.
-  Completion takes effect only when the checkpoint marker exists.
+- Stage 3: baseline committed; offline rebuild and 42 tests passed;
+  recovery checkpoint verified.
+- Stage 4: device identities, aliases, and access verified.
+  Completion takes effect when the checkpoint marker exists.
 
-## Recovery checkpoint
+## Recovery
 
-`/home/deler/SPM_Recovery/STAGE_3_COMPLETE_20260912_131956`
+Stage 4: `/home/deler/SPM_Recovery/STAGE_4_COMPLETE_20260912_132523`
+Stage 3: `/home/deler/SPM_Recovery/STAGE_3_COMPLETE_20260912_131956`
 
-Contains project archive, Git bundle, offline Python packages,
-validation evidence, and restoration instructions.
+## Next work
 
-## Next authorized scope
+Inspect existing communication code, timeout handling, device ownership,
+and Arduino startup behavior before selecting a read-only procedure.
+Serial sessions remain blocked pending that review.
+Physical motion and probe actuation remain blocked.
 
-After checkpoint verification: OS-level USB enumeration and comparison
-with historical identities only. Stage 4 has not been executed.
-No serial sessions, G-code, probe actuation, or physical motion.
-
-## Limitations
-
-Historical positions and calibration are not live evidence.
-The advisor uses plain JSONL history and remains advisory-only.
-Python rebuild verification does not establish hardware readiness
-or verify the handbook's separate JavaScript build.
+USB evidence: `14_STAGE_4_USB_VERIFICATION.md`.

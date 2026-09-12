@@ -1,11 +1,11 @@
 # Development Handoff
 
-Read 01_CURRENT_STATUS.md, 02_ROADMAP.md, and 04_SAFETY_AND_USB_GATE.md.
+Read current status, roadmap, and hardware gate before proceeding.
 
-The current status contains the recovery checkpoint and activation gate.
-After its VERIFIED marker exists, begin Stage 4 with OS-level enumeration.
-Do not open serial sessions or operate hardware.
+Stage 4 USB evidence: 14_STAGE_4_USB_VERIFICATION.md.
+After checkpoint activation, Stage 5 starts with source inspection.
+Review command allowlists, timeout handling, exclusive device access,
+and possible Arduino reset on serial open before communication.
 
-Baseline evidence: 13_BASELINE_VALIDATION.md.
-Earlier conversational ML stage numbers do not replace roadmap numbering.
+No physical motion or probe actuation is authorized.
 Advisor GUI integration remains unfinished.

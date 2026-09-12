@@ -40,20 +40,16 @@ Completion criteria:
 - Recovery location and activation condition: see current status.
 
 ## Stage 4 — USB migration to Spark
-**CURRENT STAGE — NOT STARTED; checkpoint activation required**
+**COMPLETE — activated by the recovery marker in current status**
 
-Only after Stage 3.
-
-- connect MK4S USB-C;
-- connect Arduino USB;
-- enumerate with Linux only;
-- identify VID/PID/serial;
-- create stable udev aliases;
-- verify permissions;
-- no motion.
+- MK4S and Arduino enumerated and identified by serial number.
+- Persistent aliases and account permissions verified.
+- Udev configuration captured.
+- OS inspection only; no serial communication or motion.
+- Evidence: `14_STAGE_4_USB_VERIFICATION.md`.
 
 ## Stage 5 — Read-only hardware communication
-**PENDING**
+**CURRENT STAGE — NOT STARTED; checkpoint activation required**
 
 - identity;
 - firmware;

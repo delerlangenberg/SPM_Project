@@ -1,19 +1,14 @@
 # Hardware Safety and USB Gate
 
-## Authorization
+Physical motion, probe actuation, and serial sessions remain BLOCKED.
 
-Physical operations and serial communication remain BLOCKED.
+OS-level USB inspection is permitted.
+Stage 4 verified identities, aliases, and account access.
+Stage 5 begins with source inspection and procedure review.
 
-After the recovery marker specified in 01_CURRENT_STATUS.md exists,
-Stage 4 permits OS-level USB enumeration only: lsusb, device listings,
-and udevadm identity/permission inspection.
+Before opening serial ports, verify the exact read-only command path,
+timeout behavior, competing clients, and Arduino startup/reset behavior.
+A subsequent documented procedure must explicitly authorize communication.
 
-Do not issue G-code, actuate the probe, home, calibrate, or scan.
-Do not infer current position or readiness from historical records.
-This documentation does not modify runtime interlocks.
-
-## Subsequent gates
-
-Serial communication requires Stage 5 authorization.
-Physical commissioning requires the deterministic safety gate and
-verification of remaining non-web hardware entry points.
+This document does not modify runtime interlocks.
+Historical position, calibration, and firmware are not live evidence.
