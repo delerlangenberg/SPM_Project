@@ -53,6 +53,7 @@ from PyQt6.QtWidgets import (
 
 from core.system.mk4s_z_auto_approach import run_mk4s_z_move_to_setpoint
 from core.ai.academic_ai_client import build_ai_recommendation
+from core.ai.autonomous_spm_agent import AutonomousSPMAgent
 from core.ai.academic_gcode_generator import GCodePatternRequest, build_academic_gcode_job, build_gcode_plan
 from core.ai.spm_approach_advisor import ApproachAdvisorInput, advise_approach
 from core.z_control.crtouch_probe_plan import CRTouchProbePlan
@@ -2042,50 +2043,123 @@ class OperatorWorkstation(QMainWindow):
 
         splitter = QSplitter(Qt.Orientation.Vertical)
 
-        # ── AI Advisor section ────────────────────────────────────────────────
-        advisor_widget = QGroupBox("AI Advisor")
+        # ── Autonomous AI Copilot Section (Futuristic Cyber-Scientific HUD) ─
+        advisor_widget = QGroupBox("Autonomous AI Copilot")
+        advisor_widget.setStyleSheet(
+            "QGroupBox { font-size: 11px; font-weight: 800; color: #00F0FF; "
+            "border: 1px solid #1E3A5F; border-radius: 6px; margin-top: 10px; "
+            "padding-top: 10px; background-color: #0B111E; }"
+            "QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 6px; "
+            "color: #00F0FF; background-color: #0B111E; }"
+        )
         advisor_layout = QVBoxLayout(advisor_widget)
-        advisor_layout.setContentsMargins(8, 12, 8, 8)
-        advisor_layout.setSpacing(6)
+        advisor_layout.setContentsMargins(10, 14, 10, 10)
+        advisor_layout.setSpacing(8)
 
-        # Model status pill
+        # Copilot Status & HUD Indicator
         ai_status_row = QHBoxLayout()
-        self.ai_model_pill = QLabel("● Checking model…")
+        self.ai_model_pill = QLabel("● AUTONOMOUS COPILOT ACTIVE")
         self.ai_model_pill.setStyleSheet(
-            "font-size: 10px; font-weight: 600; color: #6B7280; background: transparent;"
+            "font-size: 10px; font-weight: 700; color: #00FF9D; background: #06231A; "
+            "border: 1px solid #00FF9D; border-radius: 4px; padding: 3px 8px;"
+        )
+        mode_badge = QLabel("AGENTIC SPM CORE")
+        mode_badge.setStyleSheet(
+            "font-size: 9px; font-weight: 700; color: #94A3B8; background: #162032; "
+            "border-radius: 4px; padding: 3px 6px;"
         )
         ai_status_row.addWidget(self.ai_model_pill)
         ai_status_row.addStretch(1)
+        ai_status_row.addWidget(mode_badge)
         advisor_layout.addLayout(ai_status_row)
 
-        # Chat transcript
+        # Quick Action Chips (Futuristic 1-Click Buttons)
+        chip_row = QHBoxLayout()
+        chip_row.setSpacing(4)
+        chip_sample = QPushButton("🎯 Sample 2.0mm")
+        chip_connect = QPushButton("🔌 Auto-Port")
+        chip_correct = QPushButton("🩺 Self-Correct")
+        chip_metrology = QPushButton("🔬 ISO Metrology")
+        for chip in (chip_sample, chip_connect, chip_correct, chip_metrology):
+            chip.setStyleSheet(
+                "QPushButton { font-size: 10px; font-weight: 700; color: #93C5FD; "
+                "background: #111C30; border: 1px solid #1D4ED8; border-radius: 4px; padding: 4px 6px; }"
+                "QPushButton:hover { background: #1D4ED8; color: #FFFFFF; border-color: #3B82F6; }"
+            )
+        chip_sample.clicked.connect(lambda: self._send_ai_advisor_message_with_text(
+            "I have a sample on the surface, the height is 2.0mm, configure scan 10x10mm"
+        ))
+        chip_connect.clicked.connect(lambda: self._send_ai_advisor_message_with_text(
+            "Find the right port and connect to device"
+        ))
+        chip_correct.clicked.connect(lambda: self._send_ai_advisor_message_with_text(
+            "Self-correct connection issues and verify safety interlocks"
+        ))
+        chip_metrology.clicked.connect(lambda: self._send_ai_advisor_message_with_text(
+            "Analyze current surface topography and calculate ISO 25178 roughness"
+        ))
+        chip_row.addWidget(chip_sample)
+        chip_row.addWidget(chip_connect)
+        chip_row.addWidget(chip_correct)
+        chip_row.addWidget(chip_metrology)
+        advisor_layout.addLayout(chip_row)
+
+        # Chat Transcript (Futuristic Cyber HUD Console)
         self.ai_chat_transcript = QTextEdit()
         self.ai_chat_transcript.setReadOnly(True)
         self.ai_chat_transcript.setPlaceholderText(
-            "AI Advisor ready.\n\nType a question below and click Ask. "
-            "The advisor cannot execute motion — it explains, recommends, and diagnoses."
+            "⚡ AUTONOMOUS SPM COPILOT READY\n\n"
+            "Tell me your intent in plain language, for example:\n"
+            "• 'I have a sample on the surface the height is 2.5mm'\n"
+            "• 'Find the right port and connect'\n"
+            "• 'Self-correct connection issues'\n"
+            "• 'Analyze the surface topography'\n\n"
+            "I automatically configure parameters, diagnose hardware, and generate multi-step workflows."
         )
         self.ai_chat_transcript.setStyleSheet(
-            "QTextEdit { background: #FFFFFF; border: 1px solid #E5E7EB;"
-            "border-radius: 4px; font-size: 11px; color: #374151; }"
+            "QTextEdit { background: #060A12; border: 1px solid #1E293B; "
+            "border-radius: 4px; font-size: 11px; color: #E2E8F0; font-family: 'Consolas', monospace; }"
         )
         advisor_layout.addWidget(self.ai_chat_transcript, 1)
 
+        # Autonomous Workflow Execution Button
+        self.ai_execute_plan_btn = QPushButton("⚡ Execute Autonomous Workflow")
+        self.ai_execute_plan_btn.setEnabled(False)
+        self.ai_execute_plan_btn.setMinimumHeight(38)
+        self.ai_execute_plan_btn.setStyleSheet(
+            "QPushButton { font-size: 11px; font-weight: 800; color: #060A12; "
+            "background: #00FF9D; border: 1px solid #00FF9D; border-radius: 4px; padding: 6px; }"
+            "QPushButton:hover { background: #00E58D; }"
+            "QPushButton:disabled { background: #1E293B; color: #64748B; border-color: #334155; }"
+        )
+        self.ai_execute_plan_btn.clicked.connect(self._run_current_autonomous_plan)
+        advisor_layout.addWidget(self.ai_execute_plan_btn)
+
         # Input field
         self.ai_input = QLineEdit()
-        self.ai_input.setPlaceholderText("Ask the AI advisor… e.g. 'Why does Z drift after approach?'")
+        self.ai_input.setPlaceholderText("Command Copilot: e.g. 'I have a sample on the surface the height is 1.8mm'...")
+        self.ai_input.setStyleSheet(
+            "QLineEdit { background: #060A12; border: 1px solid #1E3A5F; border-radius: 4px; "
+            "color: #F8FAFC; font-size: 11px; padding: 6px 10px; }"
+            "QLineEdit:focus { border-color: #00F0FF; }"
+        )
         self.ai_input.returnPressed.connect(self._send_ai_advisor_message)
         advisor_layout.addWidget(self.ai_input)
 
         # Action buttons
         ask_row = QHBoxLayout()
-        ask_btn = QPushButton("Ask AI")
-        ask_btn.setStyleSheet(YELLOW_BUTTON_STYLE)
+        ask_btn = QPushButton("Send to Copilot")
+        ask_btn.setStyleSheet(
+            "QPushButton { background: #2563EB; color: white; font-weight: 700; padding: 6px 12px; border-radius: 4px; }"
+            "QPushButton:hover { background: #1D4ED8; }"
+        )
         ask_btn.clicked.connect(self._send_ai_advisor_message)
-        context_btn = QPushButton("Inject Context")
-        context_btn.setToolTip("Send current hardware state to AI for situational analysis.")
+        context_btn = QPushButton("Telemetry")
+        context_btn.setToolTip("Inject live hardware telemetry into Copilot reasoning.")
+        context_btn.setStyleSheet(GRAY_BUTTON_STYLE)
         context_btn.clicked.connect(self._send_ai_hardware_context)
         clear_btn = QPushButton("Clear")
+        clear_btn.setStyleSheet(GRAY_BUTTON_STYLE)
         clear_btn.clicked.connect(self.ai_chat_transcript.clear)
         ask_row.addWidget(ask_btn, 2)
         ask_row.addWidget(context_btn, 1)
@@ -2102,8 +2176,11 @@ class OperatorWorkstation(QMainWindow):
         log_layout.addWidget(self.build_log_panel())
         splitter.addWidget(log_widget)
 
-        splitter.setSizes([400, 280])
+        splitter.setSizes([450, 250])
         container_layout.addWidget(splitter)
+
+        self._autonomous_agent = AutonomousSPMAgent(self)
+        self._current_autonomous_plan: list[Any] = []
 
         # Async model status check (non-blocking)
         QTimer.singleShot(1200, self._refresh_ai_model_status)
@@ -2118,19 +2195,22 @@ class OperatorWorkstation(QMainWindow):
             model = status.get("model", "?")
             configured = bool(status.get("configured"))
             if configured:
-                self.ai_model_pill.setText(f"● {model}")
+                self.ai_model_pill.setText(f"● COPILOT ACTIVE [{model}]")
                 self.ai_model_pill.setStyleSheet(
-                    "font-size: 10px; font-weight: 600; color: #16A34A; background: transparent;"
+                    "font-size: 10px; font-weight: 700; color: #00FF9D; background: #06231A;"
+                    "border: 1px solid #00FF9D; border-radius: 4px; padding: 3px 8px;"
                 )
             else:
-                self.ai_model_pill.setText("● Offline — deterministic mode")
+                self.ai_model_pill.setText("● COPILOT ACTIVE [DETERMINISTIC]")
                 self.ai_model_pill.setStyleSheet(
-                    "font-size: 10px; font-weight: 600; color: #D97706; background: transparent;"
+                    "font-size: 10px; font-weight: 700; color: #00F0FF; background: #071E26;"
+                    "border: 1px solid #00F0FF; border-radius: 4px; padding: 3px 8px;"
                 )
         except Exception:
-            self.ai_model_pill.setText("● AI unavailable")
+            self.ai_model_pill.setText("● COPILOT OFFLINE")
             self.ai_model_pill.setStyleSheet(
-                "font-size: 10px; font-weight: 600; color: #DC2626; background: transparent;"
+                "font-size: 10px; font-weight: 700; color: #EF4444; background: #260B0B;"
+                "border: 1px solid #EF4444; border-radius: 4px; padding: 3px 8px;"
             )
 
     def _collect_hardware_context(self) -> dict[str, Any]:
@@ -2148,23 +2228,73 @@ class OperatorWorkstation(QMainWindow):
         }
 
     def _send_ai_advisor_message(self) -> None:
-        """Send the typed question to the AI advisor with hardware context."""
+        """Send user prompt to Autonomous SPM Agent and display rich response."""
         question = self.ai_input.text().strip()
         if not question:
             return
         self.ai_input.clear()
-        self.ai_chat_transcript.append(f"<b>You:</b> {question}")
-        self.ai_chat_transcript.append("<i>AI thinking…</i>")
+        self.ai_chat_transcript.append(f"<span style='color:#00F0FF;'><b>Operator &gt;</b> {question}</span>")
         context = self._collect_hardware_context()
-        # Run in a lightweight worker to avoid blocking the UI
-        def _ask() -> dict[str, Any]:
-            from core.ai.academic_ai_client import build_ai_recommendation
-            return build_ai_recommendation(task=question, context=context)
-        worker = Worker(_ask)
-        worker.finished_payload.connect(self._display_ai_advisor_response)
-        worker.finished.connect(lambda: setattr(self, "_ai_worker", None))
-        self._ai_worker = worker
-        worker.start()
+
+        # Check if operator said 'execute' or 'proceed'
+        if question.lower() in ("execute", "proceed", "run plan", "start plan", "go"):
+            if self._current_autonomous_plan:
+                self._run_current_autonomous_plan()
+                return
+
+        # Execute Autonomous Agent interpretation
+        agent = getattr(self, "_autonomous_agent", None) or AutonomousSPMAgent(self)
+        self._autonomous_agent = agent
+        response = agent.interpret_user_command(question, context)
+
+        # Render response in cyber console
+        self.ai_chat_transcript.append(
+            f"<div style='margin: 6px 0; padding: 8px; background: #0E1626; border-left: 3px solid #00F0FF; "
+            f"border-radius: 4px; font-family: monospace;'>"
+            f"{response.natural_response.replace(chr(10), '<br>')}"
+            f"</div>"
+        )
+
+        # If a multi-step plan was generated, load it and update execute button
+        if response.plan:
+            self._current_autonomous_plan = response.plan
+            self.ai_execute_plan_btn.setEnabled(True)
+            self.ai_execute_plan_btn.setText(f"⚡ Execute Autonomous Workflow ({len(response.plan)} Steps)")
+            self.append_log(f"[AI AGENT] Generated autonomous workflow with {len(response.plan)} steps.")
+        else:
+            self.ai_execute_plan_btn.setEnabled(False)
+            self.ai_execute_plan_btn.setText("⚡ Execute Autonomous Workflow")
+
+        self.ai_chat_transcript.verticalScrollBar().setValue(
+            self.ai_chat_transcript.verticalScrollBar().maximum()
+        )
+
+    def _run_current_autonomous_plan(self) -> None:
+        """Safely step through the active autonomous plan."""
+        if not self._current_autonomous_plan:
+            return
+        self.ai_execute_plan_btn.setEnabled(False)
+        self.ai_chat_transcript.append("<span style='color:#00FF9D;'><b>[AGENT] Executing Autonomous Workflow...</b></span>")
+        agent = getattr(self, "_autonomous_agent", None) or AutonomousSPMAgent(self)
+
+        completed_count = 0
+        for step in self._current_autonomous_plan:
+            self.ai_chat_transcript.append(f"<span style='color:#94A3B8;'>• Step: {step.title}...</span>")
+            success = agent.execute_plan_step(step)
+            if success:
+                completed_count += 1
+                self.ai_chat_transcript.append(f"<span style='color:#00FF9D;'>  ✓ {step.result_message or 'Done.'}</span>")
+            else:
+                self.ai_chat_transcript.append(f"<span style='color:#EF4444;'>  ✗ Error: {step.result_message}</span>")
+                break
+
+        self.ai_chat_transcript.append(
+            f"<span style='color:#00FF9D;'><b>[AGENT] Workflow Completed: {completed_count}/{len(self._current_autonomous_plan)} steps executed.</b></span><br>"
+        )
+        self.ai_execute_plan_btn.setText("⚡ Autonomous Workflow Complete")
+        self.ai_chat_transcript.verticalScrollBar().setValue(
+            self.ai_chat_transcript.verticalScrollBar().maximum()
+        )
 
     def _send_ai_hardware_context(self) -> None:
         """Inject current hardware state into AI for situational analysis."""
@@ -2175,36 +2305,6 @@ class OperatorWorkstation(QMainWindow):
     def _send_ai_advisor_message_with_text(self, text: str) -> None:
         self.ai_input.setText(text)
         self._send_ai_advisor_message()
-
-    def _display_ai_advisor_response(self, payload: dict[str, Any]) -> None:
-        """Render AI advisor response in the transcript."""
-        # Remove the "AI thinking…" placeholder
-        cursor = self.ai_chat_transcript.textCursor()
-        text = self.ai_chat_transcript.toPlainText()
-        if "AI thinking…" in text:
-            self.ai_chat_transcript.setPlainText(
-                text.replace("AI thinking…\n", "").replace("AI thinking…", "").rstrip()
-            )
-        recommendations = payload.get("recommendation", [])
-        risk = str(payload.get("risk", "medium")).upper()
-        if isinstance(recommendations, list) and recommendations:
-            answer = "\n".join(f"• {r}" for r in recommendations[:5])
-        else:
-            answer = str(recommendations)
-        risk_color = {"LOW": "#16A34A", "MEDIUM": "#D97706", "HIGH": "#DC2626"}.get(risk, "#374151")
-        self.ai_chat_transcript.append(
-            f"<b>AI</b> <span style='color:{risk_color}; font-size:10px;'>[Risk: {risk}]</span>"
-        )
-        self.ai_chat_transcript.append(answer)
-        self.ai_chat_transcript.append("")
-        self.ai_chat_transcript.verticalScrollBar().setValue(
-            self.ai_chat_transcript.verticalScrollBar().maximum()
-        )
-        if "ai_api_error" in payload:
-            self.ai_model_pill.setText("● Offline — deterministic mode")
-            self.ai_model_pill.setStyleSheet(
-                "font-size: 10px; font-weight: 600; color: #D97706; background: transparent;"
-            )
 
     def build_header(self) -> QVBoxLayout:
         header = QVBoxLayout()
