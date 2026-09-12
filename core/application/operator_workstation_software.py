@@ -1903,6 +1903,10 @@ class OperatorWorkstation(QMainWindow):
                 border: none;
             }
         """)
+        self.profile_select = QComboBox()
+        self.profile_select.addItems(["Student", "Instructor"])
+        self.profile_select.setCurrentText(str(self.settings.value("ui/profile", "Student")))
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
