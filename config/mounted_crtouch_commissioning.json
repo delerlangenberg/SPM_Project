@@ -1,0 +1,79 @@
+{
+  "status": "AUTOMATED_CONTACT_PASS_COARSE_APPROACH_ONLY",
+  "target": {
+    "description": "Insulated whiteboard magnet",
+    "diameter_mm": 20.0,
+    "height_mm": 11.0,
+    "center_frame": "MOUNTED_PROBE_REFERENCE",
+    "center_x_mm": null,
+    "center_y_mm": null,
+    "reference_nozzle_x_mm": 125.0,
+    "reference_nozzle_y_mm": 105.0
+  },
+  "mounted_probe": {
+    "side": "right_of_nozzle",
+    "offset_definition": "probe_position_equals_nozzle_position_plus_offset",
+    "offset_x_mm": null,
+    "offset_y_mm": null,
+    "trigger_clearance_above_surface_mm": 5.9
+  },
+  "alignment_observation": {
+    "printer_z_mm": 28.0,
+    "probe_state": "DEPLOYED",
+    "measured_pin_to_target_gap_mm": 10.0,
+    "recorded_date": "2026-07-27"
+  },
+  "mounted_manual_contact_test": {
+    "date": "2026-07-28",
+    "firmware": "0.8.4-lcd-rgb-manual-test",
+    "pin_retracted": true,
+    "persistent_trigger_latched": true,
+    "lcd_contact_feedback": true,
+    "rgb_yellow_to_green": true,
+    "temperature_after_test": "COOL",
+    "reset_required_to_restore_d3_low": true,
+    "result": "PASS"
+  },
+  "first_automated_contact_test": {
+    "date": "2026-07-28",
+    "firmware": "0.8.5-lcd-rgb-approach",
+    "reference_nozzle_x_mm": 125.0,
+    "reference_nozzle_y_mm": 105.0,
+    "target_height_mm": 11.0,
+    "contact_z_mm": 16.9,
+    "observed_first_physical_contact_z_mm_approx": 18.9,
+    "observed_pin_overtravel_before_trigger_mm_approx": 2.0,
+    "trigger_clearance_above_surface_mm": 5.9,
+    "captured_edges": 4,
+    "captured_rising_edges": 3,
+    "captured_falling_edges": 1,
+    "automatic_retract_z_mm": 120.0,
+    "final_trigger_raw": 0,
+    "final_probe_state": "STOWED",
+    "rgb_contact_feedback": true,
+    "lcd_approach_feedback": true,
+    "target_remained_stationary": true,
+    "nozzle_and_probe_body_clear": true,
+    "final_temperature": "COOL",
+    "result": "PASS_COARSE_APPROACH_NOT_PROFILING"
+  },
+  "motion": {
+    "safe_retract_z_mm": 120.0,
+    "coarse_step_mm": 1.0,
+    "fine_step_mm": 0.1,
+    "fine_window_mm": 3.0,
+    "approach_speed_mm_s": 0.1,
+    "maximum_single_down_step_mm": 0.1,
+    "hard_floor_z_mm": 16.4
+  },
+  "required_evidence": {
+    "bed_z_reference_verified": false,
+    "target_secured": true,
+    "probe_mount_rigid": true,
+    "probe_vertical": false,
+    "mk4s_m114_verified": true,
+    "mega_identity_verified": true,
+    "bench_repeatability_5_of_5": true,
+    "operator_watching": true
+  }
+}

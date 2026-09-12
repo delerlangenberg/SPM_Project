@@ -1,0 +1,34 @@
+{
+  "spm_calibration": {
+    "last_calibration_date": "2026-09-11 15:37:26",
+    "port": "/dev/ttyACM0",
+    "firmware": "FIRMWARE_NAME:Prusa-Firmware-Buddy 6.2.4+8909 (Github) SOURCE_CODE_URL:https://github.com/prusa3d/Prusa-Firmware-Buddy PROTOCOL_VERSION:1.0 MACHINE_TYPE:Prusa-MK4 EXTRUDER_COUNT:1 UUID:cede2a2f-41a2-4748-9b12-c55c62f367ff",
+    "home_counts": {
+      "x": 1400,
+      "y": -400,
+      "z": 800
+    },
+    "home_mm": {
+      "x": 14.0,
+      "y": -4.0,
+      "z": 2.0
+    },
+    "all_endstops_triggered": true,
+    "endstops_before_home": {
+      "x_min": false,
+      "x_max": false,
+      "y_min": false,
+      "y_max": false,
+      "z_min": false,
+      "z_max": false
+    },
+    "endstops_after_home": {
+      "x_min": false,
+      "x_max": false,
+      "y_min": false,
+      "y_max": false,
+      "z_min": false,
+      "z_max": false
+    }
+  }
+}

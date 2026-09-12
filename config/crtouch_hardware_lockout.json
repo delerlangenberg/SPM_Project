@@ -1,0 +1,47 @@
+{
+  "active": false,
+  "status": "CLEARED_STAGE2_CENTERED_COMMISSIONING_VERIFIED",
+  "date": "2026-07-30",
+  "reason": "The CR Touch has been moved to the former nozzle centerline and the nozzle, heater, thermistors and fans have been removed. All right-side-mount coordinates are invalid until Stage 2 recommissioning.",
+  "motion_policy": "READ_ONLY_UNTIL_CENTERED_TRIGGER_BASELINE_AND_NEW_GEOMETRY_PASS",
+  "invalidated_previous_geometry": {
+    "profile": "right_side_commissioned",
+    "date": "2026-07-30",
+    "reason": "Probe relocation changes XY reach, probe-to-stage Z reference and safe travel height.",
+    "may_not_be_used_for_motion": true
+  },
+  "cleared": {
+    "date": "2026-07-30",
+    "operator_confirmed_physical_inspection": true,
+    "five_cycle_actuation_complete": true,
+    "trigger_baseline": "D3_LOW_UNLATCHED",
+    "control_safe_state": "D8_HIGH_IMPEDANCE",
+    "xy_homing_complete": true,
+    "five_point_stage_map_complete": true,
+    "verified_native_envelope_mm": {
+      "x_min": 15.5,
+      "x_max": 250.0,
+      "y_min": 12.5,
+      "y_max": 210.0
+    },
+    "bare_stage_trigger_mean_z_mm": 28.11,
+    "bare_stage_peak_to_peak_mm": 0.6,
+    "safe_travel_z_mm": 45.0,
+    "final_safe_position_mm": {
+      "x": 132.75,
+      "y": 111.25,
+      "z": 45.0
+    }
+  },
+  "clear_only_after": [
+    "MK4S and Mega power disconnected",
+    "CR Touch mount and housing visually inspected",
+    "probe pin checked for straightness and free manual movement while unpowered",
+    "wiring and Grove connectors inspected",
+    "nozzle and carriage checked for displacement",
+    "operator explicitly confirms inspection result",
+    "Mega trigger latch cleared and D3 baseline verified low",
+    "output-off thermal state verified",
+    "new conservative motion envelope reviewed before any powered movement"
+  ]
+}

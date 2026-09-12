@@ -1,0 +1,51 @@
+{
+  "status": "REAL_SCAN_PASS_20260728",
+  "field": {
+    "x_min_mm": 65.0,
+    "x_max_mm": 145.0,
+    "discovery_y_mm": 105.0,
+    "coarse_pitch_mm": 5.0,
+    "edge_refinement_pitch_mm": 1.0
+  },
+  "known_physical_description": {
+    "object_diameter_mm": 29.2,
+    "requested_edge_gap_mm": 10.0,
+    "current_object_center_x_mm": 125.5,
+    "current_object_center_y_mm": 105.0,
+    "nominal_second_center_x_mm_for_operator_placement_only": 86.3
+  },
+  "algorithm_constraints": {
+    "nominal_second_center_used_for_detection": false,
+    "first_contact_speed_mm_s": 0.05,
+    "maximum_candidate_speed_mm_s": 0.8,
+    "maximum_z_step_mm": 0.05,
+    "minimum_samples_per_component": 2,
+    "require_no_contact_separation_between_components": true,
+    "deterministic_hard_floor_required": true,
+    "ai_may_override_safety": false
+  },
+  "workflow": [
+    "coarse_horizontal_discovery",
+    "contact_component_segmentation",
+    "one_mm_transition_refinement",
+    "center_and_diameter_estimation",
+    "targeted_two_dimensional_sampling",
+    "independent_verification_taps"
+  ],
+  "last_real_scan": {
+    "field_mm": [100.0, 100.0],
+    "physical_measurements": 234,
+    "contacts": 193,
+    "no_contacts": 41,
+    "approach_speed_mm_s": 0.8,
+    "z_command_resolution_mm": 0.05,
+    "detected_centers_mm": [[85.5, 105.0], [125.75, 105.0]],
+    "center_distance_mm": 40.25,
+    "measured_edge_gap_bracket_mm": [10.0, 11.0],
+    "measured_edge_gap_midpoint_mm": 10.5,
+    "csv": "data/crtouch_profiles/two_object_100x100_20260728_185040.csv",
+    "plot": "data/crtouch_profiles/two_object_100x100_20260728_185040.png",
+    "summary": "data/crtouch_profiles/two_object_100x100_20260728_185040_summary.json",
+    "safe_retract_confirmed_z_mm": 120.0
+  }
+}

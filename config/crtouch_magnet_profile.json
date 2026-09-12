@@ -1,0 +1,69 @@
+{
+  "status": "ADAPTIVE_2D_40X40_MAP_PASS",
+  "mode": "CR_TOUCH_CONTACT_PROFILOMETER",
+  "target": {
+    "description": "Insulated whiteboard magnet button",
+    "height_mm": 10.8,
+    "diameter_mm": 29.2,
+    "center_reference_nozzle_x_mm": 125.0,
+    "center_reference_nozzle_y_mm": 105.0
+  },
+  "pilot": {
+    "grid": "3x3",
+    "scan_span_mm": 18.0,
+    "edge_margin_mm": 1.5,
+    "point_count": 9,
+    "path": "serpentine"
+  },
+  "z": {
+    "estimated_physical_contact_z_mm": 18.7,
+    "expected_electrical_trigger_z_mm": 16.7,
+    "hard_floor_z_mm": 16.2,
+    "fine_handoff_z_mm": 19.7,
+    "local_retract_z_mm": 25.0,
+    "safe_retract_z_mm": 120.0,
+    "fine_step_mm": 0.05,
+    "fine_speed_mm_s": 0.05
+  },
+  "execution": {
+    "hardware_authorized": true,
+    "temperature_check_between_points": true,
+    "abort_on_missing_trigger": true,
+    "abort_on_transport_loss": true,
+    "abort_on_temperature_warning": true,
+    "profiling_resolution_claim": "COARSE_ONLY",
+    "last_run": {
+      "timestamp": "2026-07-28T17:39:12+02:00",
+      "profile_type": "1D_CENTER_LEFT_CENTER_RIGHT_TAPER",
+      "calibrated_probe_center_x_mm": 125.0,
+      "calibrated_probe_center_y_mm": 105.0,
+      "scan_start_x_mm": 111.0,
+      "scan_end_x_mm": 139.0,
+      "scan_y_mm": 105.0,
+      "points_passed": 40,
+      "points_planned": 40,
+      "fault": "NONE",
+      "safe_retract_confirmed_z_mm": 120.0,
+      "center_repeat_difference_um": 50.0,
+      "csv": "data/crtouch_profiles/magnet_1d_40pt_20260728_173912.csv",
+      "plot": "data/crtouch_profiles/magnet_1d_40pt_20260728_173912.png",
+      "summary": "data/crtouch_profiles/magnet_1d_40pt_20260728_173912_summary.json"
+    },
+    "adaptive_2d_last_run": {
+      "timestamp": "2026-07-28T17:55:49+02:00",
+      "field_mm": [40, 40],
+      "projection_pixels": [40, 40],
+      "physical_measurements": 116,
+      "literal_raster_measurements_avoided": 1484,
+      "cycle_reduction_factor": 13.8,
+      "contacts": 85,
+      "no_contacts": 31,
+      "z_bin_mm": 0.2,
+      "safe_retract_confirmed_z_mm": 120.0,
+      "csv": "data/crtouch_profiles/magnet_adaptive_2d_20260728_175549.csv",
+      "plot": "data/crtouch_profiles/magnet_adaptive_2d_20260728_175549.png",
+      "summary": "data/crtouch_profiles/magnet_adaptive_2d_20260728_175549_summary.json",
+      "projection_note": "Distance-weighted 40x40 projection with measured locations overlaid; not 1600 physical pixels."
+    }
+  }
+}

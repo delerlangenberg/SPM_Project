@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "scan_envelope_native_mm": {
+    "x": [
+      15.5,
+      250.0
+    ],
+    "y": [
+      12.5,
+      210.0
+    ]
+  },
+  "safe_z_mm": 45.0,
+  "bare_stage_trigger_z_mm": 28.11,
+  "height_correction": "bilinear_four_corner_stage_map",
+  "height_column": "height_above_stage_mm",
+  "resolution_profile": "quick",
+  "coarse_pitch_mm": 20.0,
+  "focused_pitch_mm": 5.0,
+  "readings": 271,
+  "contacts": 62,
+  "detected_centers_native_mm": [
+    [
+      80.5,
+      87.5
+    ],
+    [
+      185.5,
+      132.5
+    ]
+  ],
+  "detected_centers_map_mm": [
+    [
+      65.0,
+      122.5
+    ],
+    [
+      170.0,
+      77.5
+    ]
+  ],
+  "csv": "C:\\SPM_Prusa_Project\\data\\crtouch_profiles\\verified_two_magnet_map_20260731_085114.csv",
+  "plot": "C:\\SPM_Prusa_Project\\data\\crtouch_profiles\\verified_two_magnet_map_20260731_085114.png"
+}

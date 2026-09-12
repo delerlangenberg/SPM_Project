@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+logs/
+tmp/
+*.log
+config/*_key.txt
+config/*.secret
+data/experiment_runs/
+/docs/hardware_logs/
+/data/ml_safety/
+.env
+.env.*
+*.PRE_*
+node_modules/
+*.phase_*_backup

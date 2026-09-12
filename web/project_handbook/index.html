@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SPM Prusa Project Handbook</title>
+  <style>
+    :root { --ink:#07131d; --navy:#071b29; --paper:#f3f7f6; --teal:#0f766e; --cyan:#16d7c5; --amber:#f59e0b; --line:#d7e1df; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.65 "Segoe UI",Arial,sans-serif; }
+    header { padding:64px max(6vw,24px); color:white; background:linear-gradient(135deg,var(--navy),#0a3541); }
+    .tag { color:var(--cyan); font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+    h1 { max-width:900px; margin:10px 0 18px; font-size:clamp(42px,7vw,84px); line-height:1; letter-spacing:-.05em; }
+    header p { max-width:720px; color:#bdd0d6; font-size:18px; }
+    nav { display:flex; flex-wrap:wrap; gap:10px; margin-top:30px; }
+    nav a,.button { padding:12px 16px; color:white; background:#ffffff12; border:1px solid #ffffff30; text-decoration:none; font-weight:700; }
+    .button { display:inline-block; color:#042727; background:var(--cyan); border-color:var(--cyan); }
+    main { width:min(1100px,88vw); margin:auto; padding:55px 0 90px; }
+    .notice { padding:20px 24px; background:#fff7df; border-left:5px solid var(--amber); }
+    section { padding:46px 0; border-bottom:1px solid var(--line); }
+    h2 { margin:0 0 18px; font-size:clamp(30px,4vw,48px); letter-spacing:-.035em; }
+    .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:15px; }
+    article { padding:24px; background:white; border:1px solid var(--line); }
+    article b { color:var(--teal); }
+    table { width:100%; border-collapse:collapse; background:white; }
+    figure { margin:24px 0; padding:16px; background:white; border:1px solid var(--line); }
+    figure img { display:block; width:100%; height:auto; }
+    figcaption { margin-top:10px; color:#47616a; }
+    th,td { padding:14px; border:1px solid var(--line); text-align:left; }
+    th { color:var(--teal); font-size:12px; text-transform:uppercase; }
+    footer { padding:30px max(6vw,24px); color:#9db0b8; background:#031119; }
+    @media(max-width:700px){ .grid{grid-template-columns:1fr} table{font-size:13px} }
+  </style>
+</head>
+<body>
+  <header id="top">
+    <div class="tag">Local offline index</div>
+    <h1>SPM Prusa construction handbook</h1>
+    <p>A readable starting point for building, wiring, commissioning and operating the MK4S, Arduino Mega 2560 and CR Touch measurement platform.</p>
+    <nav>
+      <a class="button" href="http://localhost:4310">Open full interactive handbook</a>
+      <a href="#build">Construction</a><a href="#pins">Pin allocation</a><a href="#development">Validated development</a><a href="#purchase">Parts roadmap</a><a href="#next">Continue</a>
+    </nav>
+  </header>
+  <main>
+    <div class="notice"><b>Stage 2 commissioned:</b> the nozzle, heater, thermistor and toolhead fans are removed and CR Touch is centered. The verified field is X15.50–250.00, Y12.50–210.00 with safe XY at Z45 and mean bare-stage trigger Z28.11. Real motion still requires every live safety gate. The maintained files in <b>docs/</b> are the authoritative engineering record.</div>
+    <section id="build">
+      <div class="tag">Safe construction order</div><h2>Build one verified boundary at a time.</h2>
+      <div class="grid">
+        <article><b>01 · MK4S motion</b><p>Keep xBuddy responsible for X, Y and Z. Verify the normal USB connection and read-only machine status first.</p></article>
+        <article><b>02 · Protected adapter</b><p>Add fused 5 V probe power, a buffered control output, a conditioned 3.3 V trigger input and accessible test points.</p></article>
+        <article><b>03 · Mega 2560</b><p>Flash the locked commissioning firmware and verify the exact USB identity before connecting the probe.</p></article>
+        <article><b>04 · CR Touch</b><p>Validated on D3/D8 as coarse approach and safety only. Fine profiling requires a separate continuous sensor and fine-Z actuator.</p></article>
+      </div>
+    </section>
+    <section id="pins">
+      <div class="tag">Current design allocation</div><h2>Mega 2560 five-wire adapter</h2>
+      <table>
+        <tr><th>Wire</th><th>Function</th><th>Mega destination</th><th>Protection</th></tr>
+        <tr><td>Black</td><td>+5 V probe power</td><td>D2 socket VCC</td><td>Dedicated fused branch</td></tr>
+        <tr><td>Red</td><td>Sensor ground</td><td>D2 socket GND</td><td>Common with White</td></tr>
+        <tr><td>Blue</td><td>Probe trigger</td><td>D2 socket White / Mega D3</td><td>Persistent interrupt capture</td></tr>
+        <tr><td>White</td><td>Control ground</td><td>D8 socket GND</td><td>Common with Red</td></tr>
+        <tr><td>Yellow</td><td>Deploy/stow control</td><td>D8 socket Yellow / Mega D8</td><td>High-impedance after command</td></tr>
+      </table>
+      <p><b>Validated mounted allocation:</b> D3 trigger, D8 control, LCD on I²C 0x3E and Chainable RGB LED on D6/D7. Never connect Mega GPIO to xBuddy motion nets.</p>
+      <p><b>LoveBoard decision:</b> keep it as the labelled toolhead breakout. Its motor, heater, thermistor, fan, loadcell and filament-sensor connectors are dedicated xBuddy interfaces, not interchangeable GPIO, and cannot replace the Mega CR Touch controller.</p>
+    </section>
+    <section id="development">
+      <div class="tag">Validated physical development</div><h2>From first contact to adaptive tapping maps.</h2>
+      <table>
+        <tr><th>Milestone</th><th>Verified result</th><th>Engineering meaning</th></tr>
+        <tr><td>Bench repeatability</td><td>5/5 trigger cycles passed</td><td>D3/D8 wiring, reset and control sequence validated</td></tr>
+        <tr><td>Mounted approach</td><td>Physical contact, D3 trigger, retract and cool final state</td><td>Coarse tapping workflow accepted</td></tr>
+        <tr><td>1D profile</td><td>40 center-referenced readings</td><td>Flat top and tapered rim resolved; center refined to X125.5/Y105</td></tr>
+        <tr><td>Adaptive 2D map</td><td>116 physical readings, 85 contacts, 31 no-contact controls</td><td>40×40 projection with 13.8× fewer cycles than a literal raster</td></tr>
+        <tr><td>Speed sweep</td><td>Z17.600 at 0.05–0.80 mm/s</td><td>0.80 mm/s is a known-surface candidate; unknown surfaces start slow</td></tr>
+        <tr><td>Two-object discovery</td><td>234 physical readings across an authorized 100×100 mm field</td><td>Two centers found without the nominal second center; clear gap bracketed at 10.0–11.0 mm</td></tr>
+      </table>
+      <figure><img src="public/project/crtouch-1d-profile.png" alt="Center-referenced CR Touch line profile"><figcaption>Measured 1D profile: flat top with the outer tapered rim. The accepted scan begins at center and works outward in both directions.</figcaption></figure>
+      <figure><img src="public/project/crtouch-adaptive-2d-map.png" alt="Adaptive 40 by 40 millimeter CR Touch contact map"><figcaption>Adaptive 40×40 mm projection. White circles and red crosses are physical measurements; colored pixels between them are interpolated.</figcaption></figure>
+      <figure><img src="public/project/crtouch-speed-sweep.png" alt="CR Touch tapping speed characterization"><figcaption>One contact per speed at 0.05 mm steps. All five trials triggered at Z17.600; replication is still required before unknown-surface certification.</figcaption></figure>
+      <figure><img src="public/project/crtouch-two-object-100x100.png" alt="Real adaptive CR Touch scan of two separated round objects"><figcaption>Real 100×100 mm adaptive scan: 234 physical measurements, independently detected centers X85.50 and X125.75, and a directly bracketed 10.0–11.0 mm clear gap. Colored circles are contacts; red crosses are no-contact controls.</figcaption></figure>
+      <p><a href="public/source/CRTOUCH_TAPPING_DEVELOPMENT_RECORD.md">Open the full development record</a> · <a href="public/source/CENTERED_CRTOUCH_CONVERSION.md">Open Stage 2 conversion status</a> · <a href="public/source/STAGE2_LOVEBOARD_CONNECTOR_ASSESSMENT.md">Open LoveBoard assessment</a></p>
+    </section>
+    <section id="purchase">
+      <div class="tag">Development and purchasing</div><h2>Coarse motion now; direct metrology next.</h2>
+      <div class="grid">
+        <article><b>Recommended Step 2 · PI P-616.3C</b><p>Closed-loop XYZ NanoCube, 100 µm travel per axis, direct capacitive sensing and parallel kinematics. Preferred fine stage for integration with the Prusa coarse platform.</p></article>
+        <article><b>Premium SPM · PI P-363.3CD + E-536</b><p>High-speed 5 × 5 × 5 µm PicoCube for later small-field AFM/SPM work after coarse approach and force sensing are mature.</p></article>
+        <article><b>Coarse vision</b><p>Global-shutter USB3 camera, telecentric lens and controlled illumination for XY registration, feature priors and collision context—not Z metrology.</p></article>
+        <article><b>Fine interaction sensor</b><p>AFM cantilever, piezoresistive cantilever, tuning fork or equivalent force-gradient sensor. The existing 5 kg load cells are not the final fine probe.</p></article>
+      </div>
+    </section>
+    <section id="next">
+      <div class="tag">Next bench session</div><h2>Continue safely.</h2>
+      <ol>
+        <li><b>Completed:</b> centered CR Touch conversion and five-cycle Probe Out/In test.</li>
+        <li><b>Completed:</b> precise X/Y homing and optimized 234.50 × 197.50 mm field.</li>
+        <li><b>Completed:</b> five-point bare-stage map, mean Z28.11 and 0.60 mm peak-to-peak variation.</li>
+        <li>Use Z45 for XY travel and apply the stage background map before interpreting sample corrugation.</li>
+        <li>Real Measurement remains conditional on D3 LOW, D8 high impedance and zero heater targets/outputs.</li>
+      </ol>
+      <p><a href="public/source/crtouch-mega2560-wiring.html">Open the visual wiring guide</a> · <a href="public/source/CRTOUCH_MEGA2560_INTEGRATION.md">Integration source</a> · <a href="public/source/CRTOUCH_MEGA2560_ROADMAP.md">Commissioning roadmap</a></p>
+    </section>
+  </main>
+  <footer>SPM Prusa Project · Local internal engineering handbook · No sign-in required</footer>
+</body>
+</html>

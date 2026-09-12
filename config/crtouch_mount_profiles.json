@@ -1,0 +1,144 @@
+{
+  "active_profile": "center_crtouch_nozzle_removed",
+  "profiles": {
+    "right_side_commissioned": {
+      "display_name": "Right-side CR Touch - commissioned",
+      "enabled": true,
+      "probe_location": "approximately 51 mm right of nozzle, viewed from front",
+      "extruder_present": true,
+      "hotend_present": true,
+      "loadcell_present": true,
+      "native_scan_envelope_mm": {
+        "x_min": -150.0,
+        "x_max": 0.0,
+        "y_min": 0.0,
+        "y_max": 195.0
+      },
+      "local_bare_stage_trigger_z_mm": 0.0,
+      "safe_travel_z_mm": 15.0,
+      "commissioning_status": "VERIFIED_2026_07_29"
+    },
+    "center_crtouch_nozzle_removed": {
+      "display_name": "Centered CR Touch - nozzle removed",
+      "enabled": true,
+      "hardware_installed": true,
+      "installation_date": "2026-07-30",
+      "probe_location": "toolhead centerline replacing nozzle",
+      "extruder_present": false,
+      "hotend_present": false,
+      "nozzle_present": false,
+      "heater_present": false,
+      "hotend_thermistor_present": false,
+      "print_fan_present": false,
+      "heatsink_fan_present": false,
+      "loadcell_present": "LOVEBOARD_CONNECTOR_VISIBLE_FUNCTION_NOT_COMMISSIONED",
+      "native_scan_envelope_mm": {
+        "x_min": 15.5,
+        "x_max": 250.0,
+        "y_min": 12.5,
+        "y_max": 210.0
+      },
+      "excluded_homing_edge_mm": {
+        "x": 15.0,
+        "y": 15.0
+      },
+      "local_bare_stage_trigger_z_mm": 28.11,
+      "bare_stage_trigger_range_mm": {
+        "min": 27.8,
+        "max": 28.4,
+        "peak_to_peak": 0.6
+      },
+      "safe_travel_z_mm": 45.0,
+      "z_upper_reference_mm": 220.0,
+      "commissioning_status": "VERIFIED_STAGE2_2026_07_30",
+      "live_readonly_evidence": {
+        "date": "2026-07-30",
+        "mk4s_firmware": "Prusa-Firmware-Buddy 6.2.4+8909",
+        "m114": {"x": -88.0, "y": 138.0, "z": 153.0},
+        "nozzle_temperature_c": -20.0,
+        "nozzle_target_c": 0.0,
+        "nozzle_heater_output": 0,
+        "bed_temperature_c": 25.95,
+        "all_endstops_open": true,
+        "mega_firmware": "0.8.5-lcd-rgb-approach",
+        "mega_trigger_raw": 0,
+        "mega_trigger_latched": 0,
+        "mega_control": "D8_HIGH_IMPEDANCE"
+      },
+      "commissioning_evidence": {
+        "operator_confirmed": true,
+        "xy_homing": {
+          "x": "PERFECT",
+          "y": "PERFECT"
+        },
+        "repeatability_trigger_z_mm": [
+          28.05,
+          28.05,
+          28.05,
+          28.05,
+          28.05
+        ],
+        "repeatability_increment_mm": 0.05,
+        "repeatability_approach_speed_mm_s": 0.25,
+        "stage_map": [
+          {
+            "name": "back_right",
+            "x_mm": 250.0,
+            "y_mm": 210.0,
+            "trigger_z_mm": 28.3
+          },
+          {
+            "name": "back_left",
+            "x_mm": 15.5,
+            "y_mm": 210.0,
+            "trigger_z_mm": 28.4
+          },
+          {
+            "name": "front_left",
+            "x_mm": 15.5,
+            "y_mm": 12.5,
+            "trigger_z_mm": 28.05
+          },
+          {
+            "name": "front_right",
+            "x_mm": 250.0,
+            "y_mm": 12.5,
+            "trigger_z_mm": 27.8
+          },
+          {
+            "name": "center",
+            "x_mm": 132.75,
+            "y_mm": 111.25,
+            "trigger_z_mm": 28.0
+          }
+        ],
+        "final_safe_state": {
+          "x_mm": 132.75,
+          "y_mm": 111.25,
+          "z_mm": 45.0,
+          "probe": "IN",
+          "d3_raw": 0,
+          "trigger_latched": 0,
+          "d8": "HIGH_IMPEDANCE"
+        }
+      },
+      "required_before_enable": [
+        "center mount drawing and fasteners verified",
+        "CR Touch axis aligned vertically with toolhead centerline",
+        "heater and thermistor disposition electrically verified",
+        "loadcell disposition and MK4S homing strategy verified",
+        "extrusion and heating G-code rejected by software",
+        "XY limits re-measured with the centered probe",
+        "bare-stage Z reference repeated",
+        "five-cycle probe test passes",
+        "operator explicitly signs commissioning record"
+      ],
+      "firmware_policy": {
+        "stock_firmware_flash_allowed": false,
+        "custom_firmware_flash_allowed": false,
+        "current_phase": "STOCK_FIRMWARE_WITH_HOST_SCANNER_FIREWALL",
+        "reason": "Stock 6.2.4 completed XY homing and bounded XYZ scanner motion with the removed hotend open and all heater outputs zero. Host policy blocks heating, extrusion, printing, G29 and Z homing while retaining stock limits and watchdogs."
+      }
+    }
+  }
+}

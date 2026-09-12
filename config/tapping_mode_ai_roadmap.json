@@ -1,0 +1,39 @@
+{
+  "status": "PHASE_1_SPEED_SWEEP_COMPLETE_PHASE_2_PLANNED",
+  "current_probe": "CR_TOUCH_COARSE_TAPPING_ONLY",
+  "speed_characterization": {
+    "iterations_per_speed": 1,
+    "step_mm": 0.05,
+    "speeds_mm_s": [0.05, 0.1, 0.2, 0.4, 0.8],
+    "trigger_z_mm": [17.6, 17.6, 17.6, 17.6, 17.6],
+    "approach_loop_s": [4.536, 2.57, 1.572, 1.062, 0.817],
+    "candidate_known_surface_speed_mm_s": 0.8,
+    "unknown_surface_initial_speed_mm_s": 0.05,
+    "certification_state": "NOT_CERTIFIED_ONE_ITERATION_ONLY"
+  },
+  "unknown_surface_policy": {
+    "first_contact": "SLOW_CONSERVATIVE_ENVELOPE",
+    "speed_increase": "ONLY_AFTER_REPEATABLE_LOCAL_CONTACTS",
+    "maximum_z_step_mm": 0.05,
+    "deterministic_hard_floor_required": true,
+    "ai_may_override_safety": false,
+    "predicted_pixels_must_be_labelled": true,
+    "uncertain_regions_require_measurement": true
+  },
+  "ai_measurement_loop": [
+    "camera_and_previous_scan_create_feature_prior",
+    "model_predicts_height_and_uncertainty",
+    "deterministic_controller creates safe Z envelope",
+    "active_sampler measures highest uncertainty and boundaries",
+    "measurements update model and drift estimate",
+    "verification points test predictions",
+    "scan stops on residual, drift, temperature, or transport fault"
+  ],
+  "future_hardware": {
+    "recommended_step_2_stage": "PI_P_616_3C",
+    "premium_small_field_spm_stage": "PI_P_363_3CD_WITH_E_536",
+    "coarse_vision": "GLOBAL_SHUTTER_USB3_CAMERA_WITH_TELECENTRIC_LENS",
+    "camera_role": "XY_FEATURE_PRIOR_AND_COLLISION_CONTEXT_NOT_Z_METROLOGY",
+    "fine_sensor_required": "CANTILEVER_OR_FORCE_GRADIENT_SENSOR"
+  }
+}

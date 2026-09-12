@@ -1,0 +1,34 @@
+{
+  "status": "COARSE_APPROACH_VALIDATED_FINE_PROFILING_LOCKED",
+  "crtouch_role": "COARSE_APPROACH_AND_SAFETY_ONLY",
+  "reference": {
+    "nozzle_x_mm": 125.0,
+    "nozzle_y_mm": 105.0,
+    "target_height_mm": 11.0,
+    "first_physical_contact_z_mm_approx": 18.9,
+    "electrical_trigger_z_mm": 16.9,
+    "pin_overtravel_before_trigger_mm_approx": 2.0,
+    "hard_floor_z_mm": 16.4,
+    "safe_retract_z_mm": 120.0,
+    "fine_handoff_clearance_mm": 1.0,
+    "fine_handoff_z_mm": 19.9
+  },
+  "lcd_terms": {
+    "surface_gap": "max(0, current_z - 18.9)",
+    "pin_compression": "max(0, min(2.0, 18.9 - current_z))",
+    "electrical_trigger": "D3 persistent latch"
+  },
+  "fine_profiling": {
+    "sensor_name": "UNSELECTED",
+    "sensor_connected": false,
+    "sensor_calibrated": false,
+    "continuous_feedback_verified": false,
+    "actuator_name": "UNSELECTED",
+    "actuator_connected": false,
+    "actuator_calibrated": false,
+    "closed_loop_verified": false,
+    "coarse_repeatability_cycles": 1,
+    "coarse_repeatability_stddev_mm": null,
+    "profiling_allowed": false
+  }
+}
